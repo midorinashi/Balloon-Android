@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+	<attr name="creator" format="string" />
+	<attr name="agenda" format="string" />
+	<attr name="venueInfo" format="string" />
+	<attr name="venuePhotoURL" format="string" />
+	<attr name="expiresAt" format="string" />
+    <declare-styleable name="Event" >
+        <attr name="creator" />
+        <attr name="agenda" />
+        <attr name="venueInfo" />
+        <attr name="venuePhotoURL" />
+        <attr name="expiresAt" />
+    </declare-styleable>
+    <declare-styleable name="MoreInfoEvent">
+        <attr name="creator" />
+        <attr name="agenda" />
+        <attr name="venueInfo" />
+        <attr name="venuePhotoURL" />
+        <attr name="expiresAt" />
+        <attr name="RSVP" format="enum" >
+            <enum name="noResponse" value="0" />
+            <enum name="going" value="1" />
+            <enum name="notGoing" value="2" />
+        </attr>
+    </declare-styleable>
+</resources>

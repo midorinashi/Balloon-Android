@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/lightBlue"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+	<LinearLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical"
+	    android:paddingTop="10dp"
+	    android:paddingBottom="10dp"
+	    android:scrollbars="vertical" >
+	
+	    <LinearLayout
+	        android:background="@color/white"
+	        android:clickable="true"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="10dp"
+	        android:padding="10dp" >
+	
+	        <TextView
+	            android:id="@+id/finalEditToHeader"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/final_edit_to" />
+	
+	        <TextView
+	            android:id="@+id/finalEditTo"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content"
+	            android:gravity="right"
+	            android:text="@string/dummy_name"
+	            android:textColor="@color/blue" />
+	
+	    </LinearLayout>
+	
+	    <LinearLayout
+	        android:background="@color/white"
+	        android:clickable="true"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:orientation="vertical"
+	        android:layout_margin="10dp"
+	        android:padding="10dp" >
+	
+	        <TextView
+	            android:id="@+id/finalEditAgendaHeader"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/final_edit_agenda" />
+	
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/white_space" />
+	
+	        <TextView
+	            android:id="@+id/finalEditAgenda"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/dummy_agenda"
+	            android:textColor="@color/blue" />
+	
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/white_space" />
+	        
+	    </LinearLayout>
+	
+	    <LinearLayout
+	        android:background="@color/white"
+	        android:clickable="true"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="10dp"
+	        android:padding="10dp" >
+	
+	        <TextView
+	            android:id="@+id/finalEditLocationHeader"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/final_edit_location" />
+	
+	        <TextView
+	            android:id="@+id/finalEditLocation"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content"
+	            android:gravity="right"
+	            android:text="@string/dummy_location"
+	            android:textColor="@color/blue" />
+	    </LinearLayout>
+	
+	    <LinearLayout
+	        android:background="@color/white"
+	        android:clickable="true"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="10dp"
+	        android:padding="10dp" >
+	
+	        <TextView
+	            android:id="@+id/finalEditDeadlineHeader"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/final_edit_deadline" />
+	
+	        <TextView
+	            android:id="@+id/finalEditDeadline"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content"
+	            android:gravity="right"
+	            android:text="@string/deadline_time"
+	            android:textColor="@color/blue" />
+	        
+	    </LinearLayout>
+	    
+	   <LinearLayout
+	        android:background="@color/white"
+	        android:clickable="true"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="10dp" >
+	
+	        <TextView
+	            android:id="@+id/finalEditPhotoHeader"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	        	android:layout_margin="10dp"
+	            android:text="@string/final_edit_photo"
+	            android:textColor="@color/gray" />
+	
+	        <ImageView
+	            android:id="@+id/photoArrow"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:src="@drawable/abc_ic_go" />
+	        
+	    </LinearLayout>
+	
+	   <Button
+	       android:id="@+id/preview"
+	       android:background="@color/gray"
+	       android:layout_width="match_parent"
+	       android:layout_height="35dp"
+	       android:layout_marginLeft="25dp"
+	       android:layout_marginTop="10dp"
+	       android:layout_marginRight="25dp"
+	       android:onClick="preview"
+	       android:text="@string/preview"
+	       android:textColor="@color/white" />
+	   
+	    <Button
+	       android:id="@+id/send"
+	       android:background="@color/buttonBlue"
+	       android:layout_width="match_parent"
+	       android:layout_height="35dp"
+	       android:layout_marginLeft="25dp"
+	       android:layout_marginTop="10dp"
+	       android:layout_marginRight="25dp"
+	       android:onClick="send"
+	       android:text="@string/send"
+	       android:textColor="@color/white" /> 
+	    
+	</LinearLayout>
+	
+</ScrollView>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:invite="http://schemas.android.com/apk/res/com.example.balloon"    
+    android:id="@+id/scrollView1"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+	<LinearLayout
+	    android:id="@+id/invitations"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical" >
+	    <!-- 
+	    <com.example.balloon.Event
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        invite:agenda="Panic a lil"
+	        invite:creator="Kevin"
+	        invite:expiresAt="2000000000"
+	        invite:venueInfo="here"
+	    -->
+	
+	</LinearLayout>
+</ScrollView>

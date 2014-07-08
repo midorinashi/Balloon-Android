@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <string name="add_photo">Add\na\nPhoto</string>
+    <string name="app_name">Balloon</string>
+    <string name="action_next">Next</string>
+    <string name="action_new_invitation">New Invitation</string>
+    <string name="action_plus">New Invitation</string>
+    <string name="action_settings">Settings</string>
+    <string name="agenda_empty">No plan :C</string>
+    <string name="agenda_edit">What\'s the plan?\n\n(e.g. Let\'s go to Shake Shack at 8PM)</string>
+    <string name="balloon">Balloon</string>
+    <string name="comments_header">Comments</string>
+    <string name="coming_header">Coming</string>
+    <string name="deadline_time">7:00PM</string>
+    <string name="deadline_text">Your invitation wil\nbe visible from\nnow until</string>
+    <string name="done">Done</string>
+    <string name="dummy_agenda">Sleepin\' all the way to tomorrow brooooo and I can\'t wait man</string>
+    <string name="dummy_location">Kevin\'s house</string>
+    <string name="dummy_name">Kevin</string>
+    <string name="final_edit_agenda">Plan:</string>
+    <string name="final_edit_deadline">Balloon pops at:</string>
+    <string name="final_edit_location">Location:</string>
+    <string name="final_edit_photo">Photo (Optional):</string>
+    <string name="final_edit_to">To:</string>
+    <string name="image_content_description">The Image</string>
+    <string name="members_header">Members:</string>
+    <string name="new_contact_list">Name The Contact List</string>
+    <string name="preview">Preview</string>
+    <string name="search_location">Find or create a location</string>
+    <string name="send">Send</string>
+    <string name="select_all">Select All:</string>
+    <string name="share_list">Share List with Members</string>
+    <string name="title_activity_more_info">More Info Activity</string>
+    <string name="title_activity_new_invitation">New Invitation Activity</string>
+	<string name="title_add_members">Add Members</string>
+	<string name="title_choose_location">Choose Location</string>
+	<string name="title_create_list">Create List</string>
+	<string name="title_edit_agenda">Write Plan</string>
+	<string name="title_select_list">Select List</string>
+	<string name="title_select_members">Select Members</string>
+	<string name="title_set_deadline">Set Deadline</string>
+	<string name="white_space"> </string>
+    
+</resources>

@@ -1,0 +1,121 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_more_info"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.example.balloon.MoreInfoActivity$PlaceholderFragment" >
+
+    <RelativeLayout
+        android:id="@+id/event"
+        android:layout_weight="0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <ImageView
+            android:contentDescription="@string/image_content_description"
+            android:id="@+id/venuePhoto"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="10dp"
+            android:src="@drawable/ic_launcher" />
+
+        <TextView
+            android:id="@+id/creator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/venuePhoto"
+            android:textColor="@color/black" />
+        <TextView
+            android:id="@+id/agenda"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/venuePhoto"
+            android:layout_below="@id/creator"
+            android:onClick="showAgenda"
+            android:clickable="true"
+            android:textColor="@color/gray" />
+
+        <TextView
+            android:id="@+id/venueInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/venuePhoto"
+            android:layout_below="@id/agenda"
+            android:textColor="@color/blue" />
+
+        <TextView
+            android:id="@+id/timeToRSVP"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/venuePhoto"
+            android:layout_below="@id/venueInfo"
+            android:textColor="@color/red" />
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/commentsHeader"
+        android:layout_weight="0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="15dp"
+        android:text="@string/comments_header" />
+
+    <ListView
+        android:id="@+id/commentsList"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp" >
+    </ListView>
+
+    <TextView
+        android:id="@+id/comingHeader"
+        android:layout_weight="0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="10dp"
+        android:text="@string/coming_header" />
+
+    <ListView
+        android:id="@+id/comingList"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+    </ListView>
+
+    <LinearLayout
+        android:id="@+id/buttons"
+        android:layout_weight="0"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/no"
+            android:background="@color/buttonBlue"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginRight="5dp"
+            android:onClick="respondNo"
+            android:text="X" />
+
+        <Button
+            android:id="@+id/yes"
+            android:background="@color/buttonBlue"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="5dp"
+            android:onClick="respondYes"
+            android:text="O" />
+
+    </LinearLayout>
+
+</LinearLayout>

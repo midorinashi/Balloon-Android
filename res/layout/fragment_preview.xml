@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical" >
+
+    <RelativeLayout
+        android:id="@+id/event"
+        android:layout_weight="0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <ImageView
+            android:contentDescription="@string/image_content_description"
+            android:id="@+id/venuePhoto"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="10dp"
+            android:src="@drawable/ic_launcher" />
+
+        <TextView
+            android:id="@+id/creator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/venuePhoto"
+            android:textColor="@color/black" />
+        <TextView
+            android:id="@+id/agenda"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/venuePhoto"
+            android:layout_below="@id/creator"
+            android:onClick="showAgenda"
+            android:clickable="true"
+            android:textColor="@color/gray" />
+
+        <TextView
+            android:id="@+id/venueInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/venuePhoto"
+            android:layout_below="@id/agenda"
+            android:textColor="@color/blue" />
+
+        <TextView
+            android:id="@+id/timeToRSVP"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/venuePhoto"
+            android:layout_below="@id/venueInfo"
+            android:textColor="@color/red" />
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/btn_star_big_on" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/btn_star_big_off" />
+    </LinearLayout>
+
+</LinearLayout>

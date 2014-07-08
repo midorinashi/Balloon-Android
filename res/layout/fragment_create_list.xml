@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	android:background="@color/lightBlue"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    
+	<LinearLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical"
+	    android:padding="10dp" >
+	
+	    <EditText
+	        android:id="@+id/editContactListName"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginBottom="40dp"
+	        android:layout_marginTop="25dp"
+	        android:background="@color/white"
+	        android:ems="10"
+	        android:hint="@string/new_contact_list"
+	        android:padding="8dp"
+	        android:textAppearance="?android:attr/textAppearance" >
+	
+	        <requestFocus />
+	    </EditText>
+	
+	    <TextView
+	        android:id="@+id/addPhoto"
+	        android:background="@color/white"
+	        android:gravity="center"
+	        android:layout_gravity="center"
+	        android:layout_width="130dp"
+	        android:layout_height="130dp"
+	        android:padding="5dp" 
+	        android:text="@string/add_photo"
+	        android:textColor="@color/blue" />
+	
+	    <CheckBox
+	        android:id="@+id/checkBox1"
+	        android:background="@color/white"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:text="@string/share_list"
+	        android:layout_marginTop="40dp"
+	        android:layout_marginBottom="40dp"
+	        android:padding="5dp"
+	        android:paddingLeft="8dp"
+	        android:paddingRight="8dp"
+	        android:button="@null"
+			android:drawableRight="?android:attr/listChoiceIndicatorMultiple" />
+	
+	    <Button
+	        android:id="@+id/button1"
+	        android:background="@color/blue"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginBottom="25dp"
+	        android:layout_gravity="center"
+	        android:padding="5dp"
+	        android:text="@string/done"
+	        android:textColor="@color/white" />
+	
+	</LinearLayout>
+
+</ScrollView>
