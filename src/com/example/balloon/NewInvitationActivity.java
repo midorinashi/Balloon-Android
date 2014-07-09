@@ -24,7 +24,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CheckBox;
@@ -37,6 +36,7 @@ import android.widget.Toast;
 public class NewInvitationActivity extends ActionBarActivity {
 
 	private static String mListName;
+	private static boolean mPublicList;
 	private static String mAgenda;
 	private String mVenueInfo;
 	private static int mExpiresAtHour;
@@ -129,9 +129,11 @@ public class NewInvitationActivity extends ActionBarActivity {
         }
 	}
 	
-	// http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
-	// http://stackoverflow.com/questions/7114573/get-contacts-mobile-number-only
-	// http://www.regular-expressions.info/shorthand.html
+	/* References
+	 * http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
+	 * http://stackoverflow.com/questions/7114573/get-contacts-mobile-number-only
+	 * http://www.regular-expressions.info/shorthand.html
+	 */
 	private String getPhoneNumber(long id) {
 	    String phone = null;
 	    Cursor phonesCursor = null;
@@ -293,6 +295,11 @@ public class NewInvitationActivity extends ActionBarActivity {
 				EditText et = (EditText) getActivity().findViewById(R.id.editContactListName);
 				et.setText(mListName);
 			}
+			if (mPublicList == true)
+			{
+				CheckBox checkbox = (CheckBox) getActivity().findViewById(R.id.publicListCheckBox);
+				checkbox.setChecked(true);
+			}
 		}
 		
 		public void onPause()
@@ -300,6 +307,8 @@ public class NewInvitationActivity extends ActionBarActivity {
 			super.onPause();
 			EditText et = (EditText) getActivity().findViewById(R.id.editContactListName);
 			mListName = et.getText().toString();
+			CheckBox checkbox = (CheckBox) getActivity().findViewById(R.id.publicListCheckBox);
+			mPublicList = checkbox.isChecked();
 		}
 	}
 	

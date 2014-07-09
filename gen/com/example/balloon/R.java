@@ -1067,7 +1067,6 @@ containing a value of this type.
         public static final int beginning=0x7f050011;
         public static final int button1=0x7f050048;
         public static final int buttons=0x7f050063;
-        public static final int checkBox1=0x7f050047;
         public static final int checkbox=0x7f050030;
         public static final int collapseActionView=0x7f05000d;
         public static final int comingHeader=0x7f050061;
@@ -1127,6 +1126,7 @@ containing a value of this type.
         public static final int preview=0x7f050054;
         public static final int progress_circular=0x7f050018;
         public static final int progress_horizontal=0x7f050019;
+        public static final int publicListCheckBox=0x7f050047;
         public static final int radio=0x7f050032;
         public static final int scrollView1=0x7f050056;
         public static final int seachIcon=0x7f050042;
