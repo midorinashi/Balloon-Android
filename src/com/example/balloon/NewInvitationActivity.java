@@ -1,12 +1,16 @@
 package com.example.balloon;
 
-import java.util.Date;
-
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Contacts;
+import android.provider.ContactsContract.Contacts.Data;
+import android.provider.ContactsContract.RawContacts;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -20,6 +24,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -34,9 +42,14 @@ public class NewInvitationActivity extends ActionBarActivity {
 	private static int mExpiresAtHour;
 	private static int mExpiresAtMinute;
 	private String mVenuePhotoURL;
+	private String[] mPhoneNumbers;
 	private static String mCurrentFragment;
 	//ayyyyyy because sometimes we go outside of the flow
 	private static boolean mAfterFinalEdit;
+	
+	//views to mangae select members fragment
+	private static CheckBox checkbox;
+	private static ListView lv;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +101,10 @@ public class NewInvitationActivity extends ActionBarActivity {
 		else if (mCurrentFragment.equals("CreateListFragment"))
 			transaction.replace(R.id.container, new SelectMembersFromListFragment());
 		else if (mCurrentFragment.equals("SelectMembersFragment"))
+		{
 			transaction.replace(R.id.container, new EditAgendaFragment());
+			saveContacts();
+		}
 		else if (mCurrentFragment.equals("EditAgendaFragment"))
 			transaction.replace(R.id.container, new ChooseLocationFragment());
 		else if (mCurrentFragment.equals("ChooseLocationFragment"))
@@ -99,6 +115,101 @@ public class NewInvitationActivity extends ActionBarActivity {
 			return;
 		transaction.addToBackStack(null);
 		transaction.commit();
+	}
+	
+	// http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
+	public void saveContacts()
+	{
+		//  i get the checked contact_id
+		long[] id = ((ListView) findViewById(R.id.memberList)).getCheckedItemIds();
+        mPhoneNumbers = new String[id.length];
+        for (int i = 0; i < id.length; i++)
+        {
+            mPhoneNumbers[i] = getPhoneNumber(id[i]); // get phonenumber from selected id
+        }
+	}
+	
+	// http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
+	// http://stackoverflow.com/questions/7114573/get-contacts-mobile-number-only
+	// http://www.regular-expressions.info/shorthand.html
+	private String getPhoneNumber(long id) {
+	    String phone = null;
+	    Cursor phonesCursor = null;
+	    phonesCursor = queryPhoneNumbers(id);
+	    if (phonesCursor == null || phonesCursor.getCount() == 0) {
+	        // No valid number
+	    	System.out.println("No valid number");
+	        return null;
+	    }
+	    else {
+	        phonesCursor.moveToPosition(-1);
+	        while (phonesCursor.moveToNext()) {
+		        int phoneType = phonesCursor.getInt(phonesCursor.getColumnIndex(Phone.TYPE));
+		        if (phoneType == Phone.TYPE_MOBILE)
+		        {
+		             phone = phonesCursor.getString(phonesCursor.getColumnIndex
+		            		 (ContactsContract.CommonDataKinds.Phone.DATA));
+		             break;
+		        }
+	        }
+	    }
+	    if (phone == null)
+	    {
+	        phone = phonesCursor.getString(phonesCursor
+	                .getColumnIndex(Phone.NUMBER));
+	    }
+        phone = phone.replaceAll("[^[0-9]]", "");
+        //TODO deal with missing area codes and missing country codes - use user's number
+        //has area code but no country code - auto adds 1 for america
+        if (phone.length() == 10)
+        	phone = "1" + phone;
+        phone = "+" + phone;
+	    return phone;
+	}
+	
+	// http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
+	private Cursor queryPhoneNumbers(long contactId) {
+	    ContentResolver cr = getContentResolver();
+	    Uri baseUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI,
+	            contactId);
+	    Uri dataUri = Uri.withAppendedPath(baseUri,
+	            ContactsContract.Contacts.Data.CONTENT_DIRECTORY);
+
+	    Cursor c = cr.query(dataUri, new String[] { Phone._ID, Phone.NUMBER,
+	            Phone.IS_SUPER_PRIMARY, RawContacts.ACCOUNT_TYPE, Phone.TYPE,
+	            Phone.LABEL }, Data.MIMETYPE + "=?",
+	            new String[] { Phone.CONTENT_ITEM_TYPE }, null);
+	    if (c != null && c.moveToFirst()) {
+	        return c;
+	    }
+	    return null;
+	}
+	
+	//manages the checkbox in the select members fragment
+	public void selectAll(View view)
+	{
+		// get how many have been checked
+		int items = lv.getCount();
+		int checked = lv.getCheckedItemIds().length;
+		boolean select = false;
+		if (checked != items)
+			select = true;
+		checkbox.setChecked(select);
+		for ( int i=0; i < items; i++)
+		{
+			   lv.setItemChecked(i, select);
+		}
+	}
+	
+	//manages select all when members are clicked individually
+	public static void membersListClicked(View view)
+	{
+		int items = lv.getCount();
+		int checked = lv.getCheckedItemIds().length;
+		if (checked == items)
+			checkbox.setChecked(true);
+		else
+			checkbox.setChecked(false);
 	}
 	
 	public void preview(View view)
@@ -194,22 +305,28 @@ public class NewInvitationActivity extends ActionBarActivity {
 	
 	public static class SelectMembersFromListFragment extends Fragment implements LoaderCallbacks<Cursor> {
 
-		public SelectMembersFromListFragment() {
-		}
 		// Following code mostly from http://stackoverflow.com/questions/18199359/how-to-display-contacts-in-a-listview-in-android-for-android-api-11
-		
 	    private CursorAdapter mAdapter;
+
+	    // and name should be displayed in the text1 textview in item layout
+	    private static final String[] FROM = { Contacts.DISPLAY_NAME };
+	    private static final int[] TO = { android.R.id.text1 };
+
+	    // columns requested from the database
+	    private static final String[] PROJECTION = {
+	        Contacts._ID, // _ID is always required
+	        Contacts.DISPLAY_NAME // that's what we want to display
+	    };
 
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
 	        super.onCreate(savedInstanceState);
 
-	        // create adapter once
-	        Context context = getActivity();
-	        int layout = android.R.layout.simple_list_item_1;
+	        // create adapter once=
+	        int layout = android.R.layout.simple_list_item_multiple_choice;
 	        Cursor c = null; // there is no cursor yet
 	        int flags = 0; // no auto-requery! Loader requeries.
-	        mAdapter = new SimpleCursorAdapter(context, layout, c, FROM, TO, flags);
+	        mAdapter = new SimpleCursorAdapter(getActivity(), layout, c, FROM, TO, flags);
 	    }
 
 		@Override
@@ -217,7 +334,6 @@ public class NewInvitationActivity extends ActionBarActivity {
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_select_members_from_list,
 					container, false);
-			
 			return rootView;
 		}
 
@@ -232,22 +348,25 @@ public class NewInvitationActivity extends ActionBarActivity {
 	    @Override
 	    public void onActivityCreated(Bundle savedInstanceState) {
 	        super.onActivityCreated(savedInstanceState);
-	        ListView lv = (ListView) getActivity().findViewById(R.id.memberList);
+
+	        checkbox = (CheckBox) getActivity().findViewById(R.id.selectAll);
+	        
 	        // each time we are started use our listadapter
+	        lv = (ListView) getActivity().findViewById(R.id.memberList);
 	        lv.setAdapter(mAdapter);
+	        lv.setItemsCanFocus(false);
+	        lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+	        //just for managing the checkbox
+	        lv.setOnItemClickListener(new OnItemClickListener(){
+				public void onItemClick(AdapterView<?> arg0, View arg1,
+						int arg2, long arg3) {
+					membersListClicked(arg1);
+				}
+	        });
+	        
 	        // and tell loader manager to start loading
 	        getLoaderManager().initLoader(0, null, this);
 	    }
-
-	    // columns requested from the database
-	    private static final String[] PROJECTION = {
-	        Contacts._ID, // _ID is always required
-	        Contacts.DISPLAY_NAME // that's what we want to display
-	    };
-
-	    // and name should be displayed in the text1 textview in item layout
-	    private static final String[] FROM = { Contacts.DISPLAY_NAME };
-	    private static final int[] TO = { android.R.id.text1 };
 
 	    @Override
 	    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
