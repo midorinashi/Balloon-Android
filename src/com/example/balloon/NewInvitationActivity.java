@@ -1,5 +1,7 @@
 package com.example.balloon;
 
+import java.util.Date;
+
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -29,7 +31,8 @@ public class NewInvitationActivity extends ActionBarActivity {
 	private static String mListName;
 	private static String mAgenda;
 	private String mVenueInfo;
-	private static String mExpiresAt;
+	private static int mExpiresAtHour;
+	private static int mExpiresAtMinute;
 	private String mVenuePhotoURL;
 	private static String mCurrentFragment;
 	//ayyyyyy because sometimes we go outside of the flow
@@ -40,6 +43,10 @@ public class NewInvitationActivity extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_invitation);
 
+		//set unknown time
+		mExpiresAtHour = -1;
+		mExpiresAtMinute = 0;
+		
 		if (savedInstanceState == null) {
 			mAfterFinalEdit = false;
 			getSupportFragmentManager().beginTransaction()
@@ -115,6 +122,20 @@ public class NewInvitationActivity extends ActionBarActivity {
 		finish();
 	}
 
+	public static String formatTime(int hour, int minute)
+	{
+		//so that i can have 12s instead of 0s
+		String time = "" + (((hour + 11 ) % 12) + 1) + ":";
+		if (minute < 10)
+			time = time + "0";
+		time = time + minute;
+		if (hour / 12 == 0)
+			time = time + " AM";
+		else
+			time = time + " PM";
+		return time;
+	}
+	
 	public static class SelectListFragment extends Fragment {
 
 		public SelectListFragment() {
@@ -156,6 +177,11 @@ public class NewInvitationActivity extends ActionBarActivity {
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_create_list));
 			mCurrentFragment = "CreateListFragment";
+			if (mListName != null)
+			{
+				EditText et = (EditText) getActivity().findViewById(R.id.editContactListName);
+				et.setText(mListName);
+			}
 		}
 		
 		public void onPause()
@@ -269,6 +295,11 @@ public class NewInvitationActivity extends ActionBarActivity {
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_edit_agenda));
 			mCurrentFragment = "EditAgendaFragment";
+			if (mAgenda != null)
+			{
+				EditText et = (EditText)(getActivity().findViewById(R.id.editAgenda));
+				et.setText(mAgenda);
+			}
 		}
 		
 		public void onPause()
@@ -317,6 +348,8 @@ public class NewInvitationActivity extends ActionBarActivity {
 				@Override
 				public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
 					TextView tv = (TextView) getActivity().findViewById(R.id.deadlineTime);
+					mExpiresAtHour = hourOfDay;
+					mExpiresAtMinute = minute;
 					tv.setText(formatTime(hourOfDay, minute));
 					tv.invalidate();
 					tv.requestLayout();
@@ -333,31 +366,16 @@ public class NewInvitationActivity extends ActionBarActivity {
 			mCurrentFragment = "SetDeadlineFragment";
 			
 			TimePicker tp = (TimePicker) getActivity().findViewById(R.id.timePicker);
+			if (mExpiresAtHour == -1)
+			{
+				mExpiresAtHour = tp.getCurrentHour() + 1;
+			}
+			tp.setCurrentHour(mExpiresAtHour);
+			tp.setCurrentMinute(mExpiresAtMinute);
 			tp.setOnTimeChangedListener(mTimeListener);
-			
+		
 			TextView tv = (TextView) getActivity().findViewById(R.id.deadlineTime);
 			tv.setText(formatTime(tp.getCurrentHour(), tp.getCurrentMinute()));
-		}
-		
-		//save the time! except i don't know how to sob
-		public void onPause()
-		{
-			super.onPause();
-			mExpiresAt = ((TextView) getActivity().findViewById(R.id.deadlineTime)).getText().toString();
-		}
-		
-		public String formatTime(int hour, int minute)
-		{
-			//so that i can have 12s instead of 0s
-			String time = "" + ((hour + 1 ) % 12 - 1) + ":";
-			if (minute < 10)
-				time = time + "0";
-			time = time + minute;
-			if (hour / 12 == 0)
-				time = time + " AM";
-			else
-				time = time + " PM";
-			return time;
 		}
 	}
 	
@@ -389,7 +407,7 @@ public class NewInvitationActivity extends ActionBarActivity {
 			tv = (TextView) getActivity().findViewById(R.id.finalEditLocation);
 			//tv.setText(mVenueInfo);
 			tv = (TextView) getActivity().findViewById(R.id.finalEditDeadline);
-			tv.setText(mExpiresAt);
+			tv.setText(formatTime(mExpiresAtHour, mExpiresAtMinute));
 		}
 	}
 	
@@ -409,7 +427,7 @@ public class NewInvitationActivity extends ActionBarActivity {
 			tv = (TextView) rootView.findViewById(R.id.venueInfo);
 			tv.setText(R.string.dummy_location);
 			tv = (TextView) rootView.findViewById(R.id.timeToRSVP);
-			tv.setText(mExpiresAt);
+			tv.setText(formatTime(mExpiresAtHour, mExpiresAtMinute));
 			return rootView;
 		}
 	}
