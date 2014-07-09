@@ -1,5 +1,9 @@
 package com.example.balloon;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -26,6 +30,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -33,10 +38,17 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-public class NewInvitationActivity extends ActionBarActivity {
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
+
+public class NewInvitationActivity extends ActionBarActivity implements OnMemberListSelectedListener {
 
 	private static String mListName;
 	private static boolean mPublicList;
+	private static String mListId;
 	private static String mAgenda;
 	private String mVenueInfo;
 	private static int mExpiresAtHour;
@@ -48,8 +60,8 @@ public class NewInvitationActivity extends ActionBarActivity {
 	private static boolean mAfterFinalEdit;
 	
 	//views to mangae select members fragment
-	private static CheckBox checkbox;
-	private static ListView lv;
+	private static CheckBox mCheckbox;
+	private static ListView mListView;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -99,8 +111,9 @@ public class NewInvitationActivity extends ActionBarActivity {
 		if (mCurrentFragment.equals("SelectListFragment"))
 			transaction.replace(R.id.container, new CreateListFragment());
 		else if (mCurrentFragment.equals("CreateListFragment"))
-			transaction.replace(R.id.container, new SelectMembersFromListFragment());
-		else if (mCurrentFragment.equals("SelectMembersFragment"))
+			transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
+		else if (mCurrentFragment.equals("SelectMembersFromContactsFragment") ||
+				 mCurrentFragment.equals("SelectMembersFromListFragment"))
 		{
 			transaction.replace(R.id.container, new EditAgendaFragment());
 			saveContacts();
@@ -113,6 +126,14 @@ public class NewInvitationActivity extends ActionBarActivity {
 			transaction.replace(R.id.container, new FinalEditFragment());
 		else
 			return;
+		transaction.addToBackStack(null);
+		transaction.commit();
+	}
+	
+	//opens up the SelectMembersFromListFragment when a list is selected
+	public void onMemberListSelected() {
+		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		transaction.replace(R.id.container, new SelectMembersFromListFragment());
 		transaction.addToBackStack(null);
 		transaction.commit();
 	}
@@ -191,27 +212,27 @@ public class NewInvitationActivity extends ActionBarActivity {
 	public void selectAll(View view)
 	{
 		// get how many have been checked
-		int items = lv.getCount();
-		int checked = lv.getCheckedItemIds().length;
+		int items = mListView.getCount();
+		int checked = mListView.getCheckedItemIds().length;
 		boolean select = false;
 		if (checked != items)
 			select = true;
-		checkbox.setChecked(select);
+		mCheckbox.setChecked(select);
 		for ( int i=0; i < items; i++)
 		{
-			   lv.setItemChecked(i, select);
+			mListView.setItemChecked(i, select);
 		}
 	}
 	
 	//manages select all when members are clicked individually
 	public static void membersListClicked(View view)
 	{
-		int items = lv.getCount();
-		int checked = lv.getCheckedItemIds().length;
+		int items = mListView.getCount();
+		int checked = mListView.getCheckedItemIds().length;
 		if (checked == items)
-			checkbox.setChecked(true);
+			mCheckbox.setChecked(true);
 		else
-			checkbox.setChecked(false);
+			mCheckbox.setChecked(false);
 	}
 	
 	public void preview(View view)
@@ -251,8 +272,18 @@ public class NewInvitationActivity extends ActionBarActivity {
 	
 	public static class SelectListFragment extends Fragment {
 
-		public SelectListFragment() {
-		}
+		private String[] lists;
+		private String[] ids;
+		private OnMemberListSelectedListener mListener;
+		
+		public void onAttach(Activity activity) {
+	        super.onAttach(activity);
+	        try {
+	            mListener = (OnMemberListSelectedListener) activity;
+	        } catch (ClassCastException e) {
+	            throw new ClassCastException(activity.toString() + " must implement OnArticleSelectedListener");
+	        }
+	    }
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -268,6 +299,61 @@ public class NewInvitationActivity extends ActionBarActivity {
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_select_list));
 			mCurrentFragment = "SelectListFragment";
+		}
+		
+		public void onActivityCreated(Bundle savedInstanceState)
+		{
+			super.onActivityCreated(savedInstanceState);
+			
+			//Get all the contactlists that the owner owns
+			ParseQuery<ParseObject> ownerQuery = new ParseQuery<ParseObject>("ContactList");
+			ownerQuery.whereEqualTo("owner", ParseUser.getCurrentUser());
+			
+			//Get all the public contactlists that the owner is a part of
+			ParseQuery<ParseObject> memberQuery = new ParseQuery<ParseObject>("ContactList");
+			ArrayList<ParseUser> currentUser = new ArrayList<ParseUser>();
+			currentUser.add(ParseUser.getCurrentUser());
+			memberQuery.whereContainsAll("members", currentUser);
+			memberQuery.whereEqualTo("isVisibleToMembers", true);
+			
+			ArrayList<ParseQuery<ParseObject>> queries = new ArrayList<ParseQuery<ParseObject>>();
+			queries.add(ownerQuery);
+			queries.add(memberQuery);
+			
+			ParseQuery<ParseObject> mainQuery = ParseQuery.or(queries);
+			mainQuery.orderByAscending("name");
+			mainQuery.findInBackground(new FindCallback<ParseObject>() {
+				public void done(List<ParseObject> memberLists, ParseException e) {
+					if (e == null)
+					{
+						lists = new String[memberLists.size()];
+						ids = new String[memberLists.size()];
+						for (int i = 0; i < memberLists.size(); i++)
+						{
+							lists[i] = memberLists.get(i).getString("name");
+							ids[i] = memberLists.get(i).getObjectId();
+						}
+						addListsToView();
+					}
+					else
+						e.printStackTrace();
+				}
+			});
+		}
+		
+		public void addListsToView()
+		{
+			ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(),
+					android.R.layout.simple_list_item_1, lists);
+	        ListView lv = (ListView) getActivity().findViewById(R.id.groupList);
+	        lv.setAdapter(arrayAdapter);
+	        lv.setOnItemClickListener(new OnItemClickListener() {
+				public void onItemClick(AdapterView<?> a, View v, int position, long id) {
+					mListName = lists[position];
+					mListId = ids[position];
+					mListener.onMemberListSelected();
+				}
+	        });
 		}
 	}
 	
@@ -312,7 +398,8 @@ public class NewInvitationActivity extends ActionBarActivity {
 		}
 	}
 	
-	public static class SelectMembersFromListFragment extends Fragment implements LoaderCallbacks<Cursor> {
+	public static class SelectMembersFromContactsFragment extends Fragment
+			implements LoaderCallbacks<Cursor> {
 
 		// Following code mostly from http://stackoverflow.com/questions/18199359/how-to-display-contacts-in-a-listview-in-android-for-android-api-11
 	    private CursorAdapter mAdapter;
@@ -341,32 +428,32 @@ public class NewInvitationActivity extends ActionBarActivity {
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_select_members_from_list,
+			View rootView = inflater.inflate(R.layout.fragment_select_members_from_contacts,
 					container, false);
 			return rootView;
 		}
-
-	    
+    
 	    public void onResume()
 		{
 			super.onResume();
-			getActivity().setTitle(getResources().getString(R.string.title_select_members));
-			mCurrentFragment = "SelectMembersFragment";
+			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_contacts));
+			mCurrentFragment = "SelectMembersFromContactsFragment";
 		}
 
 	    @Override
-	    public void onActivityCreated(Bundle savedInstanceState) {
+	    public void onActivityCreated(Bundle savedInstanceState)
+	    {
 	        super.onActivityCreated(savedInstanceState);
 
-	        checkbox = (CheckBox) getActivity().findViewById(R.id.selectAll);
+	        mCheckbox = (CheckBox) getActivity().findViewById(R.id.selectAll);
 	        
 	        // each time we are started use our listadapter
-	        lv = (ListView) getActivity().findViewById(R.id.memberList);
-	        lv.setAdapter(mAdapter);
-	        lv.setItemsCanFocus(false);
-	        lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+	        mListView = (ListView) getActivity().findViewById(R.id.memberList);
+	        mListView.setAdapter(mAdapter);
+	        mListView.setItemsCanFocus(false);
+	        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 	        //just for managing the checkbox
-	        lv.setOnItemClickListener(new OnItemClickListener(){
+	        mListView.setOnItemClickListener(new OnItemClickListener(){
 				public void onItemClick(AdapterView<?> arg0, View arg1,
 						int arg2, long arg3) {
 					membersListClicked(arg1);
@@ -404,6 +491,101 @@ public class NewInvitationActivity extends ActionBarActivity {
 	        // on reset take any old cursor away
 	        mAdapter.swapCursor(null);
 	    }
+	}
+	
+	public static class SelectMembersFromListFragment extends Fragment
+			implements LoaderCallbacks<Cursor> {
+		
+		// Following code mostly from http://stackoverflow.com/questions/18199359/how-to-display-contacts-in-a-listview-in-android-for-android-api-11
+		private CursorAdapter mAdapter;
+		
+		// and name should be displayed in the text1 textview in item layout
+		private static final String[] FROM = { Contacts.DISPLAY_NAME };
+		private static final int[] TO = { android.R.id.text1 };
+		
+		// columns requested from the database
+		private static final String[] PROJECTION = {
+		    Contacts._ID, // _ID is always required
+		    Contacts.DISPLAY_NAME // that's what we want to display
+		};
+		
+		@Override
+		public void onCreate(Bundle savedInstanceState) {
+		    super.onCreate(savedInstanceState);
+		
+		    // create adapter once=
+		    int layout = android.R.layout.simple_list_item_multiple_choice;
+		    Cursor c = null; // there is no cursor yet
+		    int flags = 0; // no auto-requery! Loader requeries.
+		    mAdapter = new SimpleCursorAdapter(getActivity(), layout, c, FROM, TO, flags);
+		}
+		
+		@Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			View rootView = inflater.inflate(R.layout.fragment_select_members_from_list,
+					container, false);
+			return rootView;
+		}
+		
+		public void onResume()
+		{
+			super.onResume();
+			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_list));
+			mCurrentFragment = "SelectMembersFromListFragment";
+		}
+		
+		@Override
+		public void onActivityCreated(Bundle savedInstanceState)
+		{
+		    super.onActivityCreated(savedInstanceState);
+		
+		    mCheckbox = (CheckBox) getActivity().findViewById(R.id.selectAll);
+		    
+		    // each time we are started use our listadapter
+		    mListView = (ListView) getActivity().findViewById(R.id.memberList);
+		    mListView.setAdapter(mAdapter);
+		    mListView.setItemsCanFocus(false);
+		    mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		    //just for managing the checkbox
+		    mListView.setOnItemClickListener(new OnItemClickListener(){
+				public void onItemClick(AdapterView<?> arg0, View arg1,
+						int arg2, long arg3) {
+					membersListClicked(arg1);
+				}
+		    });
+		    
+		    // and tell loader manager to start loading
+		    getLoaderManager().initLoader(0, null, this);
+		}
+		
+		@Override
+		public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+		
+		    // load from the "Contacts table"
+		    Uri contentUri = Contacts.CONTENT_URI;
+		
+		    // no sub-selection, no sort order, simply every row
+		    // projection says we want just the _id and the name column
+		    return new CursorLoader(getActivity(),
+		            contentUri,
+		            PROJECTION,
+		            null,
+		            null,
+		            null);
+		}
+		
+		@Override
+		public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+		    // Once cursor is loaded, give it to adapter
+		    mAdapter.swapCursor(data);
+		}
+		
+		@Override
+		public void onLoaderReset(Loader<Cursor> loader) {
+		    // on reset take any old cursor away
+		    mAdapter.swapCursor(null);
+		}
 	}
 	
 	public static class EditAgendaFragment extends Fragment
@@ -559,4 +741,5 @@ public class NewInvitationActivity extends ActionBarActivity {
 			return rootView;
 		}
 	}
+
 }

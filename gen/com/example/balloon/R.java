@@ -1224,9 +1224,10 @@ containing a value of this type.
         public static final int fragment_more_info=0x7f030021;
         public static final int fragment_preview=0x7f030022;
         public static final int fragment_select_list=0x7f030023;
-        public static final int fragment_select_members_from_list=0x7f030024;
-        public static final int fragment_set_deadline=0x7f030025;
-        public static final int support_simple_spinner_dropdown_item=0x7f030026;
+        public static final int fragment_select_members_from_contacts=0x7f030024;
+        public static final int fragment_select_members_from_list=0x7f030025;
+        public static final int fragment_set_deadline=0x7f030026;
+        public static final int support_simple_spinner_dropdown_item=0x7f030027;
     }
     public static final class menu {
         public static final int main=0x7f0c0000;
@@ -1311,9 +1312,10 @@ containing a value of this type.
         public static final int title_create_list=0x7f0a002f;
         public static final int title_edit_agenda=0x7f0a0030;
         public static final int title_select_list=0x7f0a0031;
-        public static final int title_select_members=0x7f0a0032;
-        public static final int title_set_deadline=0x7f0a0033;
-        public static final int white_space=0x7f0a0034;
+        public static final int title_select_members_from_contacts=0x7f0a0032;
+        public static final int title_select_members_from_list=0x7f0a0033;
+        public static final int title_set_deadline=0x7f0a0034;
+        public static final int white_space=0x7f0a0035;
     }
     public static final class style {
         /** 

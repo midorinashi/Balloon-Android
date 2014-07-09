@@ -38,7 +38,8 @@
 	<string name="title_create_list">Create List</string>
 	<string name="title_edit_agenda">Write Plan</string>
 	<string name="title_select_list">Select List</string>
-	<string name="title_select_members">Select Members</string>
+	<string name="title_select_members_from_contacts">Select Members</string>
+	<string name="title_select_members_from_list">Select Members</string>
 	<string name="title_set_deadline">Set Deadline</string>
 	<string name="white_space"> </string>
     

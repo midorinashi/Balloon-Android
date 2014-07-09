@@ -395,9 +395,10 @@ int layout fragment_main 0x7f030020
 int layout fragment_more_info 0x7f030021
 int layout fragment_preview 0x7f030022
 int layout fragment_select_list 0x7f030023
-int layout fragment_select_members_from_list 0x7f030024
-int layout fragment_set_deadline 0x7f030025
-int layout support_simple_spinner_dropdown_item 0x7f030026
+int layout fragment_select_members_from_contacts 0x7f030024
+int layout fragment_select_members_from_list 0x7f030025
+int layout fragment_set_deadline 0x7f030026
+int layout support_simple_spinner_dropdown_item 0x7f030027
 int menu main 0x7f0c0000
 int menu more_info 0x7f0c0001
 int menu new_invitation 0x7f0c0002
@@ -451,9 +452,10 @@ int string title_choose_location 0x7f0a002e
 int string title_create_list 0x7f0a002f
 int string title_edit_agenda 0x7f0a0030
 int string title_select_list 0x7f0a0031
-int string title_select_members 0x7f0a0032
-int string title_set_deadline 0x7f0a0033
-int string white_space 0x7f0a0034
+int string title_select_members_from_contacts 0x7f0a0032
+int string title_select_members_from_list 0x7f0a0033
+int string title_set_deadline 0x7f0a0034
+int string white_space 0x7f0a0035
 int style AppBaseTheme 0x7f0b0083
 int style AppTheme 0x7f0b0084
 int style LoginFormContainer 0x7f0b0085
