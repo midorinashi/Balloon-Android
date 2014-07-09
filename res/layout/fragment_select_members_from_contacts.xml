@@ -5,7 +5,7 @@
     android:orientation="vertical" >
 
     <CheckBox
-        android:id="@+id/selectAll"
+        android:id="@+id/contactsSelectAll"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
@@ -15,15 +15,15 @@
 		android:drawableRight="?android:attr/listChoiceIndicatorMultiple" />
 
     <TextView
-        android:id="@+id/membersHeader"
+        android:id="@+id/contactsHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/lightGray"
         android:padding="5dp"
-        android:text="@string/members_header" />
+        android:text="@string/contacts_header" />
 
     <ListView
-        android:id="@+id/memberList"
+        android:id="@+id/contactsList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
     </ListView>

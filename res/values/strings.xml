@@ -12,6 +12,7 @@
     <string name="balloon">Balloon</string>
     <string name="comments_header">Comments</string>
     <string name="coming_header">Coming</string>
+    <string name="contacts_header">Contacts:</string>
     <string name="deadline_time">7:00PM</string>
     <string name="deadline_text">Your invitation wil\nbe visible from\nnow until</string>
     <string name="done">Done</string>
