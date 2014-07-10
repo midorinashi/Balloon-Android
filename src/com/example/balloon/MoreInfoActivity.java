@@ -1,5 +1,6 @@
 package com.example.balloon;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
@@ -19,7 +20,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,7 +38,6 @@ import com.parse.ParseUser;
 public class MoreInfoActivity extends ActionBarActivity
 {
 	private static int mResponse;
-	private static String mUser;
 	
 	private static String mObjectId;
 	private static String mCreator;
@@ -50,9 +53,6 @@ public class MoreInfoActivity extends ActionBarActivity
 		mObjectId = getIntent().getExtras().getString("objectId");
 		System.out.println(mObjectId);
 		
-		Parse.initialize(this, "iXEPNEZfJXoEOIayxLgBBgpShMZBTj7ReVoi1eqn",
-				"GHtE0svPk0epFG4olYnFTnnDtmARHtENXxXuHoXp");
-		
 		if (savedInstanceState == null) {
 			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
 			query.whereEqualTo("objectId", mObjectId);
@@ -62,6 +62,7 @@ public class MoreInfoActivity extends ActionBarActivity
 					{
 						ParseUser creator = meetup.getParseUser("creator");
 						try {
+							//should be a fetch in background
 							creator.fetchIfNeeded();
 							mCreator = creator.getString("firstName") + " " + creator.getString("lastName");
 						} catch (ParseException e1) {
@@ -79,6 +80,45 @@ public class MoreInfoActivity extends ActionBarActivity
 						
 						mExpiresAt = meetup.getDate("expiresAt");
 						
+						//this will get all the comments
+						ParseQuery<ParseObject> commentQuery = new ParseQuery<ParseObject>("Comment");
+						commentQuery.whereEqualTo("meetup", meetup);
+						commentQuery.include("commenter");
+						commentQuery.orderByAscending("createdAt");
+						commentQuery.findInBackground(new FindCallback<ParseObject>() {
+
+							@Override
+							public void done(List<ParseObject> comments, ParseException e) {
+								if (e == null)
+								{
+									System.out.println(comments.size());
+									if (comments.size() > 0)
+										makeCommentList(comments);
+								}
+								else
+									e.printStackTrace();
+							}
+						});
+						
+						//this will get who's coming, starting with all the responses
+						//TODO Look into using include?? I can't seem to get first names tho
+						ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
+						comingQuery.whereEqualTo("meetup", meetup);
+						comingQuery.whereEqualTo("isAttending", true);
+						comingQuery.findInBackground(new FindCallback<ParseObject>() {
+
+							@Override
+							public void done(List<ParseObject> responses, ParseException e) {
+								if (e == null)
+								{
+									if (responses.size() > 0)
+										fetchNames(responses, false);
+								}
+								else
+									e.printStackTrace();
+							}
+						});
+						
 						makeMoreInfoFragment();
 					}
 					else
@@ -86,6 +126,74 @@ public class MoreInfoActivity extends ActionBarActivity
 				}
 			});
 		}
+	}
+	
+	public void makeCommentList(final List<ParseObject> comments)
+	{
+		for (ParseObject c : comments)
+		{
+			System.out.println(c.getString("comment"));
+		}
+		ArrayAdapter<ParseObject> arrayAdapter = new ArrayAdapter<ParseObject>(this,
+				android.R.layout.simple_list_item_2, android.R.id.text1, comments) {
+			  @Override
+			  public View getView(int position, View convertView, ViewGroup parent) {
+			    View view = super.getView(position, convertView, parent);
+			    ParseUser user = comments.get(position).getParseUser("commenter");
+			    TextView text1 = (TextView) view.findViewById(android.R.id.text1);
+			    TextView text2 = (TextView) view.findViewById(android.R.id.text2);
+
+			    text1.setText(user.getString("firstName") + " " + user.getString("lastName"));
+			    text2.setText(comments.get(position).getString("comment"));
+			    
+			    System.out.println(text1.getText());
+			    System.out.println(text2.getText());
+			    System.out.println(position);
+			    return view;
+			  }
+		};
+	    ListView lv = (ListView) findViewById(R.id.commentsList);
+	    lv.setAdapter(arrayAdapter);
+	    System.out.println("num list items is : " + lv.getCount());
+	}
+	
+	//forComments is true when fetching names of commenters, false when it's for responses
+	public void fetchNames(List<ParseObject> list, boolean forComments)
+	{
+		ArrayList<ParseQuery<ParseUser>> queries = new ArrayList<ParseQuery<ParseUser>>();
+		for (int i = 0; i < list.size(); i++)
+		{
+			ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
+			userQuery.whereEqualTo("objectId", list.get(i).getParseUser("responder").getObjectId());
+			queries.add(userQuery);
+		}
+		ParseQuery<ParseUser> mainQuery = ParseQuery.or(queries);
+		mainQuery.orderByAscending("firstName");
+		mainQuery.addAscendingOrder("lastName");
+		mainQuery.findInBackground(new FindCallback<ParseUser>() {
+			public void done(List<ParseUser> userList, ParseException e) {
+				if (e == null)
+				{
+					String[] names = new String[userList.size()];
+					for (int i = 0; i < userList.size(); i++)
+						names[i] = userList.get(i).getString("firstName") + " " + 
+									userList.get(i).getString("lastName");
+					makeComingList(names);
+				}
+				else
+					e.printStackTrace();
+			}
+		});
+	}
+	
+	public void makeComingList(String[] names)
+	{
+		int layout = android.R.layout.simple_list_item_1;
+		ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, layout, names);
+	    
+	    // each time we are started use our listadapter
+	    ListView lv = (ListView) findViewById(R.id.comingList);
+	    lv.setAdapter(arrayAdapter);
 	}
 	
 	private void makeMoreInfoFragment()
@@ -184,7 +292,6 @@ public class MoreInfoActivity extends ActionBarActivity
 			super.onResume();
 			Resources res = getResources();
 			
-			
 			if (mCreator == null)
 			{
 				mCreator = String.format(res.getString(R.string.dummy_name));
@@ -199,7 +306,6 @@ public class MoreInfoActivity extends ActionBarActivity
 			tv.setText(mAgenda);
 			tv = (TextView) getActivity().findViewById(R.id.venueInfo);
 			tv.setText(mVenueInfo);
-			
 		}
 		
 		public void onStop()

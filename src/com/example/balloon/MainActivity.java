@@ -29,11 +29,16 @@ public class MainActivity extends ActionBarActivity
 {
 	private boolean firstTimeUser;
 	private int user;
-
+	private final String CLIENT_ID = "QIVN42TMR5KLGEA15W1VK0ISG4V3DOT0J4XAZVZ033HQK2MH";
+	private final String CLIENT_SECRET = "YDYDI1JXQJPCVAWM1ZDMHRCCCAEJY5DT3TUTLUXU2JZ5G2AJ";
+	private final String callback_URL = "fb527538684032224://foursquare";
+	private final String DEFAULT_VERSION = "20140131";
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+		//initialize parse
 		Parse.initialize(this, "iXEPNEZfJXoEOIayxLgBBgpShMZBTj7ReVoi1eqn",
 				"GHtE0svPk0epFG4olYnFTnnDtmARHtENXxXuHoXp");
 		ParseUser.logInInBackground("+19739002782", "cat", new LogInCallback() {
@@ -47,7 +52,6 @@ public class MainActivity extends ActionBarActivity
 			    }
 			  }
 			});
-		
 		
 		setContentView(R.layout.activity_main);
 		/*

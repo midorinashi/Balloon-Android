@@ -6,14 +6,12 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
@@ -628,7 +626,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		{
 		    int layout = android.R.layout.simple_list_item_multiple_choice;
 		    if (mArrayAdapter == null)
-			    mArrayAdapter = new checkArrayAdapter(getActivity(),
+			    mArrayAdapter = new CheckArrayAdapter(getActivity(),
 						layout, names);
 		    
 		    mCheckbox = (CheckBox) getActivity().findViewById(R.id.membersSelectAll);
@@ -646,31 +644,10 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				}
 		    });
 
+		    //recheck people if members have been chosen before
 			if (mPhoneNumbers != null)
-			{
-				ListView lv = (ListView) getActivity().findViewById(R.id.memberList);
-				System.out.println("Length is " + mPhoneNumbers.length);
 				for (int i = 0; i < mPhoneNumbers.length; i++)
-				{
-					lv.setItemChecked(phones.indexOf(mPhoneNumbers[i]), true);
-					System.out.println("Number is " + mPhoneNumbers[i]);
-					System.out.println("Index is " + phones.indexOf(mPhoneNumbers[i]));
-				}
-			}
-		}
-		
-		//hackiest way to make the select all work
-		public class checkArrayAdapter extends ArrayAdapter<String>
-		{
-			public checkArrayAdapter(Context context, int resource,
-					String[] objects) {
-				super(context, resource, objects);
-			}
-			
-			public boolean hasStableIds()
-			{
-				return true;
-			}
+					mListView.setItemChecked(phones.indexOf(mPhoneNumbers[i]), true);
 		}
 		
 		public void onResume()
@@ -795,6 +772,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		}
 	}
 	
+	//TODO when sending the data, delete all the fields afterwards! or else we can send the same invite again
 	public static class FinalEditFragment extends Fragment {
 		
 		public FinalEditFragment() {
