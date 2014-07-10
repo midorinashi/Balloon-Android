@@ -38,6 +38,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -60,7 +61,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	private static int mExpiresAtHour;
 	private static int mExpiresAtMinute;
 	private String mVenuePhotoURL;
-	private String[] mPhoneNumbers;
+	private static String[] mPhoneNumbers;
 	private static String mCurrentFragment;
 	//ayyyyyy because sometimes we go outside of the flow
 	private static boolean mAfterFinalEdit;
@@ -506,8 +507,9 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		
 		// and name should be displayed in the text1 textview in item layout
 		private String[] names;
-		
 		private String[] ids;
+		private ArrayList<String> phones;
+		private ListAdapter mArrayAdapter;
 		
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
@@ -546,6 +548,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 						}
 						names = new String[length];
 						ids = new String[length];
+						phones = new ArrayList<String>();
 						int empty = 0;
 						//put all member names and ids into respective arrays
 						for (int i = 0; i < members.length(); i++)
@@ -610,6 +613,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 										userList.get(i).getString("lastName");
 							//because the ids are no longer in the same order as they used to be!
 							ids[i] = userList.get(i).getObjectId();
+							phones.add(userList.get(i).getUsername());
 							System.out.println(names[i]);
 						}
 						finishCreatingActivity();
@@ -623,14 +627,15 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		public void finishCreatingActivity()
 		{
 		    int layout = android.R.layout.simple_list_item_multiple_choice;
-		    checkArrayAdapter arrayAdapter = new checkArrayAdapter(getActivity(),
-					layout, names);
+		    if (mArrayAdapter == null)
+			    mArrayAdapter = new checkArrayAdapter(getActivity(),
+						layout, names);
 		    
 		    mCheckbox = (CheckBox) getActivity().findViewById(R.id.membersSelectAll);
 		    
 		    // each time we are started use our listadapter
 		    mListView = (ListView) getActivity().findViewById(R.id.memberList);
-		    mListView.setAdapter(arrayAdapter);
+		    mListView.setAdapter(mArrayAdapter);
 		    mListView.setItemsCanFocus(false);
 		    mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		    //just for managing the checkbox
@@ -640,8 +645,21 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 					membersListClicked(arg1);
 				}
 		    });
+
+			if (mPhoneNumbers != null)
+			{
+				ListView lv = (ListView) getActivity().findViewById(R.id.memberList);
+				System.out.println("Length is " + mPhoneNumbers.length);
+				for (int i = 0; i < mPhoneNumbers.length; i++)
+				{
+					lv.setItemChecked(phones.indexOf(mPhoneNumbers[i]), true);
+					System.out.println("Number is " + mPhoneNumbers[i]);
+					System.out.println("Index is " + phones.indexOf(mPhoneNumbers[i]));
+				}
+			}
 		}
 		
+		//hackiest way to make the select all work
 		public class checkArrayAdapter extends ArrayAdapter<String>
 		{
 			public checkArrayAdapter(Context context, int resource,
@@ -660,6 +678,19 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_list));
 			mCurrentFragment = "SelectMembersFromListFragment";
+			//to recheck people
+		}
+		
+		public void onPause()
+		{
+			super.onPause();
+			long[] viewIds = ((ListView) getActivity().findViewById(R.id.memberList)).getCheckedItemIds();
+			mPhoneNumbers = new String[viewIds.length];
+			for (int i = 0; i < viewIds.length; i++)
+			{
+				mPhoneNumbers[i] = phones.get((int) viewIds[i]);
+				System.out.println(mPhoneNumbers[i]);
+			}
 		}
 	}
 	
