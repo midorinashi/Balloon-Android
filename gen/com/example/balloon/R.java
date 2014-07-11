@@ -1315,11 +1315,13 @@ containing a value of this type.
         public static final int title_choose_location=0x7f0a002f;
         public static final int title_create_list=0x7f0a0030;
         public static final int title_edit_agenda=0x7f0a0031;
-        public static final int title_select_list=0x7f0a0032;
-        public static final int title_select_members_from_contacts=0x7f0a0033;
-        public static final int title_select_members_from_list=0x7f0a0034;
-        public static final int title_set_deadline=0x7f0a0035;
-        public static final int white_space=0x7f0a0036;
+        public static final int title_final_edit=0x7f0a0032;
+        public static final int title_preview=0x7f0a0033;
+        public static final int title_select_list=0x7f0a0034;
+        public static final int title_select_members_from_contacts=0x7f0a0035;
+        public static final int title_select_members_from_list=0x7f0a0036;
+        public static final int title_set_deadline=0x7f0a0037;
+        public static final int white_space=0x7f0a0038;
     }
     public static final class style {
         /** 

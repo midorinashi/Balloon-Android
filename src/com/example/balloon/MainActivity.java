@@ -1,5 +1,11 @@
 package com.example.balloon;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -42,7 +48,7 @@ public class MainActivity extends ActionBarActivity
 		Parse.initialize(this, "iXEPNEZfJXoEOIayxLgBBgpShMZBTj7ReVoi1eqn",
 				"GHtE0svPk0epFG4olYnFTnnDtmARHtENXxXuHoXp");
 		ParseUser.logInInBackground("+19739002782", "cat", new LogInCallback() {
-			  public void done(ParseUser user, ParseException e) {
+			  public void done(ParseUser user, ParseException e) { 
 			    if (user != null) {
 			      // Hooray! The user is logged in.
 			    	onCreateInvitationsFragment();
@@ -177,7 +183,6 @@ public class MainActivity extends ActionBarActivity
 		public void onStop()
 		{
 			super.onStop();
-			
 		}
 		
 		/*

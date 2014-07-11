@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -19,6 +20,7 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Contacts.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
@@ -55,7 +57,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	private static boolean mPublicList;
 	private static String mListId;
 	private static String mAgenda;
-	private String mVenueInfo;
+	private static String mVenueInfo;
+	private static JSONObject mVenue;
 	private static int mExpiresAtHour;
 	private static int mExpiresAtMinute;
 	private String mVenuePhotoURL;
@@ -523,9 +526,12 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		}
 		
 		@Override
-		public void onActivityCreated(Bundle savedInstanceState)
+		
+		public void onResume()
 		{
-		    super.onActivityCreated(savedInstanceState);
+			super.onResume();
+			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_list));
+			mCurrentFragment = "SelectMembersFromListFragment";
 
 		    ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("ContactList");
 		    query.whereEqualTo("objectId", mListId);
@@ -614,7 +620,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 							phones.add(userList.get(i).getUsername());
 							System.out.println(names[i]);
 						}
-						finishCreatingActivity();
+						finishResume();
 					}
 					else
 						e.printStackTrace();
@@ -622,7 +628,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			});
 		}
 
-		public void finishCreatingActivity()
+		public void finishResume()
 		{
 		    int layout = android.R.layout.simple_list_item_multiple_choice;
 		    if (mArrayAdapter == null)
@@ -648,14 +654,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			if (mPhoneNumbers != null)
 				for (int i = 0; i < mPhoneNumbers.length; i++)
 					mListView.setItemChecked(phones.indexOf(mPhoneNumbers[i]), true);
-		}
-		
-		public void onResume()
-		{
-			super.onResume();
-			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_list));
-			mCurrentFragment = "SelectMembersFromListFragment";
-			//to recheck people
 		}
 		
 		public void onPause()
@@ -705,6 +703,10 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	
 	public static class ChooseLocationFragment extends Fragment {
 
+		private static ListView lv;
+		private static FragmentActivity context;
+		
+
 		public ChooseLocationFragment() {
 		}
 
@@ -720,8 +722,54 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		public void onResume()
 		{
 			super.onResume();
-			getActivity().setTitle(getResources().getString(R.string.title_choose_location));
+			context = getActivity();
+			context.setTitle(getResources().getString(R.string.title_choose_location));
 			mCurrentFragment = "ChooseLocationFragment";
+			System.out.println("Executing query sushi");
+			new AccessFoursquare().execute("sushi", "dog");
+			
+			//get the list so i can access it later
+			lv = (ListView) context.findViewById(R.id.locationList);
+		}
+
+		public static void makeList(final JSONArray array) {
+			final String[] names = new String[array.length()];
+			System.out.println("Size of the array is " + array.length());
+			for (int i = 0; i < array.length(); i++)
+			{
+				try {
+					names[i] = array.getJSONObject(i).getString("name");
+					System.out.println(names[i]);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			System.out.println("Got names");
+			ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context,
+					android.R.layout.simple_list_item_1, names);
+	        lv.setAdapter(arrayAdapter);
+	        lv.setOnItemClickListener(new OnItemClickListener() {
+				public void onItemClick(AdapterView<?> a, View v, int position, long id) {
+					mVenueInfo = names[position];
+					try {
+						mVenue = array.getJSONObject(position);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					startSetDeadlineFragment();
+				}
+	        });
+	        System.out.println("Done");
+		}
+
+		public static void startSetDeadlineFragment()
+		{
+			FragmentTransaction transaction = context.getSupportFragmentManager().beginTransaction();
+			transaction.replace(R.id.container, new SetDeadlineFragment());
+			transaction.addToBackStack(null);
+			transaction.commit();
 		}
 	}
 	
@@ -790,7 +838,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		public void onResume()
 		{
 			super.onResume();
-			getActivity().setTitle(getResources().getString(R.string.balloon));
+			getActivity().setTitle(getResources().getString(R.string.title_final_edit));
 			mCurrentFragment = "FinalEditFragment";
 			mAfterFinalEdit = false;
 			
@@ -799,7 +847,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			tv = (TextView) getActivity().findViewById(R.id.finalEditAgenda);
 			tv.setText(mAgenda);
 			tv = (TextView) getActivity().findViewById(R.id.finalEditLocation);
-			//tv.setText(mVenueInfo);
+			tv.setText(mVenueInfo);
 			tv = (TextView) getActivity().findViewById(R.id.finalEditDeadline);
 			tv.setText(formatTime(mExpiresAtHour, mExpiresAtMinute));
 		}
@@ -814,12 +862,16 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_preview,
 					container, false);
+			
+			getActivity().setTitle(getResources().getString(R.string.title_preview));
+			mCurrentFragment = "FinalEditFragment";
+			
 			TextView tv = (TextView) rootView.findViewById(R.id.creator);
 			tv.setText(R.string.dummy_name);
 			tv = (TextView) rootView.findViewById(R.id.agenda);
 			tv.setText(mAgenda);
 			tv = (TextView) rootView.findViewById(R.id.venueInfo);
-			tv.setText(R.string.dummy_location);
+			tv.setText(mVenueInfo);
 			tv = (TextView) rootView.findViewById(R.id.timeToRSVP);
 			tv.setText(formatTime(mExpiresAtHour, mExpiresAtMinute));
 			return rootView;
