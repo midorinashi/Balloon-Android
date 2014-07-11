@@ -1,18 +1,16 @@
 package com.example.balloon;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.json.JSONException;
 
+import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
@@ -35,10 +33,8 @@ public class MainActivity extends ActionBarActivity
 {
 	private boolean firstTimeUser;
 	private int user;
-	private final String CLIENT_ID = "QIVN42TMR5KLGEA15W1VK0ISG4V3DOT0J4XAZVZ033HQK2MH";
-	private final String CLIENT_SECRET = "YDYDI1JXQJPCVAWM1ZDMHRCCCAEJY5DT3TUTLUXU2JZ5G2AJ";
-	private final String callback_URL = "fb527538684032224://foursquare";
-	private final String DEFAULT_VERSION = "20140131";
+	private static double latitude;
+	private static double longitude;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -58,6 +54,9 @@ public class MainActivity extends ActionBarActivity
 			    }
 			  }
 			});
+		
+		
+    	
 		
 		setContentView(R.layout.activity_main);
 		/*
@@ -133,6 +132,16 @@ public class MainActivity extends ActionBarActivity
 		startActivity(intent);
 	}
 	
+	public static double getLatitude()
+	{
+		return latitude;
+	}
+	
+	public static double getLongitude()
+	{
+		return longitude;
+	}
+	
 	/**
 	 * This is the invitations screen. I think it makes sense for this to be the main activity.
 	 */
@@ -149,6 +158,35 @@ public class MainActivity extends ActionBarActivity
 			View rootView = inflater.inflate(R.layout.fragment_invitations, container,
 					false);
 			
+			//get location 
+			LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+	    	Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+	    	latitude = -1;
+	    	if (location != null)
+	    	{
+		    	longitude = location.getLongitude();
+		        latitude = location.getLatitude();
+	    	}
+	    	// Define a listener that responds to location updates
+	    	LocationListener ll = new LocationListener() {
+	    	    public void onLocationChanged(Location location) {
+	    	    	// Called when a new location is found by the network location provider.
+	    	    	longitude = location.getLongitude();
+	    	        latitude = location.getLatitude();
+	    	    }
+	    	    
+	    	    public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+	    	    public void onProviderEnabled(String provider) {}
+
+	    	    public void onProviderDisabled(String provider) {}
+	    	};
+
+	    	// Register the listener with the Location Manager to receive location updates
+	    	
+	    		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll);
+	    	
+	    	  
 			//CRAPPY HARDCODED EVENTS 8D
 			/*
 			for (int i = 0; i < 7; i++)

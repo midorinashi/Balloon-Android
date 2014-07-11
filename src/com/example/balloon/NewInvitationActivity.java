@@ -40,6 +40,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.SearchView;
+import android.widget.SearchView.OnQueryTextListener;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -221,17 +223,20 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	public void selectAll(View view)
 	{
 		// get how many have been checked
-		int items = mListView.getCount();
-		int checked = mListView.getCheckedItemIds().length;
-		boolean select = false;
-		System.out.println("Items: " + items);
-		System.out.println("Checked: " + checked);
-		if (checked != items)
-			select = true;
-		mCheckbox.setChecked(select);
-		for ( int i=0; i < items; i++)
+		if (mListView != null)
 		{
-			mListView.setItemChecked(i, select);
+			int items = mListView.getCount();
+			int checked = mListView.getCheckedItemIds().length;
+			boolean select = false;
+			System.out.println("Items: " + items);
+			System.out.println("Checked: " + checked);
+			if (checked != items)
+				select = true;
+			mCheckbox.setChecked(select);
+			for ( int i=0; i < items; i++)
+			{
+				mListView.setItemChecked(i, select);
+			}
 		}
 	}
 	
@@ -630,30 +635,33 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 
 		public void finishResume()
 		{
-		    int layout = android.R.layout.simple_list_item_multiple_choice;
-		    if (mArrayAdapter == null)
-			    mArrayAdapter = new CheckArrayAdapter(getActivity(),
-						layout, names);
-		    
-		    mCheckbox = (CheckBox) getActivity().findViewById(R.id.membersSelectAll);
-		    
-		    // each time we are started use our listadapter
-		    mListView = (ListView) getActivity().findViewById(R.id.memberList);
-		    mListView.setAdapter(mArrayAdapter);
-		    mListView.setItemsCanFocus(false);
-		    mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-		    //just for managing the checkbox
-		    mListView.setOnItemClickListener(new OnItemClickListener(){
-				public void onItemClick(AdapterView<?> arg0, View arg1,
-						int arg2, long arg3) {
-					membersListClicked(arg1);
-				}
-		    });
-
-		    //recheck people if members have been chosen before
-			if (mPhoneNumbers != null)
-				for (int i = 0; i < mPhoneNumbers.length; i++)
-					mListView.setItemChecked(phones.indexOf(mPhoneNumbers[i]), true);
+			//so that it won't crash if i move between pages too fast
+		    if (getActivity().findViewById(R.id.membersSelectAll) != null)
+		    {
+			    int layout = android.R.layout.simple_list_item_multiple_choice;
+			    if (mArrayAdapter == null)
+				    mArrayAdapter = new CheckArrayAdapter(getActivity(),
+							layout, names);
+			    mCheckbox = (CheckBox) getActivity().findViewById(R.id.membersSelectAll);
+			    
+			    // each time we are started use our listadapter
+			    mListView = (ListView) getActivity().findViewById(R.id.memberList);
+			    mListView.setAdapter(mArrayAdapter);
+			    mListView.setItemsCanFocus(false);
+			    mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+			    //just for managing the checkbox
+			    mListView.setOnItemClickListener(new OnItemClickListener(){
+					public void onItemClick(AdapterView<?> arg0, View arg1,
+							int arg2, long arg3) {
+						membersListClicked(arg1);
+					}
+			    });
+	
+			    //recheck people if members have been chosen before
+				if (mPhoneNumbers != null)
+					for (int i = 0; i < mPhoneNumbers.length; i++)
+						mListView.setItemChecked(phones.indexOf(mPhoneNumbers[i]), true);
+		    }
 		}
 		
 		public void onPause()
@@ -701,10 +709,10 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		}
 	}
 	
-	public static class ChooseLocationFragment extends Fragment {
+	public static class ChooseLocationFragment extends Fragment implements OnQueryTextListener{
 
 		private static ListView lv;
-		private static FragmentActivity context;
+		static FragmentActivity context;
 		
 
 		public ChooseLocationFragment() {
@@ -726,7 +734,11 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			context.setTitle(getResources().getString(R.string.title_choose_location));
 			mCurrentFragment = "ChooseLocationFragment";
 			System.out.println("Executing query sushi");
-			new AccessFoursquare().execute("sushi", "dog");
+			
+			new AccessFoursquare().execute("");
+			SearchView sv = (SearchView) context.findViewById(R.id.searchLocation);
+			sv.setOnQueryTextListener(this);
+			sv.setSubmitButtonEnabled(true);
 			
 			//get the list so i can access it later
 			lv = (ListView) context.findViewById(R.id.locationList);
@@ -770,6 +782,19 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			transaction.replace(R.id.container, new SetDeadlineFragment());
 			transaction.addToBackStack(null);
 			transaction.commit();
+		}
+
+		@Override
+		public boolean onQueryTextChange(String newText) {
+			return true;
+		}
+
+		//search now!
+		@Override
+		public boolean onQueryTextSubmit(String query) {
+
+			new AccessFoursquare().execute(query);
+			return true;
 		}
 	}
 	

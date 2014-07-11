@@ -12,19 +12,14 @@
         android:layout_margin="10dp"
         android:orientation="horizontal" >
 
-        <ImageView
-            android:id="@+id/seachIcon"
+        <SearchView
+            android:id="@+id/searchLocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:src="@drawable/abc_ic_search_api_holo_light" />
+            android:queryHint="@string/search_location"
+            android:iconifiedByDefault="false" >
 
-        <EditText
-            android:id="@+id/searchLocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:hint="@string/search_location" />
+        </SearchView>
 
     </LinearLayout>
 
