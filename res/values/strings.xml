@@ -34,16 +34,19 @@
     <string name="share_list">Share List with Members</string>
     <string name="title_activity_more_info">More Info Activity</string>
     <string name="title_activity_new_invitation">New Invitation Activity</string>
-	<string name="title_add_members">Add Members</string>
-	<string name="title_choose_location">Choose Location</string>
-	<string name="title_create_list">Create List</string>
-	<string name="title_edit_agenda">Write Plan</string>
-	<string name="title_final_edit">Meetup Summary</string>
-	<string name="title_preview">Preview</string>
-	<string name="title_select_list">Select List</string>
-	<string name="title_select_members_from_contacts">Select Members</string>
-	<string name="title_select_members_from_list">Select Members</string>
-	<string name="title_set_deadline">Set Deadline</string>
-	<string name="white_space"> </string>
-    
+    <string name="title_add_members">Add Members</string>
+    <string name="title_choose_location">Choose Location</string>
+    <string name="title_contact_list">Choose a Contact List</string>
+    <string name="title_create_list">Create List</string>
+    <string name="title_edit_agenda">Write Plan</string>
+    <string name="title_final_edit">Meetup Summary</string>
+    <string name="title_preview">Preview</string>
+    <string name="title_select_list">Select List</string>
+    <string name="title_select_members_from_contacts">Select Members</string>
+    <string name="title_select_members_from_list">Select Members</string>
+    <string name="title_set_deadline">Set Deadline</string>
+    <string name="white_space"></string>
+    <string name="title_activity_contact_lists">ContactListsActivity</string>
+    <string name="hello_world">Hello world!</string>
+
 </resources>

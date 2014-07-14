@@ -129,7 +129,9 @@ public class MainActivity extends ActionBarActivity
 	
 	public void newInvitation()
 	{
-		Intent intent = new Intent(this, NewInvitationActivity.class);
+		//TODO CHANGE THIS BACK
+		//Intent intent = new Intent(this, NewInvitationActivity.class);
+		Intent intent = new Intent(this, ContactListsActivity.class);
 		startActivity(intent);
 	}
 	

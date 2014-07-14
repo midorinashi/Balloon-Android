@@ -298,8 +298,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				if (e == null)
 				{
 					System.out.println("meetup created");
-					//sendInvite(meetup);
-					deleteInfo();
+					sendInvite(meetup);
+					//deleteInfo();
 				}
 				else
 					e.printStackTrace();
@@ -308,19 +308,33 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		});
 	}
 	
+	//TODO what the hell
 	public void sendInvite(ParseObject meetup)
 	{
 		HashMap<String, Object> params = new HashMap<String, Object>();
-		params.put("meetupId", meetup.getObjectId());
-		params.put("creator", ParseUser.getCurrentUser().getObjectId());
-		params.put("invitedUsers", mMemberObjectIds.toString());
+		
+		JSONObject meetupId = new JSONObject();
+		JSONObject creator = new JSONObject();
+		JSONArray invitedUsers = null;
+		try {
+			meetupId.put("meetupId", meetup.getObjectId());
+			creator.put("creator", meetup.getParseUser("creator").getObjectId());
+			invitedUsers = meetup.getJSONArray("invitedUsers");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		params.put("meetupId", meetupId);
+		params.put("creator", creator);
+		params.put("invitedUsers", invitedUsers);
 		
 		System.out.println(mMemberObjectIds.toString());
 		
-		ParseCloud.callFunctionInBackground("sendInvites", params, new FunctionCallback<String>(){
+		ParseCloud.callFunctionInBackground("sendInvites", params, new FunctionCallback<JSONObject>(){
 
 			@Override
-			public void done(String arg0, ParseException arg1) {
+			public void done(JSONObject arg0, ParseException arg1) {
 				// TODO Auto-generated method stub
 				if (arg1 != null)
 					arg1.printStackTrace();
@@ -399,16 +413,16 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	
 	public static class SelectListFragment extends Fragment {
 
-		private String[] lists;
-		private String[] ids;
-		private OnMemberListSelectedListener mListener;
+		protected String[] lists;
+		protected String[] ids;
+		protected OnMemberListSelectedListener mListener;
 		
 		public void onAttach(Activity activity) {
 	        super.onAttach(activity);
 	        try {
 	            mListener = (OnMemberListSelectedListener) activity;
 	        } catch (ClassCastException e) {
-	            throw new ClassCastException(activity.toString() + " must implement OnArticleSelectedListener");
+	            throw new ClassCastException(activity.toString() + " must implement OnMemberSelectedListener");
 	        }
 	    }
 

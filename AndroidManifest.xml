@@ -7,14 +7,14 @@
     <uses-sdk
         android:minSdkVersion="11"
         android:targetSdkVersion="19" />
-    
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-	<uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
-	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-	<uses-permission android:name="android.permission.INTERNET" />
-	<uses-permission android:name="android.permission.READ_CONTACTS" />
-	
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -40,6 +40,10 @@
         <activity
             android:name="com.example.balloon.NewInvitation"
             android:label="@string/title_activity_new_invitation" >
+        </activity>
+        <activity
+            android:name="com.example.balloon.ContactListsActivity"
+            android:label="@string/title_activity_contact_lists" >
         </activity>
     </application>
 
