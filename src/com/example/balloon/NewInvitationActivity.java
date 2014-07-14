@@ -1,6 +1,9 @@
 package com.example.balloon;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -47,11 +50,14 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
+import com.parse.FunctionCallback;
 import com.parse.GetCallback;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 public class NewInvitationActivity extends ActionBarActivity implements OnMemberListSelectedListener {
 
@@ -64,7 +70,11 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	private static int mExpiresAtHour;
 	private static int mExpiresAtMinute;
 	private String mVenuePhotoURL;
+	private static JSONArray mMemberObjectIds;
 	private static String[] mPhoneNumbers;
+	private static boolean mMakeContactList;
+	private static String[] mMemberIds;
+	private static JSONArray mMembers;
 	private static String mCurrentFragment;
 	//ayyyyyy because sometimes we go outside of the flow
 	private static boolean mAfterFinalEdit;
@@ -126,9 +136,13 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		{
 			transaction.replace(R.id.container, new EditAgendaFragment());
 			saveContacts();
+			mMakeContactList = true;
 		}
 		else if(mCurrentFragment.equals("SelectMembersFromListFragment"))
+		{
 			transaction.replace(R.id.container, new EditAgendaFragment());
+			mMakeContactList = false;
+		}
 		else if (mCurrentFragment.equals("EditAgendaFragment"))
 			transaction.replace(R.id.container, new ChooseLocationFragment());
 		else if (mCurrentFragment.equals("ChooseLocationFragment"))
@@ -261,10 +275,107 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		transaction.commit();
 	}
 	
-	public void send(View view)
+	public void makeMeetup(View view)
 	{
+		final ParseObject meetup = new ParseObject("Meetup");
+		meetup.put("agenda", mAgenda);
+		//make the contact list if we need to
+		//contact list id???
+		//gotta set both contactList and mMembers here
+		
+		//params.put("contactList", mListId);
+		meetup.put("creator", ParseUser.getCurrentUser());
+		meetup.put("expiresAt", changeToDate());
+		meetup.put("invitedUsers", mMembers);
+		meetup.put("venueInfo", mVenue);
+		//TODO IMAGES NEVER
+		//TODO learn where invite more happens
+		meetup.put("allowInviteMore", true);
+		meetup.saveInBackground(new SaveCallback(){
+
+			@Override
+			public void done(ParseException e) {
+				if (e == null)
+				{
+					System.out.println("meetup created");
+					//sendInvite(meetup);
+					deleteInfo();
+				}
+				else
+					e.printStackTrace();
+			}
+			
+		});
+	}
+	
+	public void sendInvite(ParseObject meetup)
+	{
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("meetupId", meetup.getObjectId());
+		params.put("creator", ParseUser.getCurrentUser().getObjectId());
+		params.put("invitedUsers", mMemberObjectIds.toString());
+		
+		System.out.println(mMemberObjectIds.toString());
+		
+		ParseCloud.callFunctionInBackground("sendInvites", params, new FunctionCallback<String>(){
+
+			@Override
+			public void done(String arg0, ParseException arg1) {
+				// TODO Auto-generated method stub
+				if (arg1 != null)
+					arg1.printStackTrace();
+				else
+				{
+					System.out.println("Success");
+					
+					//Next, delete all the info
+					deleteInfo();
+				}
+			}
+			
+		});
+	}
+	
+	public Date changeToDate()
+	{
+		GregorianCalendar calendar = new GregorianCalendar();
+		//TODO Using current timeLocale see if fix is needed
+		calendar.set(GregorianCalendar.HOUR_OF_DAY, mExpiresAtHour);
+		calendar.set(GregorianCalendar.MINUTE, mExpiresAtMinute);
+		//TODO make sure that current day is correct - might be tomorrow
+		Date date = calendar.getTime();
+		return date;
+	}
+	
+	//erase all static fields
+	private void deleteInfo()
+	{
+		mListName = null;
+		mListId = null;
+		mAgenda = null;
+		mVenueInfo = null;
+		mVenue = null;
+		//not really necessary for the expires at fields, but let's make everything the same
+		mExpiresAtHour = 0;
+		mExpiresAtMinute = 0;
+		mVenuePhotoURL = null;
+		mPhoneNumbers = null;
+		//same for makeContactList, but consistency
+		mMakeContactList = false;
+		mMemberIds = null;
+		mMembers = null;
+		mCurrentFragment = null;
+		mAfterFinalEdit = false;
+		mCheckbox = null;
+		mListView = null;
+		end();
+	}
+	
+	public void end()
+	{
+		//Show message
 		Context context = getApplicationContext();
-		CharSequence text = "Sent! jk";
+		CharSequence text = "Sent!";
 		int duration = Toast.LENGTH_SHORT;
 
 		Toast toast = Toast.makeText(context, text, duration);
@@ -331,6 +442,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			currentUser.add(ParseUser.getCurrentUser());
 			memberQuery.whereContainsAll("members", currentUser);
 			memberQuery.whereEqualTo("isVisibleToMembers", true);
+			memberQuery.whereNotEqualTo("isVisibleToMembers", false);
 			
 			ArrayList<ParseQuery<ParseObject>> queries = new ArrayList<ParseQuery<ParseObject>>();
 			queries.add(ownerQuery);
@@ -366,6 +478,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	        lv.setOnItemClickListener(new OnItemClickListener() {
 				public void onItemClick(AdapterView<?> a, View v, int position, long id) {
 					mListName = lists[position];
+					if (mListId != ids[position])
+						mMemberIds = null;
 					mListId = ids[position];
 					mListener.onMemberListSelected();
 				}
@@ -513,8 +627,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		
 		// and name should be displayed in the text1 textview in item layout
 		private String[] names;
-		private String[] ids;
-		private ArrayList<String> phones;
+		private ArrayList<String> ids;
+		private JSONArray users;
 		private ListAdapter mArrayAdapter;
 		
 		@Override
@@ -556,28 +670,24 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 							ownerIsUser = true;
 						}
 						names = new String[length];
-						ids = new String[length];
-						phones = new ArrayList<String>();
+						ids = new ArrayList<String>();
 						int empty = 0;
 						//put all member names and ids into respective arrays
 						for (int i = 0; i < members.length(); i++)
 						{
-							if (ownerIsUser || !memberIsUser(members, i))
-								try {
-									ids[i] = members.getJSONObject(i).getString("objectId");
-								} catch (JSONException e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
-								}
-							else
+							if (!(ownerIsUser || !memberIsUser(members, i)))
 								empty = i;
+							try {
+								ids.add(members.getJSONObject(i).getString("objectId"));
+							} catch (JSONException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
 								
 						}
 						//add the creator now -- it's not a json object
 						if (!ownerIsUser)
-							ids[empty] = contactList.getParseUser("owner").getObjectId();
-						for (int i = 0; i < ids.length; i++)
-							System.out.println("First iteration: id " + i + " is " + ids[i]);
+							ids.set(empty, contactList.getParseUser("owner").getObjectId());
 						fetchNames();
 					}
 					else
@@ -601,12 +711,12 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		public void fetchNames()
 		{
 			ArrayList<ParseQuery<ParseUser>> queries = new ArrayList<ParseQuery<ParseUser>>();
-			for (int i = 0; i < ids.length; i++)
+			for (int i = 0; i < ids.size(); i++)
 			{
 				ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
-				userQuery.whereEqualTo("objectId", ids[i]);
+				userQuery.whereEqualTo("objectId", ids.get(i));
 				queries.add(userQuery);
-				System.out.println("Second iteration: id " + i + " is " + ids[i]);
+				System.out.println("Second iteration: id " + i + " is " + ids.get(i));
 			}
 			ParseQuery<ParseUser> mainQuery = ParseQuery.or(queries);
 			mainQuery.orderByAscending("firstName");
@@ -616,13 +726,15 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 					if (e == null)
 					{
 						names = new String[userList.size()];
+						//we want a JSONArray of users, not just of userIds
+						users = new JSONArray();
 						for (int i = 0; i < userList.size(); i++)
 						{
 							names[i] = userList.get(i).getString("firstName") + " " + 
 										userList.get(i).getString("lastName");
 							//because the ids are no longer in the same order as they used to be!
-							ids[i] = userList.get(i).getObjectId();
-							phones.add(userList.get(i).getUsername());
+							ids.set(i, userList.get(i).getObjectId());
+							users.put(userList.get(i));
 							System.out.println(names[i]);
 						}
 						finishResume();
@@ -636,7 +748,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		public void finishResume()
 		{
 			//so that it won't crash if i move between pages too fast
-		    if (getActivity().findViewById(R.id.membersSelectAll) != null)
+		    if (mCurrentFragment == "SelectMembersFromListFragment")
 		    {
 			    int layout = android.R.layout.simple_list_item_multiple_choice;
 			    if (mArrayAdapter == null)
@@ -658,9 +770,9 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			    });
 	
 			    //recheck people if members have been chosen before
-				if (mPhoneNumbers != null)
-					for (int i = 0; i < mPhoneNumbers.length; i++)
-						mListView.setItemChecked(phones.indexOf(mPhoneNumbers[i]), true);
+				if (mMemberIds != null)
+					for (int i = 0; i < mMemberIds.length; i++)
+						mListView.setItemChecked(ids.indexOf(mMemberIds[i]), true);
 		    }
 		}
 		
@@ -668,11 +780,20 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		{
 			super.onPause();
 			long[] viewIds = ((ListView) getActivity().findViewById(R.id.memberList)).getCheckedItemIds();
-			mPhoneNumbers = new String[viewIds.length];
+			mMemberIds = new String[viewIds.length];
+			mMembers = new JSONArray();
+			mMemberObjectIds = new JSONArray();
 			for (int i = 0; i < viewIds.length; i++)
 			{
-				mPhoneNumbers[i] = phones.get((int) viewIds[i]);
-				System.out.println(mPhoneNumbers[i]);
+				mMemberIds[i] = ids.get((int) viewIds[i]);
+				try {
+					mMembers.put(users.get((int) viewIds[i]));
+					mMemberObjectIds.put(ids.get((int) viewIds[i]));
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				System.out.println(mMemberIds[i]);
 			}
 		}
 	}

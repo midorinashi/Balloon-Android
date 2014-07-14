@@ -43,6 +43,7 @@ public class MainActivity extends ActionBarActivity
 		//initialize parse
 		Parse.initialize(this, "iXEPNEZfJXoEOIayxLgBBgpShMZBTj7ReVoi1eqn",
 				"GHtE0svPk0epFG4olYnFTnnDtmARHtENXxXuHoXp");
+		
 		ParseUser.logInInBackground("+19739002782", "cat", new LogInCallback() {
 			  public void done(ParseUser user, ParseException e) { 
 			    if (user != null) {
