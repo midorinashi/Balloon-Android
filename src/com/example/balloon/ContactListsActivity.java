@@ -6,28 +6,27 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import com.parse.FindCallback;
-import com.parse.GetCallback;
-import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
-import com.parse.ParseUser;
-
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.os.Build;
+
+import com.parse.FindCallback;
+import com.parse.GetCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 public class ContactListsActivity extends ActionBarActivity implements OnMemberListSelectedListener{
 	
@@ -50,7 +49,7 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 	public boolean onCreateOptionsMenu(Menu menu) {
 
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.contact_lists, menu);
+		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
 
@@ -60,7 +59,8 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
+		if (id == R.id.action_plus) {
+			newContactList();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -72,6 +72,12 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 		transaction.replace(R.id.container, new ShowListFragment());
 		transaction.addToBackStack(null);
 		transaction.commit();
+	}
+	
+	public void newContactList()
+	{
+		Intent intent = new Intent(this, NewContactListActivity.class);
+		startActivity(intent);
 	}
 
 	/**
@@ -214,5 +220,4 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 		    }
 		}
 	}
-
 }

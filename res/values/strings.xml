@@ -3,9 +3,11 @@
 
     <string name="add_photo">Add\na\nPhoto</string>
     <string name="app_name">Balloon</string>
+    <string name="action_lists">Contact Lists</string>
     <string name="action_next">Next</string>
     <string name="action_new_invitation">New Invitation</string>
     <string name="action_plus">New Invitation</string>
+    <string name="action_rsvped_events">Upcoming</string>
     <string name="action_settings">Settings</string>
     <string name="agenda_empty">No plan :C</string>
     <string name="agenda_edit">What\'s the plan?\n\n(e.g. Let\'s go to Shake Shack at 8PM)</string>
@@ -36,7 +38,7 @@
     <string name="title_activity_new_invitation">New Invitation Activity</string>
     <string name="title_add_members">Add Members</string>
     <string name="title_choose_location">Choose Location</string>
-    <string name="title_contact_list">Choose a Contact List</string>
+    <string name="title_contact_list">Contact Lists</string>
     <string name="title_create_list">Create List</string>
     <string name="title_edit_agenda">Write Plan</string>
     <string name="title_final_edit">Meetup Summary</string>
@@ -48,5 +50,7 @@
     <string name="white_space"></string>
     <string name="title_activity_contact_lists">ContactListsActivity</string>
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_new_contact_list">NewContactListActivity</string>
+    <string name="title_activity_rsvpevents">RSVPEventsActivity</string>
 
 </resources>

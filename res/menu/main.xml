@@ -4,12 +4,24 @@
     tools:context="com.example.balloon.MainActivity" >
 
     <item
-        android:id="@+id/action_new_invitation"
+        android:id="@+id/action_plus"
         android:icon="@android:drawable/ic_input_add"
         android:orderInCategory="1"
         android:title="@string/action_new_invitation"
         app:showAsAction="always"
         />
+    
+    <item
+        android:id="@+id/action_lists"
+        android:orderInCategory="2"
+        android:title="@string/action_lists"
+        app:showAsAction="never"/>
+    
+    <item
+        android:id="@+id/action_rsvp"
+        android:orderInCategory="3"
+        android:title="@string/action_rsvped_events"
+        app:showAsAction="never"/>
     
     <item
         android:id="@+id/action_settings"

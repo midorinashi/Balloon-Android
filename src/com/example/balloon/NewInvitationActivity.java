@@ -88,9 +88,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_invitation);
 
-		//set unknown time
-		mExpiresAtHour = -1;
-		mExpiresAtMinute = 0;
+		//set all the defaults
+		deleteInfo();
 		
 		if (savedInstanceState == null) {
 			mAfterFinalEdit = false;
@@ -208,10 +207,12 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	    }
         phone = phone.replaceAll("[^[0-9]]", "");
         //TODO deal with missing area codes and missing country codes - use user's number
-        //has area code but no country code - auto adds 1 for america
+        //has area code but no country code - cloud code auto adds america
+        /*
         if (phone.length() == 10)
         	phone = "1" + phone;
         phone = "+" + phone;
+        */
 	    return phone;
 	}
 	
@@ -299,7 +300,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				{
 					System.out.println("meetup created");
 					sendInvite(meetup);
-					//deleteInfo();
 				}
 				else
 					e.printStackTrace();
@@ -312,29 +312,13 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	public void sendInvite(ParseObject meetup)
 	{
 		HashMap<String, Object> params = new HashMap<String, Object>();
-		
-		JSONObject meetupId = new JSONObject();
-		JSONObject creator = new JSONObject();
-		JSONArray invitedUsers = null;
-		try {
-			meetupId.put("meetupId", meetup.getObjectId());
-			creator.put("creator", meetup.getParseUser("creator").getObjectId());
-			invitedUsers = meetup.getJSONArray("invitedUsers");
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		params.put("meetupId", meetupId);
-		params.put("creator", creator);
-		params.put("invitedUsers", invitedUsers);
-		
-		System.out.println(mMemberObjectIds.toString());
-		
-		ParseCloud.callFunctionInBackground("sendInvites", params, new FunctionCallback<JSONObject>(){
+		params.put("meetupId", meetup.getObjectId());
+		params.put("creator", meetup.getParseUser("creator").getObjectId());
+		params.put("invitedUsers", meetup.getJSONArray("invitedUsers"));
+		ParseCloud.callFunctionInBackground("sendInvites", params, new FunctionCallback<Object>(){
 
 			@Override
-			public void done(JSONObject arg0, ParseException arg1) {
+			public void done(Object arg0, ParseException arg1) {
 				// TODO Auto-generated method stub
 				if (arg1 != null)
 					arg1.printStackTrace();
@@ -342,8 +326,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				{
 					System.out.println("Success");
 					
-					//Next, delete all the info
-					deleteInfo();
+					//Next, end the activity
+					end();
 				}
 			}
 			
@@ -361,29 +345,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		return date;
 	}
 	
-	//erase all static fields
-	private void deleteInfo()
-	{
-		mListName = null;
-		mListId = null;
-		mAgenda = null;
-		mVenueInfo = null;
-		mVenue = null;
-		//not really necessary for the expires at fields, but let's make everything the same
-		mExpiresAtHour = 0;
-		mExpiresAtMinute = 0;
-		mVenuePhotoURL = null;
-		mPhoneNumbers = null;
-		//same for makeContactList, but consistency
-		mMakeContactList = false;
-		mMemberIds = null;
-		mMembers = null;
-		mCurrentFragment = null;
-		mAfterFinalEdit = false;
-		mCheckbox = null;
-		mListView = null;
-		end();
-	}
+	
 	
 	public void end()
 	{
@@ -395,6 +357,28 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		Toast toast = Toast.makeText(context, text, duration);
 		toast.show();
 		finish();
+	}
+	
+	//erase all static fields
+	private void deleteInfo()
+	{
+		mListName = null;
+		mListId = null;
+		mAgenda = null;
+		mVenueInfo = null;
+		mVenue = null;
+		mExpiresAtHour = -1;
+		mExpiresAtMinute = 0;
+		mVenuePhotoURL = null;
+		mPhoneNumbers = null;
+		//same for makeContactList, but consistency
+		mMakeContactList = false;
+		mMemberIds = null;
+		mMembers = null;
+		mCurrentFragment = null;
+		mAfterFinalEdit = false;
+		mCheckbox = null;
+		mListView = null;
 	}
 
 	public static String formatTime(int hour, int minute)
@@ -440,11 +424,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_select_list));
 			mCurrentFragment = "SelectListFragment";
-		}
-		
-		public void onActivityCreated(Bundle savedInstanceState)
-		{
-			super.onActivityCreated(savedInstanceState);
 			
 			//Get all the contactlists that the owner owns
 			ParseQuery<ParseObject> ownerQuery = new ParseQuery<ParseObject>("ContactList");
@@ -605,7 +584,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		{
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_contacts));
-			mCurrentFragment = "SelectMembersFromContactsFragment";
+			if (getActivity() instanceof NewInvitationActivity)
+				mCurrentFragment = "SelectMembersFromContactsFragment";
 		}
 
 	    @Override
@@ -676,10 +656,11 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 						JSONArray members = contactList.getJSONArray("members");
 						int length = members.length();
 						String currentUserId = ParseUser.getCurrentUser().getObjectId();
-						System.out.println(currentUserId.compareTo(contactList.getParseUser("owner").getObjectId()));
-						//if the user isn't a member, then we need to remove the member from the list and add owner
+						//if the user isn't a member, then we need to remove the member
+						//from the list and add owner
 						boolean ownerIsUser = false;
-						if (currentUserId.compareTo(contactList.getParseUser("owner").getObjectId()) == 0)
+						if (currentUserId.compareTo(contactList.getParseUser("owner")
+								.getObjectId()) == 0)
 						{
 							ownerIsUser = true;
 						}
@@ -980,7 +961,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		}
 	}
 	
-	//TODO when sending the data, delete all the fields afterwards! or else we can send the same invite again
+	//TODO when sending the data, delete all the fields afterwards!
+	//or else we can send the same invite again
 	public static class FinalEditFragment extends Fragment {
 		
 		public FinalEditFragment() {

@@ -1,7 +1,9 @@
 package com.example.balloon;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONException;
@@ -22,8 +24,10 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.parse.FindCallback;
+import com.parse.FunctionCallback;
 import com.parse.LogInCallback;
 import com.parse.Parse;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -119,9 +123,19 @@ public class MainActivity extends ActionBarActivity
 		{
 			return true;
 		}
-		if (id == R.id.action_new_invitation)
+		if (id == R.id.action_lists)
+		{
+			contactLists();
+			return true;
+		}
+		if (id == R.id.action_plus)
 		{
 			newInvitation();
+			return true;
+		}
+		if (id == R.id.action_rsvp)
+		{
+			upcoming();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -129,9 +143,19 @@ public class MainActivity extends ActionBarActivity
 	
 	public void newInvitation()
 	{
-		//TODO CHANGE THIS BACK
-		//Intent intent = new Intent(this, NewInvitationActivity.class);
+		Intent intent = new Intent(this, NewInvitationActivity.class);
+		startActivity(intent);
+	}
+	
+	public void contactLists()
+	{
 		Intent intent = new Intent(this, ContactListsActivity.class);
+		startActivity(intent);
+	}
+	
+	public void upcoming()
+	{
+		Intent intent = new Intent(this, RSVPEventsActivity.class);
 		startActivity(intent);
 	}
 	
@@ -218,12 +242,27 @@ public class MainActivity extends ActionBarActivity
 		public void onResume()
 		{
 			super.onResume();
-			refreshScreen();
+			getUpcoming();
 		}
 		
 		public void onStop()
 		{
 			super.onStop();
+		}
+		
+		public void getUpcoming()
+		{
+			HashMap<String, Object> params = new HashMap<String, Object>();
+			params.put("user", ParseUser.getCurrentUser().toString());
+			ParseCloud.callFunctionInBackground("loadUpcomingMeetups", params,
+					new FunctionCallback<ArrayList<Object>>(){
+				public void done(ArrayList<Object> upcoming, ParseException e) {
+					if (e == null)
+						refreshScreen(upcoming);
+					else
+						e.printStackTrace();
+				}
+			});
 		}
 		
 		/*
@@ -236,7 +275,8 @@ public class MainActivity extends ActionBarActivity
 		 * 
 		 * Right now it just gets all the invites cause EFFICIENCY
 		 */
-		public void refreshScreen()
+		@SuppressWarnings("unchecked")
+		public void refreshScreen(ArrayList<Object> upcoming)
 		{
 			ParseQuery<ParseObject> query = ParseQuery.getQuery("Meetup"); 
 			query.orderByAscending("expiresAt");
@@ -248,7 +288,15 @@ public class MainActivity extends ActionBarActivity
 			ArrayList<ParseUser> currentUser = new ArrayList<ParseUser>();
 			currentUser.add(ParseUser.getCurrentUser());
 			query.whereContainsAll("invitedUsers", currentUser);
-			
+			ArrayList<String> ids = new ArrayList<String>();
+			//each object is a hashmap
+			for (Object o : upcoming)
+			{
+				//ugly shit
+				ids.add(((ParseObject)((HashMap<String, Object>) o).get("meetup")).getObjectId());
+				System.out.println(ids.get(ids.size()-1));
+			}
+			fixQuery(query, ids);
 			query.findInBackground(new FindCallback<ParseObject>(){
 				public void done(List<ParseObject> eventList, ParseException e) {
 					if (e != null)
@@ -266,6 +314,12 @@ public class MainActivity extends ActionBarActivity
 					}
 				}
 			});
+		}
+		
+		//removes all the upcoming invites in the main
+		public void fixQuery(ParseQuery<ParseObject> query, ArrayList<String> ids)
+		{
+			query.whereNotContainedIn("objectId", ids);
 		}
 		
 		//Takes the list of meetups from parse query and, well, lists them.
