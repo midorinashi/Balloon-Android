@@ -31,6 +31,7 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.ActionBarActivity;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -308,7 +309,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		});
 	}
 	
-	//TODO what the hell
 	public void sendInvite(ParseObject meetup)
 	{
 		HashMap<String, Object> params = new HashMap<String, Object>();
@@ -319,7 +319,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 
 			@Override
 			public void done(Object arg0, ParseException arg1) {
-				// TODO Auto-generated method stub
 				if (arg1 != null)
 					arg1.printStackTrace();
 				else
@@ -675,7 +674,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 							try {
 								ids.add(members.getJSONObject(i).getString("objectId"));
 							} catch (JSONException e1) {
-								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}
 								
@@ -785,7 +783,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 					mMembers.put(users.get((int) viewIds[i]));
 					mMemberObjectIds.put(ids.get((int) viewIds[i]));
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				System.out.println(mMemberIds[i]);
@@ -862,20 +859,53 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 
 		public static void makeList(final JSONArray array) {
 			final String[] names = new String[array.length()];
+			final String[] addresses = new String[array.length()];
+			JSONArray formattedAddress;
+			String address;
 			System.out.println("Size of the array is " + array.length());
 			for (int i = 0; i < array.length(); i++)
 			{
 				try {
 					names[i] = array.getJSONObject(i).getString("name");
 					System.out.println(names[i]);
+					formattedAddress = array.getJSONObject(i).getJSONObject("location")
+							.getJSONArray("formattedAddress");
+					address = "";
+					for (int j = 0; j < formattedAddress.length(); j++)
+					{
+						address += formattedAddress.getString(j);
+						if (j != formattedAddress.length() - 1)
+							address += ", ";
+					}
+					addresses[i] = address;
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
 			System.out.println("Got names");
 			ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context,
-					android.R.layout.simple_list_item_1, names);
+					R.layout.list_item_location, R.id.text1, names) {
+				  @Override
+				  public View getView(int position, View convertView, ViewGroup parent) {
+				    View view = super.getView(position, convertView, parent);
+				    TextView text1 = (TextView) view.findViewById(R.id.text1);
+				    TextView text2 = (TextView) view.findViewById(R.id.text2);
+
+				    text1.setText(names[position]);
+				    text2.setText(addresses[position]);
+				    
+				    text1.setMaxLines(1);
+				    text2.setMaxLines(1);
+				    
+				    text1.setEllipsize(TextUtils.TruncateAt.END);
+				    text2.setEllipsize(TextUtils.TruncateAt.END);
+				    
+				    System.out.println(text1.getText());
+				    System.out.println(text2.getText());
+				    System.out.println(position);
+				    return view;
+				  }
+			};
 	        lv.setAdapter(arrayAdapter);
 	        lv.setOnItemClickListener(new OnItemClickListener() {
 				public void onItemClick(AdapterView<?> a, View v, int position, long id) {
@@ -883,7 +913,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 					try {
 						mVenue = array.getJSONObject(position);
 					} catch (JSONException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					startSetDeadlineFragment();
@@ -961,8 +990,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		}
 	}
 	
-	//TODO when sending the data, delete all the fields afterwards!
-	//or else we can send the same invite again
 	public static class FinalEditFragment extends Fragment {
 		
 		public FinalEditFragment() {
