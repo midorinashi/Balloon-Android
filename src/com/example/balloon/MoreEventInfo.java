@@ -20,8 +20,8 @@ public class MoreEventInfo extends ViewGroup
 	//Expiration date in milliseconds
 		private long mExpiresAt;
 		
-		//Whether the view is visible - get rid of it when event expires
-		private boolean mIsVisible;
+		private boolean hasReplied;
+		private boolean willAttend;
 		
 		//Views for easy access
 		private TextView mCreatorView;
@@ -37,7 +37,6 @@ public class MoreEventInfo extends ViewGroup
 			super(context);
 			initViews();
 			mExpiresAt = 0;
-			mIsVisible = false;
 		}
 		
 		public MoreEventInfo(Context context, AttributeSet attrs)
@@ -154,8 +153,6 @@ public class MoreEventInfo extends ViewGroup
 				
 				//just gets the expiration - will calculate the text later
 				setExpiresAt(Long.parseLong(a.getString(R.styleable.Event_expiresAt)));
-				//check to see if it's not expired
-				mIsVisible = (new Date()).getTime() < mExpiresAt;
 			}
 			finally
 			{
@@ -189,11 +186,6 @@ public class MoreEventInfo extends ViewGroup
 		public String getTimeToRSVP()
 		{
 			return mTimeToRSVPView.getText().toString();
-		}
-		
-		public boolean getIsVisible()
-		{
-			return mIsVisible;
 		}
 
 		//All the setters (? Is that what you call them?)
@@ -249,12 +241,6 @@ public class MoreEventInfo extends ViewGroup
 		public void setExpiresAt(Long time)
 		{
 			mExpiresAt = time;
-		}
-		public void setVisibility(boolean isVisible)
-		{
-			mIsVisible = isVisible;
-			invalidate();
-			requestLayout();
 		}
 		
 		//Right now, this just defaults to max photo height. This is because the photo square is larger than

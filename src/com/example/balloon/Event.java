@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.parse.ParseUser;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +28,10 @@ public class Event extends ViewGroup
 {
 	//Expiration date in milliseconds
 	private Date mExpiresAt;
+	
+	private boolean mHasResponded;
+	private boolean mWillAttend;
+	private boolean mIsCreator;
 	
 	//Whether the view is visible - get rid of it when event expires
 	private boolean mIsVisible;
@@ -238,6 +244,21 @@ public class Event extends ViewGroup
 	{
 		return mIsVisible;
 	}
+	
+	public boolean getHasResponded()
+	{
+		return mHasResponded;
+	}
+	
+	public boolean getWillAttend()
+	{
+		return mWillAttend;
+	}
+	
+	public boolean getIsCreator()
+	{
+		return mIsCreator;
+	}
 
 	//All the setters (? Is that what you call them?)
 	public void setObjectId(String id)
@@ -313,6 +334,21 @@ public class Event extends ViewGroup
 		mIsVisible = isVisible;
 		invalidate();
 		requestLayout();
+	}
+	
+	public void setHasResponded(boolean b)
+	{
+		mHasResponded = b;
+	}
+	
+	public void setWillAttend(boolean b)
+	{
+		mWillAttend = b;
+	}
+	
+	public void setIsCreator(boolean b)
+	{
+		mIsCreator = b;
 	}
 	
 	//Right now, this just defaults to max photo height. This is because the photo square is larger than
@@ -434,7 +470,11 @@ public class Event extends ViewGroup
 			Intent intent = new Intent(getContext(), MoreInfoActivity.class);
 			Bundle bundle = new Bundle();
 			bundle.putString("objectId", mObjectId);
+			bundle.putBoolean("hasResponded", mHasResponded);
+			bundle.putBoolean("willAttend", mWillAttend);
+			bundle.putBoolean("isCreator", mIsCreator);
 			intent.putExtras(bundle);
+			System.out.println("The id is: " + mObjectId);
 			((Activity) getContext()).startActivity(intent);
 			
 		}

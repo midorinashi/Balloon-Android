@@ -2,6 +2,7 @@ package com.example.balloon;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -21,30 +22,33 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
+import com.parse.FunctionCallback;
 import com.parse.GetCallback;
-import com.parse.Parse;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 public class MoreInfoActivity extends ActionBarActivity
 {
-	private static int mResponse;
-	
 	private static String mObjectId;
+	private static boolean mIsCreator;
 	private static String mCreator;
 	private static String mAgenda;
 	private static String mVenueInfo;
 	private static Date mExpiresAt;
 	private static String mTimeToRSVP;
+	private static boolean mHasResponded;
+	private static boolean mWillAttend;
+	protected static ParseObject mMeetup;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,17 +58,21 @@ public class MoreInfoActivity extends ActionBarActivity
 		System.out.println(mObjectId);
 		
 		if (savedInstanceState == null) {
+
 			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
 			query.whereEqualTo("objectId", mObjectId);
 			query.getFirstInBackground(new GetCallback<ParseObject>(){
 				public void done(ParseObject meetup, ParseException e) {
 					if (e == null)
 					{
+						mMeetup = meetup;
 						ParseUser creator = meetup.getParseUser("creator");
 						try {
 							//should be a fetch in background
 							creator.fetchIfNeeded();
 							mCreator = creator.getString("firstName") + " " + creator.getString("lastName");
+							if (creator == ParseUser.getCurrentUser())
+								mIsCreator = true;
 						} catch (ParseException e1) {
 							e1.printStackTrace();
 						}
@@ -113,6 +121,8 @@ public class MoreInfoActivity extends ActionBarActivity
 								{
 									if (responses.size() > 0)
 										fetchNames(responses, false);
+									else
+										makeComingList(new String[0]);
 								}
 								else
 									e.printStackTrace();
@@ -126,6 +136,9 @@ public class MoreInfoActivity extends ActionBarActivity
 				}
 			});
 		}
+		mHasResponded = getIntent().getExtras().getBoolean("hasResponded");
+		mWillAttend = getIntent().getExtras().getBoolean("willAttend");
+		mIsCreator = getIntent().getExtras().getBoolean("isCreator");
 	}
 	
 	public void makeCommentList(final List<ParseObject> comments)
@@ -188,6 +201,7 @@ public class MoreInfoActivity extends ActionBarActivity
 	
 	public void makeComingList(String[] names)
 	{
+		System.out.println("Making coming list names# = " + names.length);
 		int layout = android.R.layout.simple_list_item_1;
 		ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, layout, names);
 	    
@@ -209,6 +223,14 @@ public class MoreInfoActivity extends ActionBarActivity
 		getMenuInflater().inflate(R.menu.more_info, menu);
 		return true;
 	}
+	
+	public boolean onPrepareOptionsMenu(final Menu menu) {
+		//set to edit text string if necessary
+		if (mIsCreator)
+			menu.findItem(R.id.action_agenda).setTitle(getResources()
+					.getString(R.string.action_edit_agenda));
+	    return super.onPrepareOptionsMenu(menu);
+	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -216,7 +238,26 @@ public class MoreInfoActivity extends ActionBarActivity
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
+		if (id == R.id.action_agenda) {
+			if (mIsCreator)
+			{
+				FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+				transaction.replace(R.id.moreinfocontainer, new EditAgendaFragment());
+				transaction.addToBackStack(null);
+				transaction.commit();
+			}
+			else
+				showAgenda(null);
+			return true;
+		}
+		else if (id == R.id.action_comment) {
+			FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+			transaction.replace(R.id.moreinfocontainer, new AddCommentFragment(), "AddCommentFragment");
+			transaction.addToBackStack(null);
+			transaction.commit();
+			return true;
+		}
+		else if (id == R.id.action_locate) {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -225,26 +266,137 @@ public class MoreInfoActivity extends ActionBarActivity
 	public void showAgenda(View view)
 	{
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-		transaction.replace(R.id.moreinfocontainer, new EditAgendaFragment());
+		transaction.replace(R.id.moreinfocontainer, new AgendaFragment());
 		transaction.addToBackStack(null);
 		transaction.commit();
 	}
 	
 	public void respondNo(View view)
 	{
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("meetupId", mObjectId);
+		params.put("willAttend", false);
+		ParseCloud.callFunctionInBackground("respondToMeetup", params, new FunctionCallback<Object>() {
+			public void done(Object o, ParseException e) {
+				if (e == null)
+				{
+					//gotta refetch the people coming cause i changed everything
+					ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
+					comingQuery.whereEqualTo("meetup", mMeetup);
+					comingQuery.whereEqualTo("isAttending", true);
+					comingQuery.findInBackground(new FindCallback<ParseObject>() {
+
+						@Override
+						public void done(List<ParseObject> responses, ParseException e) {
+							if (e == null)
+							{
+								if (responses.size() > 0)
+									fetchNames(responses, false);
+								else
+									makeComingList(new String[0]);
+							}
+							else
+								e.printStackTrace();
+						}
+					});
+				}
+				else
+					e.printStackTrace();
+			}
+		});
 		view.setBackgroundColor(getResources().getColor(R.color.red));
 		findViewById(R.id.yes).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
 	}
 	
 	public void respondYes(View view)
 	{
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("meetupId", mObjectId);
+		params.put("willAttend", true);
+		ParseCloud.callFunctionInBackground("respondToMeetup", params, new FunctionCallback<Object>() {
+			public void done(Object o, ParseException e) {
+				if (e == null)
+				{
+					//gotta refetch the people coming cause i changed everything
+					ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
+					comingQuery.whereEqualTo("meetup", mMeetup);
+					comingQuery.whereEqualTo("isAttending", true);
+					comingQuery.findInBackground(new FindCallback<ParseObject>() {
+
+						@Override
+						public void done(List<ParseObject> responses, ParseException e) {
+							if (e == null)
+							{
+								if (responses.size() > 0)
+									fetchNames(responses, false);
+								else
+									makeComingList(new String[0]);
+							}
+							else
+								e.printStackTrace();
+						}
+					});
+				}
+				else
+					e.printStackTrace();
+			}
+		});
 		view.setBackgroundColor(getResources().getColor(R.color.green));
 		findViewById(R.id.no).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
 	}
 
-	/**
-	 * A placeholder fragment containing a simple view.
-	 */
+	public void addComment(View view)
+	{
+		EditText et = (EditText) findViewById(R.id.comment);
+		String comment = et.getText().toString();
+		
+		ParseObject c = new ParseObject("Comment");
+		c.put("comment", comment);
+		c.put("commenter", ParseUser.getCurrentUser());
+		c.put("meetup", mMeetup);
+		c.saveInBackground(new SaveCallback() {
+			@Override
+			public void done(ParseException e) {
+				if (e == null)
+					outputToast("Comment added!");
+				else
+					e.printStackTrace();
+			}
+		});
+	}
+	
+	public void changeAgenda(View view)
+	{
+		EditText et = (EditText) findViewById(R.id.editAgenda);
+		String agenda = et.getText().toString();
+		
+		mMeetup.put("agenda", agenda);
+		mMeetup.saveInBackground(new SaveCallback() {
+			@Override
+			public void done(ParseException e) {
+				if (e == null)
+					outputToast("Agenda changed!");
+				else
+					e.printStackTrace();
+			}
+		});
+	}
+	
+	public void outputToast(CharSequence text)
+	{
+		int duration = Toast.LENGTH_SHORT;
+
+		Toast toast = Toast.makeText(this, text, duration);
+		toast.show();
+		
+		cancel(null);
+	}
+	
+	public void cancel(View view)
+	{
+		getSupportFragmentManager().popBackStack();
+	}
+	
 	public static class MoreInfoFragment extends Fragment
 	{
 		private Handler mHandler;
@@ -290,6 +442,7 @@ public class MoreInfoActivity extends ActionBarActivity
 		public void onResume()
 		{
 			super.onResume();
+			
 			Resources res = getResources();
 			
 			if (mCreator == null)
@@ -306,6 +459,13 @@ public class MoreInfoActivity extends ActionBarActivity
 			tv.setText(mAgenda);
 			tv = (TextView) getActivity().findViewById(R.id.venueInfo);
 			tv.setText(mVenueInfo);
+			if (mHasResponded)
+				if (mWillAttend)
+					getActivity().findViewById(R.id.yes)
+						.setBackgroundColor(getResources().getColor(R.color.green));
+				else
+					getActivity().findViewById(R.id.no)
+						.setBackgroundColor(getResources().getColor(R.color.red));
 		}
 		
 		public void onStop()
@@ -323,6 +483,7 @@ public class MoreInfoActivity extends ActionBarActivity
 		}
 	}
 	
+	//TODO get correct kind of agenda frag to pop up
 	public static class AgendaFragment extends Fragment
 	{
 		@Override
@@ -356,6 +517,17 @@ public class MoreInfoActivity extends ActionBarActivity
 			super.onPause();
 			EditText et = (EditText) getActivity().findViewById(R.id.editAgenda);
 			mAgenda = et.getText().toString();
+		}
+	}
+	
+	public static class AddCommentFragment extends Fragment
+	{
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState)
+		{
+			View rootView = inflater.inflate(R.layout.fragment_add_comment,
+					container, false);
+			return rootView;
 		}
 	}
 }

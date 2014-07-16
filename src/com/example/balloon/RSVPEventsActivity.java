@@ -1,20 +1,27 @@
 package com.example.balloon;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.os.Build;
+import android.widget.LinearLayout;
+
+import com.parse.FunctionCallback;
+import com.parse.ParseCloud;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseUser;
 
 public class RSVPEventsActivity extends ActionBarActivity {
 
@@ -65,11 +72,74 @@ public class RSVPEventsActivity extends ActionBarActivity {
 			return rootView;
 		}
 		
-		//removes all the nonupcoming invites in the main
-		public void fixQuery(ParseQuery<ParseObject> query, ArrayList<String> ids)
+		public void onResume()
 		{
-			query.whereContainedIn("objectId", ids);
+			super.onResume();
+			getUpcoming();
+		}
+		
+		public void getUpcoming()
+		{
+			HashMap<String, Object> params = new HashMap<String, Object>();
+			params.put("user", ParseUser.getCurrentUser().toString());
+			ParseCloud.callFunctionInBackground("loadUpcomingMeetups", params,
+					new FunctionCallback<ArrayList<HashMap<String, Object>>>(){
+				public void done(ArrayList<HashMap<String, Object>> upcoming, ParseException e) {
+					if (e == null)
+						makeList(upcoming);
+					else
+						e.printStackTrace();
+				}
+			});
+		}
+		
+		//Takes the list of meetups from parse query and, well, lists them.
+		// TODO I need to make a list of events to avoid memory leaks, also stop all timers
+		public void makeList(ArrayList<HashMap<String, Object>> upcoming)
+		{
+			LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
+			//removes all the views for now because EFFICIENCY WHAT
+			lin.removeAllViews();
+			
+			for (int i = 0; i < upcoming.size(); i++)
+			{
+				Event event = new Event(getActivity());
+				ParseObject meetup = (ParseObject) upcoming.get(i).get("meetup");
+				//invite.setVenuePhoto(event.getParseFile(key));
+				try {
+
+					event.setObjectId(meetup.getObjectId());
+					event.setCreator(meetup.getParseUser("creator").getString("firstName") + " " +
+							meetup.getParseUser("creator").getString("lastName"));
+					event.setAgenda(meetup.getString("agenda"));
+					
+					JSONArray formattedAddress = meetup.getJSONObject("venueInfo").getJSONObject("location")
+							.getJSONArray("formattedAddress");
+					String address = "";
+					for (int j = 0; j < formattedAddress.length(); j++)
+					{
+						address += formattedAddress.getString(j);
+						if (j != formattedAddress.length() - 1)
+							address += ", ";
+					}
+					event.setVenueInfo(address);
+					event.setExpiresAt((Date) meetup.get("expiresAt"));
+					event.setHasResponded(true);
+					event.setWillAttend(true);
+					event.setIsCreator(ParseUser.getCurrentUser().getObjectId()
+							.equals(meetup.getParseUser("creator").getObjectId()));
+					if (!event.getIsCreator())
+						event.setWillAttend(((ParseObject) upcoming.get(i).get("response"))
+								.getBoolean("isAttending"));
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				if (i % 2 == 0)
+					event.setBackgroundColor(getResources().getColor(R.color.lightBlue));
+				lin.addView(event);
+			}
 		}
 	}
-
 }

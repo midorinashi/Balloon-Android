@@ -48,7 +48,12 @@ public class MainActivity extends ActionBarActivity
 		Parse.initialize(this, "iXEPNEZfJXoEOIayxLgBBgpShMZBTj7ReVoi1eqn",
 				"GHtE0svPk0epFG4olYnFTnnDtmARHtENXxXuHoXp");
 		
-		ParseUser.logInInBackground("+19739002782", "cat", new LogInCallback() {
+		String Tracey = "+19739002782";
+		String Mao = "+18007580051";
+		//the proxy
+		String Liu = "+19739129828";
+		
+		ParseUser.logInInBackground(Tracey, "cat", new LogInCallback() {
 			  public void done(ParseUser user, ParseException e) { 
 			    if (user != null) {
 			      // Hooray! The user is logged in.

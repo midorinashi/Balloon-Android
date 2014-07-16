@@ -3,7 +3,11 @@
 
     <string name="add_photo">Add\na\nPhoto</string>
     <string name="app_name">Balloon</string>
+    <string name="action_agenda">View Meetup Plan</string>
+    <string name="action_comment">Add a Comment</string>
+    <string name="action_edit_agenda">Edit Meetup Plan</string>
     <string name="action_lists">Contact Lists</string>
+    <string name="action_locate">Locate the Venue</string>
     <string name="action_next">Next</string>
     <string name="action_new_invitation">New Invitation</string>
     <string name="action_plus">New Invitation</string>
@@ -13,6 +17,7 @@
     <string name="agenda_edit">What\'s the plan?\n\n(e.g. Let\'s go to Shake Shack at 8PM)</string>
     <string name="balloon">Balloon</string>
     <string name="comments_header">Comments</string>
+    <string name="comments_hint">Your comment here</string>
     <string name="coming_header">Coming</string>
     <string name="contacts_header">Contacts:</string>
     <string name="deadline_time">7:00PM</string>
