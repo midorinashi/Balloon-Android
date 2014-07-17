@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+    <item
+        android:id="@+id/action_photo_last"
+        android:orderInCategory="1"
+        android:title="@string/photo_last" />
+    
+    <item
+        android:id="@+id/action_photo_take"
+        android:orderInCategory="2"
+        android:title="@string/photo_take" />
+    
+    <item
+        android:id="@+id/action_photo_library"
+        android:orderInCategory="3"
+        android:title="@string/photo_library" />
+    
+    <item
+        android:id="@+id/action_cancel"
+        android:orderInCategory="4"
+        android:title="@string/cancel" />
+
+</menu>

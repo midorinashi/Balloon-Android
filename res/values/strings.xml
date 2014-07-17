@@ -16,6 +16,7 @@
     <string name="agenda_empty">No plan :C</string>
     <string name="agenda_edit">What\'s the plan?\n\n(e.g. Let\'s go to Shake Shack at 8PM)</string>
     <string name="balloon">Balloon</string>
+    <string name="cancel">Cancel</string>
     <string name="comments_header">Comments</string>
     <string name="comments_hint">Your comment here</string>
     <string name="coming_header">Coming</string>
@@ -29,11 +30,18 @@
     <string name="final_edit_agenda">Plan:</string>
     <string name="final_edit_deadline">Balloon pops at:</string>
     <string name="final_edit_location">Location:</string>
+    <string name="final_edit_no_photos">No photos yet</string>
     <string name="final_edit_photo">Photo (Optional):</string>
     <string name="final_edit_to">To:</string>
     <string name="image_content_description">The Image</string>
     <string name="members_header">Members:</string>
     <string name="new_contact_list">Name The Contact List</string>
+    <string name="photo_foursquare">Add Location Photos</string>
+    <string name="photo_last">Use Last Photo Taken</string>
+    <string name="photo_library">Choose from Library</string>
+    <string name="photo_phone">Add Custom Photo</string>
+    <string name="photo_remove">Remove Added Photos</string>
+    <string name="photo_take">Take Photo</string>
     <string name="preview">Preview</string>
     <string name="search_location">Search</string>
     <string name="send">Send</string>

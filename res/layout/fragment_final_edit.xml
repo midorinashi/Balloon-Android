@@ -120,6 +120,7 @@
 	   <LinearLayout
 	        android:background="@color/white"
 	        android:clickable="true"
+	        android:id="@+id/finalEditPhoto"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:layout_margin="10dp" >
@@ -132,11 +133,14 @@
 	            android:text="@string/final_edit_photo"
 	            android:textColor="@color/gray" />
 	
-	        <ImageView
-	            android:id="@+id/photoArrow"
-	            android:layout_width="wrap_content"
+	        <TextView
+	            android:id="@+id/finalEditPhotoText"
+	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
-	            android:src="@drawable/abc_ic_go" />
+	        	android:layout_margin="10dp"
+	        	android:gravity="right"
+	            android:text="@string/final_edit_no_photos"
+	            android:textColor="@color/gray" />
 	        
 	    </LinearLayout>
 	

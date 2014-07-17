@@ -11,20 +11,13 @@ import org.json.JSONObject;
 
 import android.os.AsyncTask;
 
-public class AccessFoursquare extends AsyncTask<String, Void, JSONArray> {
-
-    private final static String SEARCH_URL = "https://api.foursquare.com/v2/venues/search";
-	private final static String CLIENT_ID = "QIVN42TMR5KLGEA15W1VK0ISG4V3DOT0J4XAZVZ033HQK2MH";
-	private final static String CLIENT_SECRET = "YDYDI1JXQJPCVAWM1ZDMHRCCCAEJY5DT3TUTLUXU2JZ5G2AJ";
-	private final static String CALLBACK_URL = "fb527538684032224://foursquare";
-	private final String DEFAULT_VERSION = "20140131";
+public class AccessFoursquareVenues extends AccessFoursquare {
 
 	//string 0 is query
     protected JSONArray doInBackground(String... strings) {
     	String str = "";
-    	String urlString = SEARCH_URL + "?client_id=" + CLIENT_ID + "%20&client_secret=" + CLIENT_SECRET +
-    			"%20&v=" + DEFAULT_VERSION + "%20&limit=100" + "%20&radius=50000";
-    	// "&redirect_uri=" + CALLBACK_URL + 
+    	String urlString = URL + SEARCH + CLIENT_ID + CLIENT_SECRET +
+    			DEFAULT_VERSION + "%20&limit=100" + "%20&radius=50000";
     	
     	// get the location
     	// Acquire a reference to the system Location Manager
@@ -69,7 +62,17 @@ public class AccessFoursquare extends AsyncTask<String, Void, JSONArray> {
             	}
          } catch (Exception e) {
 			e.printStackTrace();
-		}
+         } finally {
+        	 if (rd != null)
+        	 {
+	        	 try {
+					rd.close();
+	        	 } catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+	        	 }
+        	 }
+         }
 		return array;
     }
     

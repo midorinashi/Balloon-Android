@@ -149,6 +149,7 @@ public class MainActivity extends ActionBarActivity
 	public void newInvitation()
 	{
 		Intent intent = new Intent(this, NewInvitationActivity.class);
+		System.out.println("PANIC");
 		startActivity(intent);
 	}
 	

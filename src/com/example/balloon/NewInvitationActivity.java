@@ -32,12 +32,17 @@ import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -70,7 +75,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	private static JSONObject mVenue;
 	private static int mExpiresAtHour;
 	private static int mExpiresAtMinute;
-	private String mVenuePhotoURL;
+	private static JSONArray mVenuePhotoUrls;
 	private static JSONArray mMemberObjectIds;
 	private static String[] mPhoneNumbers;
 	private static boolean mMakeContactList;
@@ -146,7 +151,13 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		else if (mCurrentFragment.equals("EditAgendaFragment"))
 			transaction.replace(R.id.container, new ChooseLocationFragment());
 		else if (mCurrentFragment.equals("ChooseLocationFragment"))
-			transaction.replace(R.id.container, new SetDeadlineFragment());
+		{
+			CharSequence text = "Please choose a location.";
+			int duration = Toast.LENGTH_SHORT;
+
+			Toast toast = Toast.makeText(this, text, duration);
+			toast.show();
+		}
 		else if (mCurrentFragment.equals("SetDeadlineFragment"))
 			transaction.replace(R.id.container, new FinalEditFragment());
 		else
@@ -290,7 +301,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		meetup.put("expiresAt", changeToDate());
 		meetup.put("invitedUsers", mMembers);
 		meetup.put("venueInfo", mVenue);
-		//TODO IMAGES NEVER
+		if (mVenuePhotoUrls != null)
+			meetup.put("venuePhotoURLs", mVenuePhotoUrls);
 		//TODO learn where invite more happens
 		meetup.put("allowInviteMore", true);
 		meetup.saveInBackground(new SaveCallback(){
@@ -368,7 +380,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		mVenue = null;
 		mExpiresAtHour = -1;
 		mExpiresAtMinute = 0;
-		mVenuePhotoURL = null;
+		mVenuePhotoUrls = null;
 		mPhoneNumbers = null;
 		//same for makeContactList, but consistency
 		mMakeContactList = false;
@@ -392,6 +404,38 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		else
 			time = time + " PM";
 		return time;
+	}
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+	                                ContextMenuInfo menuInfo) {
+	    super.onCreateContextMenu(menu, v, menuInfo);
+	    System.out.println("context menu get");
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.photo_menu, menu);
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+	    AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+	    switch (item.getItemId()) {
+	        case R.id.action_photo_foursquare:
+	        {
+	        	FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+	        	transaction.replace(R.id.container, new ImageListFragment());
+	        	transaction.addToBackStack(null);
+	        	transaction.commit();
+	            return true;
+	        }
+	        case R.id.action_photo_phone:
+	            return true;
+	        case R.id.action_photo_remove:
+	            return true;
+	        case R.id.action_cancel:
+	            return true;
+	        default:
+	            return super.onContextItemSelected(item);
+	    }
 	}
 	
 	public static class SelectListFragment extends Fragment {
@@ -796,7 +840,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState)
 		{
-			View rootView = inflater.inflate(R.layout.fragment_edit_agenda,
+			View rootView = inflater.inflate(R.layout.fragment_new_agenda,
 					container, false);
 			return rootView;
 		}
@@ -848,7 +892,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			mCurrentFragment = "ChooseLocationFragment";
 			System.out.println("Executing query sushi");
 			
-			new AccessFoursquare().execute("");
+			new AccessFoursquareVenues().execute("");
 			SearchView sv = (SearchView) context.findViewById(R.id.searchLocation);
 			sv.setOnQueryTextListener(this);
 			sv.setSubmitButtonEnabled(true);
@@ -938,7 +982,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		@Override
 		public boolean onQueryTextSubmit(String query) {
 
-			new AccessFoursquare().execute(query);
+			new AccessFoursquareVenues().execute(query);
 			return true;
 		}
 	}
@@ -1019,9 +1063,41 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			tv.setText(mVenueInfo);
 			tv = (TextView) getActivity().findViewById(R.id.finalEditDeadline);
 			tv.setText(formatTime(mExpiresAtHour, mExpiresAtMinute));
+			tv = (TextView) getActivity().findViewById(R.id.finalEditPhotoText);
+			if (mVenuePhotoUrls != null)
+				tv.setText(mVenuePhotoUrls.length() + " photos");
+			
+			getActivity().findViewById(R.id.finalEditPhoto).setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					getActivity().registerForContextMenu(v); 
+				    getActivity().openContextMenu(v);
+				    getActivity().unregisterForContextMenu(v);
+				}
+			});
+			
 		}
 	}
 	
+	public static class ImageListFragment extends AbstractImageListFragment {
+
+		@Override
+		public String getVenueId() {
+			String id = null;
+			try {
+				id = mVenue.getString("id");
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			return id;
+		}
+
+		public void saveUrls(JSONArray urls) {
+			mVenuePhotoUrls = urls;
+		}
+	}
+	
+	//TODO uh this shit
 	public static class PreviewFragment extends Fragment {
 		
 		public PreviewFragment(){
