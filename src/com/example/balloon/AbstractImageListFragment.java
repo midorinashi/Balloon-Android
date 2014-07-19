@@ -17,6 +17,7 @@ public abstract class AbstractImageListFragment extends Fragment {
 	private static String[] urls;
 	private static LazyAdapter adapter;
 	private static FragmentActivity context;
+	private static boolean toSave;
 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -47,17 +48,25 @@ public abstract class AbstractImageListFragment extends Fragment {
 	public void onPause()
 	{
 		super.onPause();
-		SparseBooleanArray checked = list.getCheckedItemPositions();
-		//TODO Doesn't always get all the images? fun buns example
-		JSONArray urlsToSave = new JSONArray();
-		for (int i = 0; i < checked.size(); i++)
+		if (toSave)
 		{
-			if (checked.get(i))
+			SparseBooleanArray checked = list.getCheckedItemPositions();
+			//TODO Doesn't always get all the images? fun buns example
+			JSONArray urlsToSave = new JSONArray();
+			for (int i = 0; i < checked.size(); i++)
 			{
-				urlsToSave.put(urls[i]);
+				if (checked.get(i))
+				{
+					urlsToSave.put(urls[i]);
+				}
 			}
+			saveUrls(urlsToSave);
 		}
-		saveUrls(urlsToSave);
+	}
+	
+	public static void setSave(boolean b)
+	{
+		toSave = b;
 	}
 	
 	public abstract void saveUrls(JSONArray urls);

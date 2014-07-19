@@ -63,6 +63,30 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 			newContactList();
 			return true;
 		}
+		if (id == R.id.action_invites)
+		{
+			Intent intent = new Intent(this, MainActivity.class);
+			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+			return true;
+		}
+		if (id == R.id.action_create)
+		{
+			Intent intent = new Intent(this, NewInvitationActivity.class);
+			startActivity(intent);
+			return true;
+		}
+		if (id == R.id.action_rsvp)
+		{
+			Intent intent = new Intent(this, RSVPEventsActivity.class);
+			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
+			return true;
+		}
+		if (id == R.id.action_settings)
+		{
+			Intent intent = new Intent(this, SettingsActivity.class);
+			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
+			return true;
+		}
 		return super.onOptionsItemSelected(item);
 	}
 

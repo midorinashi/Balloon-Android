@@ -1,5 +1,11 @@
 package com.example.balloon;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -14,6 +20,7 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,6 +29,7 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Contacts.Data;
 import android.provider.ContactsContract.RawContacts;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
@@ -42,7 +50,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -76,6 +83,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	private static int mExpiresAtHour;
 	private static int mExpiresAtMinute;
 	private static JSONArray mVenuePhotoUrls;
+	private static ArrayList<byte[]> mPhonePhotos;
 	private static JSONArray mMemberObjectIds;
 	private static String[] mPhoneNumbers;
 	private static boolean mMakeContactList;
@@ -83,11 +91,17 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	private static JSONArray mMembers;
 	private static String mCurrentFragment;
 	//ayyyyyy because sometimes we go outside of the flow
+	//TODO change the buttons to done if needed
 	private static boolean mAfterFinalEdit;
 	
 	//views to mangae select members fragment
 	private static CheckBox mCheckbox;
 	private static ListView mListView;
+	private ContextMenu mMenu;
+	
+	//to manage the buttons at the top
+	private static boolean mPlus;
+	private static String mNext;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +117,30 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 					.add(R.id.container, new SelectListFragment()).commit();
 		}
 	}
+	
+	//erase all static fields
+	private void deleteInfo()
+	{
+		mListName = null;
+		mListId = null;
+		mAgenda = null;
+		mVenueInfo = null;
+		mVenue = null;
+		mExpiresAtHour = -1;
+		mExpiresAtMinute = 0;
+		mVenuePhotoUrls = new JSONArray();
+		mPhonePhotos = new ArrayList<byte[]>();
+		mPhoneNumbers = null;
+		//same for makeContactList, but consistency
+		mMakeContactList = false;
+		mMemberIds = null;
+		mMembers = null;
+		mCurrentFragment = "";
+		mAfterFinalEdit = false;
+		mCheckbox = null;
+		mListView = null;
+		mPlus = true;
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -111,6 +149,20 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		getMenuInflater().inflate(R.menu.new_invitation, menu);
 		return true;
 	}
+	
+	public boolean onPrepareOptionsMenu(final Menu menu) {
+	    if (!mPlus)
+	    {
+	    	if (!mCurrentFragment.equals("FinalEditFragment"))
+	    	{
+			    MenuItem item = menu.findItem(R.id.action_next);
+		    	item.setTitle(mNext);
+		    	item.setVisible(true);
+	    	}
+	    	menu.findItem(R.id.action_plus).setVisible(false);
+	    }
+	    return super.onPrepareOptionsMenu(menu);
+	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -118,8 +170,12 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings)
+		if (id == R.id.action_plus)
 		{
+			FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+			transaction.replace(R.id.container, new CreateListFragment());
+			transaction.addToBackStack(null);
+			transaction.commit();
 			return true;
 		}
 		if (id== R.id.action_next)
@@ -130,26 +186,64 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		return super.onOptionsItemSelected(item);
 	}
 	
+	//basically manages entire flow
 	public void next()
 	{
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 		if (mCurrentFragment.equals("SelectListFragment"))
 			transaction.replace(R.id.container, new CreateListFragment());
 		else if (mCurrentFragment.equals("CreateListFragment"))
-			transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
+		{
+			if (((EditText) findViewById(R.id.editContactListName)).length() != 0)
+				transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
+			else
+				Toast.makeText(this, "Please name the contact list.", Toast.LENGTH_SHORT).show();
+		}
 		else if (mCurrentFragment.equals("SelectMembersFromContactsFragment"))
 		{
-			transaction.replace(R.id.container, new EditAgendaFragment());
-			saveContacts();
-			mMakeContactList = true;
+			if (((ListView) findViewById(R.id.contactsList)).getCheckedItemCount() != 0)
+			{
+				saveContacts();
+				mMakeContactList = true;
+				if (mAfterFinalEdit)
+				{
+					getSupportFragmentManager().popBackStack();
+					getSupportFragmentManager().popBackStack();
+					getSupportFragmentManager().popBackStack();
+					return;
+				}
+				else
+					transaction.replace(R.id.container, new EditAgendaFragment());
+			}
+			else
+				Toast.makeText(this, "No friends?", Toast.LENGTH_SHORT).show();
 		}
 		else if(mCurrentFragment.equals("SelectMembersFromListFragment"))
 		{
-			transaction.replace(R.id.container, new EditAgendaFragment());
-			mMakeContactList = false;
+			if (((ListView) findViewById(R.id.memberList)).getCheckedItemCount() != 0)
+			{
+				mMakeContactList = false;
+				if (mAfterFinalEdit)
+				{
+					getSupportFragmentManager().popBackStack();
+					getSupportFragmentManager().popBackStack();
+					return;
+				}
+				transaction.replace(R.id.container, new EditAgendaFragment());
+			}
+			else
+				Toast.makeText(this, "No friends?", Toast.LENGTH_SHORT).show();
 		}
 		else if (mCurrentFragment.equals("EditAgendaFragment"))
-			transaction.replace(R.id.container, new ChooseLocationFragment());
+		{
+			//check we have a agenda
+			if (((EditText) findViewById(R.id.editAgenda)).getText().length() != 0)
+			{
+				transaction.replace(R.id.container, new ChooseLocationFragment());
+			}
+			else
+				Toast.makeText(this, "What's the plan?", Toast.LENGTH_SHORT).show();
+		}
 		else if (mCurrentFragment.equals("ChooseLocationFragment"))
 		{
 			CharSequence text = "Please choose a location.";
@@ -159,7 +253,14 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			toast.show();
 		}
 		else if (mCurrentFragment.equals("SetDeadlineFragment"))
+		{
 			transaction.replace(R.id.container, new FinalEditFragment());
+		}
+		else if (mCurrentFragment.equals("ImageListFragment"))
+		{
+			getSupportFragmentManager().popBackStack(R.id.finalEditView, 0);
+			return;
+		}
 		else
 			return;
 		transaction.addToBackStack(null);
@@ -303,6 +404,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		meetup.put("venueInfo", mVenue);
 		if (mVenuePhotoUrls != null)
 			meetup.put("venuePhotoURLs", mVenuePhotoUrls);
+		//TODO save phone photos
 		//TODO learn where invite more happens
 		meetup.put("allowInviteMore", true);
 		meetup.saveInBackground(new SaveCallback(){
@@ -356,8 +458,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		return date;
 	}
 	
-	
-	
 	public void end()
 	{
 		//Show message
@@ -368,28 +468,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		Toast toast = Toast.makeText(context, text, duration);
 		toast.show();
 		finish();
-	}
-	
-	//erase all static fields
-	private void deleteInfo()
-	{
-		mListName = null;
-		mListId = null;
-		mAgenda = null;
-		mVenueInfo = null;
-		mVenue = null;
-		mExpiresAtHour = -1;
-		mExpiresAtMinute = 0;
-		mVenuePhotoUrls = null;
-		mPhoneNumbers = null;
-		//same for makeContactList, but consistency
-		mMakeContactList = false;
-		mMemberIds = null;
-		mMembers = null;
-		mCurrentFragment = null;
-		mAfterFinalEdit = false;
-		mCheckbox = null;
-		mListView = null;
 	}
 
 	public static String formatTime(int hour, int minute)
@@ -410,32 +488,129 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	public void onCreateContextMenu(ContextMenu menu, View v,
 	                                ContextMenuInfo menuInfo) {
 	    super.onCreateContextMenu(menu, v, menuInfo);
-	    System.out.println("context menu get");
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.photo_menu, menu);
+	    mMenu = menu;
 	}
 	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-	    AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 	    switch (item.getItemId()) {
 	        case R.id.action_photo_foursquare:
-	        {
 	        	FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 	        	transaction.replace(R.id.container, new ImageListFragment());
 	        	transaction.addToBackStack(null);
 	        	transaction.commit();
 	            return true;
-	        }
 	        case R.id.action_photo_phone:
 	            return true;
 	        case R.id.action_photo_remove:
+	        	mVenuePhotoUrls = new JSONArray();
+	        	mPhonePhotos.clear();
+	        	((TextView) findViewById(R.id.finalEditPhotoText))
+	        		.setText(getResources().getString(R.string.final_edit_no_photos));
 	            return true;
-	        case R.id.action_cancel:
+	        case R.id.action_photo_last:// Find the last picture
+	        	String[] projection = new String[]{
+	        		    MediaStore.Images.ImageColumns._ID,
+	        		    MediaStore.Images.ImageColumns.DATA,
+	        		    MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+	        		    MediaStore.Images.ImageColumns.DATE_TAKEN,
+	        		    MediaStore.Images.ImageColumns.MIME_TYPE
+	        		    };
+	        		final Cursor cursor = getContentResolver()
+	        		        .query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, 
+	        		               null, MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC");
+
+	        		// Put it in the image view
+	        		if (cursor.moveToFirst()) {
+	        		    String imageLocation = cursor.getString(1);
+	        		    File imageFile = new File(imageLocation);
+	        		    if (imageFile.exists()) {   // TODO: is there a better way to do this?
+	        		    	byte[] b = new byte[(int) imageFile.length()]; 
+	        		        try {
+		        		        FileInputStream iStream = new FileInputStream(imageFile); 
+								iStream.read(b);
+								iStream.close();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+	        			    mPhonePhotos.add(b);
+	        		    }
+	        		} 
 	            return true;
+	        case R.id.action_photo_take:
+	        	Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+	        	intent.putExtra(MediaStore.EXTRA_OUTPUT,
+	        			android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+	        	startActivityForResult(intent, 0);
+	        	return true;
+	        case R.id.action_photo_library:
+	        	intent = new Intent(Intent.ACTION_PICK, 
+	        			android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+	        	startActivityForResult(intent, 0);
+	        	return true;
 	        default:
 	            return super.onContextItemSelected(item);
 	    }
+	}
+	
+	@Override
+	//this is how we get the picture
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            // Image captured and saved to fileUri specified in the Intent
+            saveImage(data.getData());
+        } else if (resultCode == RESULT_CANCELED) {
+        	System.out.println("canceled");
+            // User cancelled the image capture
+        } else {
+        	System.out.println("dedd");
+
+			CharSequence text = "Image capture failed.";
+			int duration = Toast.LENGTH_SHORT;
+
+			Toast toast = Toast.makeText(this, text, duration);
+			toast.show();
+            // Image capture failed, advise user
+        }
+	}
+	
+	//need to change image uri to a byte[] so i can save to parse
+	private void saveImage(Uri image)
+	{
+		InputStream iStream = null;
+		try {
+			iStream = getContentResolver().openInputStream(image);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("fuck");
+			e.printStackTrace();
+		}
+		ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+	    int bufferSize = 1024;
+	    byte[] buffer = new byte[bufferSize];
+
+	    int len = 0;
+	    try {
+			while ((len = iStream.read(buffer)) != -1)
+			    byteBuffer.write(buffer, 0, len);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("another fuck");
+			e.printStackTrace();
+		}
+	    byte[] toSave = byteBuffer.toByteArray();
+	    mPhonePhotos.add(toSave);
+	    String str = (mVenuePhotoUrls.length() + mPhonePhotos.size()) + " photos";
+	    
+	    //updating text view just doesn't work
+	    /*
+	    TextView tv = ((TextView) findViewById(R.id.finalEditPhotoText));
+	    tv.setText(str);
+	    tv.invalidate();
+	    tv.requestLayout();
+	    */
 	}
 	
 	public static class SelectListFragment extends Fragment {
@@ -467,6 +642,9 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_select_list));
 			mCurrentFragment = "SelectListFragment";
+			
+			mPlus = true;
+			getActivity().invalidateOptionsMenu();
 			
 			//Get all the contactlists that the owner owns
 			ParseQuery<ParseObject> ownerQuery = new ParseQuery<ParseObject>("ContactList");
@@ -507,19 +685,28 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		
 		public void addListsToView()
 		{
-			ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(),
-					android.R.layout.simple_list_item_1, lists);
-	        ListView lv = (ListView) getActivity().findViewById(R.id.groupList);
-	        lv.setAdapter(arrayAdapter);
-	        lv.setOnItemClickListener(new OnItemClickListener() {
-				public void onItemClick(AdapterView<?> a, View v, int position, long id) {
-					mListName = lists[position];
-					if (mListId != ids[position])
-						mMemberIds = null;
-					mListId = ids[position];
-					mListener.onMemberListSelected();
-				}
-	        });
+			if (mCurrentFragment.equals("SelectListFragment"))
+			{
+				ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(),
+						android.R.layout.simple_list_item_1, lists);
+		        ListView lv = (ListView) getActivity().findViewById(R.id.groupList);
+		        lv.setAdapter(arrayAdapter);
+		        lv.setOnItemClickListener(new OnItemClickListener() {
+					public void onItemClick(AdapterView<?> a, View v, int position, long id) {
+						mListName = lists[position];
+						if (mListId != ids[position])
+							mMemberIds = null;
+						mListId = ids[position];
+						mListener.onMemberListSelected();
+					}
+		        });
+			}
+		}
+		
+		public void onPause()
+		{
+			super.onPause();
+			mPlus = false;
 		}
 	}
 	
@@ -542,6 +729,10 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_create_list));
 			mCurrentFragment = "CreateListFragment";
+
+			mNext = getResources().getString(R.string.action_next);
+			getActivity().invalidateOptionsMenu();
+			
 			if (mListName != null)
 			{
 				EditText et = (EditText) getActivity().findViewById(R.id.editContactListName);
@@ -688,6 +879,9 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_list));
 			mCurrentFragment = "SelectMembersFromListFragment";
+			
+			mNext = getResources().getString(R.string.action_next);
+			getActivity().invalidateOptionsMenu();
 
 		    ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("ContactList");
 		    query.whereEqualTo("objectId", mListId);
@@ -959,7 +1153,10 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
-					startSetDeadlineFragment();
+					if (mAfterFinalEdit)
+						context.getSupportFragmentManager().popBackStack();
+					else
+						startSetDeadlineFragment();
 				}
 	        });
 	        System.out.println("Done");
@@ -1054,18 +1251,72 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			getActivity().setTitle(getResources().getString(R.string.title_final_edit));
 			mCurrentFragment = "FinalEditFragment";
 			mAfterFinalEdit = false;
+
+			mNext = getResources().getString(R.string.action_done);
+			getActivity().invalidateOptionsMenu();
 			
-			TextView tv = (TextView) getActivity().findViewById(R.id.finalEditTo);
+			TextView tv = (TextView) getActivity().findViewById(R.id.finalEditToText);
 			tv.setText(mListName);
-			tv = (TextView) getActivity().findViewById(R.id.finalEditAgenda);
+			tv = (TextView) getActivity().findViewById(R.id.finalEditAgendaText);
 			tv.setText(mAgenda);
-			tv = (TextView) getActivity().findViewById(R.id.finalEditLocation);
+			tv = (TextView) getActivity().findViewById(R.id.finalEditLocationText);
 			tv.setText(mVenueInfo);
-			tv = (TextView) getActivity().findViewById(R.id.finalEditDeadline);
+			tv = (TextView) getActivity().findViewById(R.id.finalEditDeadlineText);
 			tv.setText(formatTime(mExpiresAtHour, mExpiresAtMinute));
 			tv = (TextView) getActivity().findViewById(R.id.finalEditPhotoText);
-			if (mVenuePhotoUrls != null)
+			int photos = mVenuePhotoUrls.length() + mPhonePhotos.size();
+			if (photos != 0)
 				tv.setText(mVenuePhotoUrls.length() + " photos");
+			
+			getActivity().findViewById(R.id.finalEditTo).setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View arg0) {
+					mAfterFinalEdit = true;
+					FragmentTransaction transaction = getActivity().getSupportFragmentManager()
+							.beginTransaction();
+					transaction.replace(R.id.container, new SelectListFragment());
+					transaction.addToBackStack(null);
+					transaction.commit();
+				}
+			});
+			
+			getActivity().findViewById(R.id.finalEditAgenda).setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View arg0) {
+					mAfterFinalEdit = true;
+					FragmentTransaction transaction = getActivity().getSupportFragmentManager()
+							.beginTransaction();
+					transaction.replace(R.id.container, new EditAgendaFragment());
+					transaction.addToBackStack(null);
+					transaction.commit();
+				}
+			});
+
+			getActivity().findViewById(R.id.finalEditLocation).setOnClickListener(
+					new OnClickListener() {
+				@Override
+				public void onClick(View arg0) {
+					mAfterFinalEdit = true;
+					FragmentTransaction transaction = getActivity().getSupportFragmentManager()
+							.beginTransaction();
+					transaction.replace(R.id.container, new ChooseLocationFragment());
+					transaction.addToBackStack(null);
+					transaction.commit();
+				}
+			});
+			
+			getActivity().findViewById(R.id.finalEditDeadline).setOnClickListener(
+					new OnClickListener() {
+				@Override
+				public void onClick(View arg0) {
+					mAfterFinalEdit = true;
+					FragmentTransaction transaction = getActivity().getSupportFragmentManager()
+							.beginTransaction();
+					transaction.replace(R.id.container, new SetDeadlineFragment());
+					transaction.addToBackStack(null);
+					transaction.commit();
+				}
+			});
 			
 			getActivity().findViewById(R.id.finalEditPhoto).setOnClickListener(new OnClickListener() {
 				@Override
@@ -1081,6 +1332,20 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	
 	public static class ImageListFragment extends AbstractImageListFragment {
 
+		public void onResume()
+		{
+			super.onResume();
+
+			getActivity().setTitle(getResources().getString(R.string.title_final_edit));
+			mCurrentFragment = "ImageListFragment";
+			mAfterFinalEdit = false;
+			
+			setSave(false);
+
+			mNext = getResources().getString(R.string.action_done);
+			getActivity().invalidateOptionsMenu();
+		}
+		
 		@Override
 		public String getVenueId() {
 			String id = null;
@@ -1109,7 +1374,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 					container, false);
 			
 			getActivity().setTitle(getResources().getString(R.string.title_preview));
-			mCurrentFragment = "FinalEditFragment";
+			mCurrentFragment = "PreviewFragment";
 			
 			TextView tv = (TextView) rootView.findViewById(R.id.creator);
 			tv.setText(R.string.dummy_name);

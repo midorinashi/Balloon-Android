@@ -43,7 +43,6 @@ public class NewContactListActivity extends ActionBarActivity {
 
 	public static String mListName;
 	public static boolean mPublicList;
-	private static Menu mMenu;
 	private static String nextTitle;
 	private static ListView mListView;
 	private static CheckBox mCheckbox;
@@ -70,7 +69,6 @@ public class NewContactListActivity extends ActionBarActivity {
 		super.onCreateOptionsMenu(menu);
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.new_contact_list, menu);
-		mMenu = menu;
 		return true;
 	}
 	

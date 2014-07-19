@@ -12,15 +12,27 @@
         />
     
     <item
-        android:id="@+id/action_lists"
+        android:id="@+id/action_invites"
         android:orderInCategory="2"
-        android:title="@string/action_lists"
+        android:title="@string/action_invites"
         app:showAsAction="never"/>
     
     <item
         android:id="@+id/action_rsvp"
         android:orderInCategory="3"
         android:title="@string/action_rsvped_events"
+        app:showAsAction="never"/>
+    
+    <item
+        android:id="@+id/action_create"
+        android:orderInCategory="4"
+        android:title="@string/action_create"
+        app:showAsAction="never"/>
+    
+    <item
+        android:id="@+id/action_lists"
+        android:orderInCategory="5"
+        android:title="@string/action_lists"
         app:showAsAction="never"/>
     
     <item

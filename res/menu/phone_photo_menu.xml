@@ -15,10 +15,5 @@
         android:id="@+id/action_photo_library"
         android:orderInCategory="3"
         android:title="@string/photo_library" />
-    
-    <item
-        android:id="@+id/action_cancel"
-        android:orderInCategory="4"
-        android:title="@string/cancel" />
 
 </menu>

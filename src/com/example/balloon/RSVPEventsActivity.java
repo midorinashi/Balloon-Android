@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
@@ -29,6 +30,7 @@ public class RSVPEventsActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_rsvpevents);
+		setTitle(R.string.title_activity_rsvpevents);
 
 		if (savedInstanceState == null) {
 			getSupportFragmentManager().beginTransaction()
@@ -40,7 +42,7 @@ public class RSVPEventsActivity extends ActionBarActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.rsvpevents, menu);
+		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
 
@@ -50,7 +52,28 @@ public class RSVPEventsActivity extends ActionBarActivity {
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
+		if (id == R.id.action_invites)
+		{
+			Intent intent = new Intent(this, MainActivity.class);
+			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+			return true;
+		}
+		if (id == R.id.action_create)
+		{
+			Intent intent = new Intent(this, NewInvitationActivity.class);
+			startActivity(intent);
+			return true;
+		}
+		if (id == R.id.action_lists)
+		{
+			Intent intent = new Intent(this, ContactListsActivity.class);
+			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
+			return true;
+		}
+		if (id == R.id.action_settings)
+		{
+			Intent intent = new Intent(this, SettingsActivity.class);
+			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
 			return true;
 		}
 		return super.onOptionsItemSelected(item);

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/finalEditView"
     android:background="@color/lightBlue"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
@@ -15,6 +16,7 @@
 	    <LinearLayout
 	        android:background="@color/white"
 	        android:clickable="true"
+	        android:id="@+id/finalEditTo"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:layout_margin="10dp"
@@ -27,7 +29,7 @@
 	            android:text="@string/final_edit_to" />
 	
 	        <TextView
-	            android:id="@+id/finalEditTo"
+	            android:id="@+id/finalEditToText"
 	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
 	            android:gravity="right"
@@ -39,6 +41,7 @@
 	    <LinearLayout
 	        android:background="@color/white"
 	        android:clickable="true"
+	        android:id="@+id/finalEditAgenda"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:orientation="vertical"
@@ -57,7 +60,7 @@
 	            android:text="@string/white_space" />
 	
 	        <TextView
-	            android:id="@+id/finalEditAgenda"
+	            android:id="@+id/finalEditAgendaText"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:text="@string/dummy_agenda"
@@ -73,6 +76,7 @@
 	    <LinearLayout
 	        android:background="@color/white"
 	        android:clickable="true"
+	        android:id="@+id/finalEditLocation"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:layout_margin="10dp"
@@ -85,7 +89,7 @@
 	            android:text="@string/final_edit_location" />
 	
 	        <TextView
-	            android:id="@+id/finalEditLocation"
+	            android:id="@+id/finalEditLocationText"
 	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
 	            android:gravity="right"
@@ -96,6 +100,7 @@
 	    <LinearLayout
 	        android:background="@color/white"
 	        android:clickable="true"
+	        android:id="@+id/finalEditDeadline"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:layout_margin="10dp"
@@ -108,7 +113,7 @@
 	            android:text="@string/final_edit_deadline" />
 	
 	        <TextView
-	            android:id="@+id/finalEditDeadline"
+	            android:id="@+id/finalEditDeadlineText"
 	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
 	            android:gravity="right"

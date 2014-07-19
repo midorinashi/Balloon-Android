@@ -5,13 +5,17 @@
     <string name="app_name">Balloon</string>
     <string name="action_agenda">View Meetup Plan</string>
     <string name="action_comment">Add a Comment</string>
+    <string name="action_create">Create Invite</string>
+    <string name="action_done">Done</string>
     <string name="action_edit_agenda">Edit Meetup Plan</string>
-    <string name="action_lists">Contact Lists</string>
+    <string name="action_invites">New Invites</string>
+    <string name="action_lists">Groups</string>
     <string name="action_locate">Locate the Venue</string>
     <string name="action_next">Next</string>
     <string name="action_new_invitation">New Invitation</string>
     <string name="action_plus">New Invitation</string>
-    <string name="action_rsvped_events">Upcoming</string>
+    <string name="action_rsvped_events">Plans</string>
+    <string name="action_save">Save</string>
     <string name="action_settings">Settings</string>
     <string name="agenda_empty">No plan :C</string>
     <string name="agenda_edit">What\'s the plan?\n\n(e.g. Let\'s go to Shake Shack at 8PM)</string>
@@ -46,12 +50,21 @@
     <string name="search_location">Search</string>
     <string name="send">Send</string>
     <string name="select_all">Select All:</string>
+    <string name="settings_name_first">First Name</string>
+    <string name="settings_name_last">Last Name</string>
+    <string name="settings_number">Mobile Number</string>
+    <string name="settings_password_set">Set Password</string>
+    <string name="settings_password_confirm">Confirm Password</string>
+    <string name="settings_photo">Profile Photo</string>
     <string name="share_list">Share List with Members</string>
+    <string name="title_activity_contact_lists">ContactListsActivity</string>
     <string name="title_activity_more_info">More Info Activity</string>
+    <string name="title_activity_new_contact_list">New Contact Lists</string>
     <string name="title_activity_new_invitation">New Invitation Activity</string>
+    <string name="title_activity_rsvpevents">Plans</string>
     <string name="title_add_members">Add Members</string>
     <string name="title_choose_location">Choose Location</string>
-    <string name="title_contact_list">Contact Lists</string>
+    <string name="title_contact_list">Groups</string>
     <string name="title_create_list">Create List</string>
     <string name="title_edit_agenda">Write Plan</string>
     <string name="title_final_edit">Meetup Summary</string>
@@ -61,9 +74,5 @@
     <string name="title_select_members_from_list">Select Members</string>
     <string name="title_set_deadline">Set Deadline</string>
     <string name="white_space"></string>
-    <string name="title_activity_contact_lists">ContactListsActivity</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="title_activity_new_contact_list">NewContactListActivity</string>
-    <string name="title_activity_rsvpevents">RSVPEventsActivity</string>
 
 </resources>

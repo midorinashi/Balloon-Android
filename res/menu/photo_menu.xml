@@ -9,17 +9,30 @@
     <item
         android:id="@+id/action_photo_phone"
         android:orderInCategory="2"
-        android:title="@string/photo_phone" />
-    
+        android:title="@string/photo_phone" >
+	    
+	    <menu>
+	    
+		    <item
+		        android:id="@+id/action_photo_last"
+		        android:title="@string/photo_last" />
+		    
+		    <item
+		        android:id="@+id/action_photo_take"
+		        android:title="@string/photo_take" />
+		    
+		    <item
+		        android:id="@+id/action_photo_library"
+		        android:title="@string/photo_library" />
+	
+		</menu>
+		
+	</item>
+		
     <item
         android:id="@+id/action_photo_remove"
         android:orderInCategory="3"
         android:title="@string/photo_remove" />
-    
-    <item
-        android:id="@+id/action_cancel"
-        android:orderInCategory="4"
-        android:title="@string/cancel" />
 
 </menu>
 

@@ -124,8 +124,9 @@ public class MainActivity extends ActionBarActivity
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings)
+		if (id == R.id.action_plus || id == R.id.action_create)
 		{
+			newInvitation();
 			return true;
 		}
 		if (id == R.id.action_lists)
@@ -133,14 +134,15 @@ public class MainActivity extends ActionBarActivity
 			contactLists();
 			return true;
 		}
-		if (id == R.id.action_plus)
-		{
-			newInvitation();
-			return true;
-		}
 		if (id == R.id.action_rsvp)
 		{
 			upcoming();
+			return true;
+		}
+		if (id == R.id.action_settings)
+		{
+			Intent intent = new Intent(this, SettingsActivity.class);
+			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
