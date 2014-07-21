@@ -7,5 +7,6 @@
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry exported="true" kind="lib" path="/Users/traceylin/Downloads/foursquare-api-java-20140131/release/foursquare-api-1.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="/Users/traceylin/Downloads/JSON-java-master.zip"/>
+	<classpathentry exported="true" kind="lib" path="/Users/traceylin/Downloads/picasso-2.3.2.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

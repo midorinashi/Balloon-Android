@@ -23,17 +23,14 @@
                 android:layout_height="wrap_content"
                 android:text="@string/settings_number" />
 
-            <EditText
+            <TextView
                 android:id="@+id/mobileNumber"
                 android:layout_width="0dip"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
                 android:gravity="right"
-                android:inputType="phone" >
-
-                <requestFocus />
-            </EditText>
+                android:textColor="@color/gray" />
 
         </LinearLayout>
 
@@ -144,7 +141,7 @@
                 android:layout_alignParentTop="true"
                 android:text="@string/settings_photo" />
 
-            <ImageView
+            <com.parse.ParseImageView
                 android:id="@+id/photo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
