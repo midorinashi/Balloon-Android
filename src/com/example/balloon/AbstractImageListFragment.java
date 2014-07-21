@@ -41,6 +41,7 @@ public abstract class AbstractImageListFragment extends Fragment {
 	public static void setURLs(String[] strings)
 	{
 		urls = strings;
+		System.out.println(urls.length + " urls found");
 		adapter = new LazyAdapter(context, urls);
 		list.setAdapter(adapter);
 	}
@@ -51,14 +52,13 @@ public abstract class AbstractImageListFragment extends Fragment {
 		if (toSave)
 		{
 			SparseBooleanArray checked = list.getCheckedItemPositions();
+			long [] ids = list.getCheckedItemIds();
 			//TODO Doesn't always get all the images? fun buns example
 			JSONArray urlsToSave = new JSONArray();
-			for (int i = 0; i < checked.size(); i++)
+			for (int i = 0; i < urls.length; i++)
 			{
-				if (checked.get(i))
-				{
+				if (checked.get(i, false))
 					urlsToSave.put(urls[i]);
-				}
 			}
 			saveUrls(urlsToSave);
 		}

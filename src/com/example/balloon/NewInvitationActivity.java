@@ -22,8 +22,11 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Contacts;
@@ -54,6 +57,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
@@ -67,10 +71,13 @@ import com.parse.FunctionCallback;
 import com.parse.GetCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseFile;
+import com.parse.ParseImageView;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
+import com.squareup.picasso.Picasso;
 
 public class NewInvitationActivity extends ActionBarActivity implements OnMemberListSelectedListener {
 
@@ -83,7 +90,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	private static int mExpiresAtHour;
 	private static int mExpiresAtMinute;
 	private static JSONArray mVenuePhotoUrls;
-	private static ArrayList<byte[]> mPhonePhotos;
 	private static JSONArray mMemberObjectIds;
 	private static String[] mPhoneNumbers;
 	private static boolean mMakeContactList;
@@ -98,10 +104,12 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	private static CheckBox mCheckbox;
 	private static ListView mListView;
 	private ContextMenu mMenu;
+	private File lastSavedFile;
 	
 	//to manage the buttons at the top
 	private static boolean mPlus;
 	private static String mNext;
+	private static Activity context;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -121,6 +129,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	//erase all static fields
 	private void deleteInfo()
 	{
+		context = this;
 		mListName = null;
 		mListId = null;
 		mAgenda = null;
@@ -129,7 +138,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		mExpiresAtHour = -1;
 		mExpiresAtMinute = 0;
 		mVenuePhotoUrls = new JSONArray();
-		mPhonePhotos = new ArrayList<byte[]>();
 		mPhoneNumbers = null;
 		//same for makeContactList, but consistency
 		mMakeContactList = false;
@@ -258,7 +266,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		}
 		else if (mCurrentFragment.equals("ImageListFragment"))
 		{
-			getSupportFragmentManager().popBackStack(R.id.finalEditView, 0);
+			ImageListFragment.setSave(true);
+			getSupportFragmentManager().popBackStack();
 			return;
 		}
 		else
@@ -506,7 +515,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	            return true;
 	        case R.id.action_photo_remove:
 	        	mVenuePhotoUrls = new JSONArray();
-	        	mPhonePhotos.clear();
 	        	((TextView) findViewById(R.id.finalEditPhotoText))
 	        		.setText(getResources().getString(R.string.final_edit_no_photos));
 	            return true;
@@ -527,40 +535,53 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	        		    String imageLocation = cursor.getString(1);
 	        		    File imageFile = new File(imageLocation);
 	        		    if (imageFile.exists()) {   // TODO: is there a better way to do this?
-	        		    	byte[] b = new byte[(int) imageFile.length()]; 
-	        		        try {
-		        		        FileInputStream iStream = new FileInputStream(imageFile); 
-								iStream.read(b);
-								iStream.close();
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-	        			    mPhonePhotos.add(b);
+	        		    	System.out.println("It's working!");
+	        	            Bitmap bm = BitmapFactory.decodeFile(imageLocation);
+	        	            saveBitmap(bm);
 	        		    }
 	        		} 
 	            return true;
 	        case R.id.action_photo_take:
 	        	Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-	        	intent.putExtra(MediaStore.EXTRA_OUTPUT,
-	        			android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+	        	lastSavedFile = getTempFile();
+	        	intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(lastSavedFile));
 	        	startActivityForResult(intent, 0);
 	        	return true;
 	        case R.id.action_photo_library:
 	        	intent = new Intent(Intent.ACTION_PICK, 
 	        			android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-	        	startActivityForResult(intent, 0);
+	        	startActivityForResult(intent, 1);
 	        	return true;
 	        default:
 	            return super.onContextItemSelected(item);
 	    }
+	}
+	private File getTempFile() {
+	    // Create an image file name
+	    String imageFileName = "temp.png";
+	    return new File(Environment.getExternalStorageDirectory(), imageFileName);
 	}
 	
 	@Override
 	//this is how we get the picture
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
-            // Image captured and saved to fileUri specified in the Intent
-            saveImage(data.getData());
+        	System.out.println("hi");
+        	// if it came from the camera
+			Uri uri;
+			if (requestCode == 0)
+        		uri = android.net.Uri.fromFile(lastSavedFile);
+        	//if it came from the library
+        	else
+        		uri = data.getData();
+        	try {
+				Bitmap bm = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+				saveBitmap(bm);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
         } else if (resultCode == RESULT_CANCELED) {
         	System.out.println("canceled");
             // User cancelled the image capture
@@ -576,41 +597,46 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
         }
 	}
 	
-	//need to change image uri to a byte[] so i can save to parse
-	private void saveImage(Uri image)
+	public void saveBitmap(Bitmap original)
 	{
-		InputStream iStream = null;
-		try {
-			iStream = getContentResolver().openInputStream(image);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			System.out.println("fuck");
-			e.printStackTrace();
-		}
-		ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
-	    int bufferSize = 1024;
-	    byte[] buffer = new byte[bufferSize];
+		//first crop it
+		int width = original.getWidth();
+		int height = original.getHeight();
+		Bitmap crop;
+		if (width > 3*height)
+			crop = Bitmap.createBitmap(original, width/2 - (int)(1.5*height), 0, 3*height, height);
+		else
+			crop = Bitmap.createBitmap(original, 0, height/2 - width/6, width, width/3);
+		//then resize
+		Bitmap bm = Bitmap.createScaledBitmap(crop, 300, 100, true);
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
+		byte[] byteArray = stream.toByteArray();
+		final ParseFile image = new ParseFile("profile.png", byteArray);
+		image.saveInBackground(new SaveCallback(){
+			public void done(ParseException e) {
+				if (e == null)
+				{
+					addImage(image.getUrl());
+				}
+				else
+					e.printStackTrace();
+			}
+		});
+	}
+	
+	public static void addImage(String imageUrl)
+	{
+		mVenuePhotoUrls.put(imageUrl);
+		System.out.println(mVenuePhotoUrls.length() + " photos now");
 
-	    int len = 0;
-	    try {
-			while ((len = iStream.read(buffer)) != -1)
-			    byteBuffer.write(buffer, 0, len);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println("another fuck");
-			e.printStackTrace();
-		}
-	    byte[] toSave = byteBuffer.toByteArray();
-	    mPhonePhotos.add(toSave);
-	    String str = (mVenuePhotoUrls.length() + mPhonePhotos.size()) + " photos";
-	    
-	    //updating text view just doesn't work
-	    /*
-	    TextView tv = ((TextView) findViewById(R.id.finalEditPhotoText));
-	    tv.setText(str);
-	    tv.invalidate();
-	    tv.requestLayout();
-	    */
+		//need to replace words if saving takes longer than switching fragments
+		TextView tv = (TextView) context.findViewById(R.id.finalEditPhotoText);
+		int photos = mVenuePhotoUrls.length();
+		if (tv != null && photos > 1)
+			tv.setText(mVenuePhotoUrls.length() + " photos");
+		else if (tv != null && photos == 1)
+			tv.setText("1 photo");
 	}
 	
 	public static class SelectListFragment extends Fragment {
@@ -1264,9 +1290,11 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			tv = (TextView) getActivity().findViewById(R.id.finalEditDeadlineText);
 			tv.setText(formatTime(mExpiresAtHour, mExpiresAtMinute));
 			tv = (TextView) getActivity().findViewById(R.id.finalEditPhotoText);
-			int photos = mVenuePhotoUrls.length() + mPhonePhotos.size();
-			if (photos != 0)
+			int photos = mVenuePhotoUrls.length();
+			if (photos > 1)
 				tv.setText(mVenuePhotoUrls.length() + " photos");
+			else if (photos == 1)
+				tv.setText("1 photo");
 			
 			getActivity().findViewById(R.id.finalEditTo).setOnClickListener(new OnClickListener() {
 				@Override
@@ -1358,7 +1386,16 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		}
 
 		public void saveUrls(JSONArray urls) {
-			mVenuePhotoUrls = urls;
+			for (int i = 0; i < urls.length(); i++)
+			{
+				try {
+					System.out.println("adding image " + i);
+					addImage(urls.getString(i));
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	
@@ -1387,5 +1424,4 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			return rootView;
 		}
 	}
-
 }
