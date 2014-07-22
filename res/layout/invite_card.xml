@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <com.example.balloon.TextBox
+        android:id="@+id/from"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="10dp"
+        android:text="@string/from"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <com.example.balloon.TextBox
+        android:id="@+id/leftQuote"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/from"
+        android:text="@string/fa_quote_left" />
+
+    <com.example.balloon.TextBox
+        android:id="@+id/rightQuote"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/from"
+        android:text="@string/fa_quote_right" />
+    
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/agenda"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:src="@drawable/abc_ab_solid_dark_holo" />
+
+    <LinearLayout
+        android:id="@+id/venue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/image"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp" >
+
+        <com.example.balloon.TextBox
+            android:id="@+id/mapMarker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fa_map_marker"
+            android:textColor="@color/blue"
+            android:textSize="20sp" />
+        
+	    <TextView
+	        android:id="@+id/venueInfo"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:ellipsize="middle"
+	        android:lines="1"
+	        android:text="Location"
+	        android:textAppearance="?android:attr/textAppearanceLarge"
+	        android:textColor="@color/blue" />
+	    
+	</LinearLayout>
+	
+    <TextView
+        android:id="@+id/timeToRSVP"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/venue"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:text="left to RSVP"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/red" />
+
+    <TextView
+        android:id="@+id/moreInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/no"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:text="Large Text"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/blue" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/no"
+        android:layout_centerHorizontal="true"
+        android:text="@string/empty" />
+
+    <Button
+        android:id="@+id/no"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/yes"
+        android:layout_alignBottom="@+id/yes"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="10dp"
+        android:layout_toLeftOf="@+id/textView1"
+        android:background="@color/buttonBlue"
+        android:text="@string/fa_times"
+        android:textColor="@color/white" />
+
+    <Button
+        android:id="@+id/yes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/timeToRSVP"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/textView1"
+        android:background="@color/buttonBlue"
+        android:text="@string/fa_check"
+        android:textColor="@color/white" />
+
+    <TextView
+        android:id="@+id/agenda"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/from"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:lines="3"
+        android:text="Agenda"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/creator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/from"
+        android:layout_alignBottom="@+id/from"
+        android:layout_toRightOf="@+id/from"
+        android:text="Creator" />
+
+</RelativeLayout>

@@ -38,7 +38,7 @@ import com.squareup.picasso.Picasso;
 
 
 public class SettingsActivity extends ActionBarActivity {
-	private static Bitmap bm;
+	protected static Bitmap bm;
 	private File lastSavedFile;
 
 
@@ -127,7 +127,6 @@ public class SettingsActivity extends ActionBarActivity {
 		if (!password.equals(""))
 			user.setPassword(password);
 		
-		System.out.println("Does bit map exist? " + bm.toString());
 		if (bm != null)
 		{
 			System.out.println("bitmap exists");
@@ -258,6 +257,15 @@ public class SettingsActivity extends ActionBarActivity {
 			toast.show();
             // Image capture failed, advise user
         }
+	}
+	
+	//this will log out the user
+	public void onClick(View view)
+	{
+		ParseUser.logOut();
+		Intent intent = new Intent(this, FirstPageActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+		startActivity(intent);
 	}
 	
 	public static class SettingsFragment extends Fragment

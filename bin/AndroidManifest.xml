@@ -63,6 +63,10 @@
             android:name="com.example.balloon.SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
+        <activity
+            android:name="com.example.balloon.FirstPageActivity"
+            android:label="@string/title_activity_first_page" >
+        </activity>
     </application>
 
 </manifest>

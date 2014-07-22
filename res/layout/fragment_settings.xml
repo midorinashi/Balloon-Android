@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/lightGray" >
@@ -9,7 +10,8 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
         android:layout_marginTop="20dp"
-        android:orientation="vertical" >
+        android:orientation="vertical"
+        android:paddingBottom="20dp" >
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -17,11 +19,14 @@
             android:layout_marginBottom="20dp"
             android:background="@color/white" >
 
-            <TextView
+            <com.example.balloon.TextBox
                 android:id="@+id/mobileNumberHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_number" />
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:text="@string/settings_number"
+                custom:fontName="Roboto-Light.ttf" />
 
             <TextView
                 android:id="@+id/mobileNumber"
@@ -151,6 +156,16 @@
                 android:visible="false" />
 
         </RelativeLayout>
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@color/red"
+            android:onClick="onClick"
+            android:text="@string/logout"
+            android:textColor="@color/white" />
         
     </LinearLayout>
     

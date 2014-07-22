@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp" >
+
+    <TextView
+        android:id="@+id/mobileHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="40dp"
+        android:text="@string/settings_number"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/mobile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/mobileHeader"
+        android:layout_alignBottom="@+id/mobileHeader"
+        android:layout_alignParentRight="true"
+        android:layout_toRightOf="@+id/mobileHeader"
+        android:ems="10"
+        android:gravity="center_vertical|right"
+        android:inputType="phone"
+        android:textColor="@color/gray" />
+
+    <TextView
+        android:id="@+id/passwordHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/password"
+        android:layout_alignBottom="@id/password"
+        android:layout_alignLeft="@+id/mobileHeader"
+        android:text="@string/password"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+    
+    <EditText
+        android:id="@id/password"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/mobile"
+        android:layout_marginTop="15dp"
+        android:layout_toRightOf="@+id/passwordHeader"
+        android:ems="10"
+        android:gravity="center_vertical|right"
+        android:inputType="textPassword"
+        android:textColor="@color/gray" />
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/passwordHeader"
+        android:layout_alignRight="@id/password"
+        android:layout_below="@id/password"
+        android:layout_marginTop="20dp"
+        android:onClick="login"
+        android:background="@color/white"
+        android:text="@string/login"
+        android:textColor="@color/blue" />
+
+</RelativeLayout>

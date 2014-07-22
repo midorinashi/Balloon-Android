@@ -24,4 +24,7 @@
             <enum name="notGoing" value="2" />
         </attr>
     </declare-styleable>
+    <declare-styleable name="TextBox" >
+        <attr name="fontName" format="string" />
+    </declare-styleable>
 </resources>

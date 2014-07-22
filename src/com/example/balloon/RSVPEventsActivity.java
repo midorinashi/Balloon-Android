@@ -130,7 +130,7 @@ public class RSVPEventsActivity extends ActionBarActivity {
 				ParseObject meetup = (ParseObject) upcoming.get(i).get("meetup");
 				//invite.setVenuePhoto(event.getParseFile(key));
 				try {
-
+					
 					event.setObjectId(meetup.getObjectId());
 					event.setCreator(meetup.getParseUser("creator").getString("firstName") + " " +
 							meetup.getParseUser("creator").getString("lastName"));
@@ -146,6 +146,11 @@ public class RSVPEventsActivity extends ActionBarActivity {
 							address += ", ";
 					}
 					event.setVenueInfo(address);
+
+					JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
+					if (urls != null && urls.length() > 0)
+						event.setVenuePhoto(getActivity(), urls.getString(0));
+					
 					event.setExpiresAt((Date) meetup.get("expiresAt"));
 					event.setHasResponded(true);
 					event.setWillAttend(true);

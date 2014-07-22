@@ -409,6 +409,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		//params.put("contactList", mListId);
 		meetup.put("creator", ParseUser.getCurrentUser());
 		meetup.put("expiresAt", changeToDate());
+		//TODO make sure members are actually members when making new list
 		meetup.put("invitedUsers", mMembers);
 		meetup.put("venueInfo", mVenue);
 		if (mVenuePhotoUrls != null)

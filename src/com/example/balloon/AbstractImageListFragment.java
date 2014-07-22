@@ -51,9 +51,8 @@ public abstract class AbstractImageListFragment extends Fragment {
 		super.onPause();
 		if (toSave)
 		{
+			//don't forget - sparsebooleanarray looks up KEYS not positions
 			SparseBooleanArray checked = list.getCheckedItemPositions();
-			long [] ids = list.getCheckedItemIds();
-			//TODO Doesn't always get all the images? fun buns example
 			JSONArray urlsToSave = new JSONArray();
 			for (int i = 0; i < urls.length; i++)
 			{

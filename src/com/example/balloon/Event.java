@@ -5,6 +5,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.parse.ParseUser;
+import com.squareup.picasso.Picasso;
 
 import android.app.Activity;
 import android.content.Context;
@@ -295,9 +296,9 @@ public class Event extends ViewGroup
 		requestLayout();
 	}
 	
-	public void setVenuePhoto(String url)
+	public void setVenuePhoto(Context context, String url)
 	{
-		mVenuePhotoView.setImageURI(Uri.parse(url));
+		Picasso.with(context).load(url).into(mVenuePhotoView);
 		mVenuePhotoView.invalidate();
 		mVenuePhotoView.requestLayout();
 		invalidate();

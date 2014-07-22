@@ -1,11 +1,11 @@
 package com.example.balloon;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 
 import android.content.Context;
@@ -25,7 +25,6 @@ import android.widget.LinearLayout;
 
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
-import com.parse.LogInCallback;
 import com.parse.Parse;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
@@ -35,8 +34,7 @@ import com.parse.ParseUser;
 
 public class MainActivity extends ActionBarActivity
 {
-	private boolean firstTimeUser;
-	private int user;
+	//TODO only find location during location steps
 	private static double latitude;
 	private static double longitude;
 	
@@ -52,7 +50,7 @@ public class MainActivity extends ActionBarActivity
 		String Mao = "+18007580051";
 		//the proxy
 		String Liu = "+19739129828";
-		
+		/*
 		ParseUser.logInInBackground(Tracey, "cat", new LogInCallback() {
 			  public void done(ParseUser user, ParseException e) { 
 			    if (user != null) {
@@ -65,49 +63,28 @@ public class MainActivity extends ActionBarActivity
 			  }
 			});
 		
-		
-    	
-		
-		setContentView(R.layout.activity_main);
-		/*
-		 * Here, we have three options at start up. First, this is the first time the app has been used.
-		 * In this case, we load up the WelcomeVC. Second, the app has been run before, but there is no
-		 * user logged in. So this goes to the login fragment. Last, we have an actual user logged in,
-		 * so we go straight to the Invitation fragment.
-		 * Obviously, if the app crashed before, try to get to the page that it crashed. No guarentees.
-		 * 
-		 * TO DO:
-		 * Find out how to find whether this is the first time app has run, and how to find current user
-		 * These are currently hard coded.
-		 */ 
-		firstTimeUser = false;
-		user = 1;
-		//Loads WelcomeVC. I need to find out how to determine if the app was just installed
-		if (firstTimeUser)
-		{
-			
-		}
-		
-		//I also need to figure out how to make a login screen! With phone numbers, ocourse
-		else if (user == 0)
-		{
-			
-		}
-		
-		//Loads the Invitations Screen
-		/*
-		else if (savedInstanceState == null)
-		{
-			getSupportFragmentManager().beginTransaction()
-					.add(R.id.container, new InvitationsFragment()).commit();
-		}
 		*/
+		setContentView(R.layout.activity_main);
+		//check to see if person is logged in
+		if (ParseUser.getCurrentUser() != null)
+		{
+			onCreateInvitationsFragment();
+		}
+		else
+		{
+			Intent intent = new Intent(this, FirstPageActivity.class);
+			startActivity(intent);
+			finish();
+		}
 	}
 	
 	public void onCreateInvitationsFragment()
 	{
 		getSupportFragmentManager().beginTransaction()
-		.add(R.id.container, new InvitationsFragment()).commit();
+			.add(R.id.container, new InvitationsFragment()).commit();
+		/*
+		getSupportFragmentManager().beginTransaction()
+			.add(R.id.container, new PracticeFragment()).commit();*/
 	}
 
 	@Override
@@ -354,6 +331,9 @@ public class MainActivity extends ActionBarActivity
 				event.setAgenda(meetup.getString("agenda"));
 				try {
 					event.setVenueInfo(meetup.getJSONObject("venueInfo").getString("name"));
+					JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
+					if (urls != null && urls.length() > 0)
+						event.setVenuePhoto(getActivity(), urls.getString(0));
 				} catch (JSONException e) {
 					// Auto-generated catch block
 					e.printStackTrace();
@@ -365,6 +345,16 @@ public class MainActivity extends ActionBarActivity
 					event.setBackgroundColor(getResources().getColor(R.color.lightBlue));
 				lin.addView(event);
 			}
+		}
+	}
+	
+	public static class PracticeFragment extends Fragment
+	{
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			View rootView = inflater.inflate(R.layout.invite_card, container,
+					false);
+			return rootView;
 		}
 	}
 }

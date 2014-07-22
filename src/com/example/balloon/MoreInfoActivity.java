@@ -8,8 +8,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import android.content.Intent;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -49,6 +52,7 @@ public class MoreInfoActivity extends ActionBarActivity
 	private static boolean mHasResponded;
 	private static boolean mWillAttend;
 	protected static ParseObject mMeetup;
+	protected JSONObject mVenueLocation;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +88,13 @@ public class MoreInfoActivity extends ActionBarActivity
 						} catch (JSONException e1) {
 							// Auto-generated catch block
 							e1.printStackTrace();
+						}
+						
+						try {
+							mVenueLocation = meetup.getJSONObject("venueInfo").getJSONObject("location");
+						} catch (JSONException e1) {
+							//it's a custom venue
+							mVenueLocation = null;
 						}
 						
 						mExpiresAt = meetup.getDate("expiresAt");
@@ -258,6 +269,7 @@ public class MoreInfoActivity extends ActionBarActivity
 			return true;
 		}
 		else if (id == R.id.action_locate) {
+			locate();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -380,6 +392,46 @@ public class MoreInfoActivity extends ActionBarActivity
 					e.printStackTrace();
 			}
 		});
+	}
+	
+	public void locate()
+	{
+		if (mVenueLocation != null)
+		{
+			String lat = "";
+			String lng = "";
+			try {
+				lat = mVenueLocation.getString("lat");
+				lng = mVenueLocation.getString("lng");
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			String uriBegin = Uri.encode("geo:" + lat + "," + lng);
+			String uriQuery = Uri.encode(lat + "," + lng + "(" + mVenueInfo + ")");
+			//need to deal with spaces
+			System.out.println("Begin: " + uriBegin);
+			System.out.println("Query: " + uriQuery);
+			Uri uri = Uri.parse(uriBegin + "?q=" + uriQuery);
+			Intent intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
+			if (intent.resolveActivity(getPackageManager()) != null)
+				startActivity(intent);
+			else
+			{
+				//TODO puts down a lot of markers. Don't know why
+				String url = ("https://www.google.com/maps/place/"+mVenueInfo+"/@"+lat+","+lng)
+						.replaceAll(" ", "%20");
+				uri = Uri.parse(url);
+				intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
+				if (intent.resolveActivity(getPackageManager()) != null)
+					startActivity(intent);
+				else
+					outputToast("Oops! No map application found.");
+			}
+		}
+		else
+			outputToast("Oops! This is a custom location with no known address.");
+		
 	}
 	
 	public void outputToast(CharSequence text)
