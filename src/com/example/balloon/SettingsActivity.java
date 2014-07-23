@@ -307,6 +307,7 @@ public class SettingsActivity extends ActionBarActivity {
 			et = (EditText) getActivity().findViewById(R.id.lastName);
 			et.setText(user.getString("lastName"));
 			ParseImageView pv = (ParseImageView) getActivity().findViewById(R.id.photo);
+			System.out.println("contains profile photo " + user.containsKey("profilePhoto"));
 			pv.setParseFile(user.getParseFile("profilePhoto"));
 			pv.loadInBackground();
 			toRefresh = false;

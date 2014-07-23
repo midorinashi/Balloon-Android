@@ -33,6 +33,8 @@
     <string name="dummy_location">Kevin\'s house</string>
     <string name="dummy_name">Kevin</string>
     <string name="empty"></string>
+    <string name="enter_code">Enter Code</string>
+    <string name="enter_verification_code">Enter Verification Code</string>
     <string name="fa_check"><node>&#xf00c;</node></string>
     <string name="fa_chevron"><node>&#xf054;</node></string>
     <string name="fa_info"><node>&#xf129;</node></string>
@@ -51,6 +53,7 @@
     <string name="login">Login</string>
     <string name="logout">Logout</string>
     <string name="members_header">Members:</string>
+    <string name="mobile_hint">X(XXX)XXX-XXXX</string>
     <string name="more_info">More info</string>
     <string name="new_contact_list">Name The Contact List</string>
     <string name="password">Password</string>
@@ -72,6 +75,7 @@
     <string name="settings_photo">Profile Photo</string>
     <string name="share_list">Share List with Members</string>
     <string name="signup">Signup</string>
+    <string name="submit">Submit</string>
     <string name="title_activity_contact_lists">ContactListsActivity</string>
     <string name="title_activity_more_info">More Info Activity</string>
     <string name="title_activity_new_contact_list">New Contact Lists</string>
@@ -88,8 +92,9 @@
     <string name="title_select_members_from_contacts">Select Members</string>
     <string name="title_select_members_from_list">Select Members</string>
     <string name="title_set_deadline">Set Deadline</string>
-    <string name="white_space"></string>
     <string name="title_activity_first_page">FirstPageActivity</string>
-    <string name="hello_world">Hello world!</string>
-
+    <string name="title_verification_code">Verification Code</string>
+    <string name="verification_code_sent">A verification code has been sent to you via SMS.</string>
+    <string name="white_space"></string>
+    
 </resources>

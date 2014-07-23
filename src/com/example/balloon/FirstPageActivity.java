@@ -4,7 +4,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -23,15 +33,22 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.parse.FindCallback;
+import com.parse.FunctionCallback;
+import com.parse.GetCallback;
 import com.parse.LogInCallback;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseImageView;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
@@ -42,12 +59,13 @@ public class FirstPageActivity extends ActionBarActivity {
 
 	protected static Bitmap bm;
 	private File lastSavedFile;
+	private ParseUser user;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_first_page);
-
+		bm = null;
 		if (savedInstanceState == null) {
 			getSupportFragmentManager().beginTransaction()
 					.add(R.id.container, new FirstPageFragment()).commit();
@@ -183,9 +201,12 @@ public class FirstPageActivity extends ActionBarActivity {
 	//signs a user up
 	public void onClick(View view)
 	{
+		System.out.println(((EditText) findViewById(R.id.mobile)).getText().toString().replaceAll("[^0-9]", ""));
 		String textForToast = "";
 		if (((EditText) findViewById(R.id.mobile)).length() == 0)
 			textForToast = "Please type your phone number";
+		else if (((EditText) findViewById(R.id.mobile)).getText().toString().replaceAll("[^0-9]", "").length() <= 10)
+			textForToast = "Please type your full phone number";
 		else if (((EditText) findViewById(R.id.firstName)).length() == 0)
 			textForToast = "Please type your first name.";
 		else if (((EditText) findViewById(R.id.lastName)).length() == 0)
@@ -209,17 +230,65 @@ public class FirstPageActivity extends ActionBarActivity {
 			Toast.makeText(this, textForToast, Toast.LENGTH_SHORT).show();
 	}
 	
+	//finds user with same phone number first
 	public void saveUser()
 	{
-		//TODO Need to add pluses and country/area code EVERYWHEREEEEE
-		final ParseUser user = new ParseUser();
-		user.setUsername(((EditText) findViewById(R.id.mobile)).getText().toString());
-		user.put("firstName", ((EditText) findViewById(R.id.firstName)).getText().toString());
-		user.put("lastName", ((EditText) findViewById(R.id.lastName)).getText().toString());
-		String password = ((EditText) findViewById(R.id.setPassword)).getText().toString();
-		if (!password.equals(""))
-			user.setPassword(password);
+		final String mobile = "+" + (((EditText) findViewById(R.id.mobile)).getText().toString()
+				.replaceAll("[^0-9]", ""));
+		ParseQuery<ParseUser> query = ParseUser.getQuery();
+		query.whereEqualTo("username", mobile);
+		query.findInBackground(new FindCallback<ParseUser>() {
+			@Override
+			public void done(List<ParseUser> list, ParseException e) {
+				if (e == null)
+				{
+					if (list.size() == 0)
+					{
+						user = new ParseUser();
+						user.setUsername(mobile);
+						user.setPassword("lol");
+						user.put("isProxy", true);
+						user.signUpInBackground(new SignUpCallback() {
+							@Override
+							public void done(ParseException e) {
+								if (e == null)
+									saveUser(user);
+								else
+									signupFailure();
+							}
+						});
+					}
+					else if (list.get(0).getBoolean("isProxy"))
+						saveUser(list.get(0));
+					else
+						signupFailure();
+				}
+				else
+					signupFailure();
+			}
+		});
+	}
+	
+	public void saveUser(final ParseUser u)
+	{
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("mobileNumber", u.getUsername());
 		
+		user = u;
+		ParseCloud.callFunctionInBackground("sendVerificationCode", params,
+				new FunctionCallback<Object>() {
+			public void done(Object o, ParseException e) {
+				if (e == null)
+					alertToVerify();
+				else
+					e.printStackTrace();
+			}
+		});
+	}
+	
+	public void saveImage(final String password)
+	{
+		System.out.println(bm);
 		if (bm != null)
 		{
 			System.out.println("bitmap exists");
@@ -230,7 +299,116 @@ public class FirstPageActivity extends ActionBarActivity {
 			image.saveInBackground(new SaveCallback(){
 				public void done(ParseException e) {
 					if (e == null)
-						saveUser(user, image);
+					{
+						user.put("profilePhoto", image);
+						user.saveInBackground(new SaveCallback() {
+						@Override
+						public void done(ParseException e) {
+							if (e == null)
+							{
+								ParseUser.logInInBackground(user.getUsername(), 
+										password, new LogInCallback() {
+									@Override
+									public void done(ParseUser user, ParseException e) {
+										if (user != null)
+											//saves the profile picture now if it exists
+											startMainActivity();
+										else
+											e.printStackTrace();
+									}
+								});
+							}
+							else
+								e.printStackTrace();
+							}
+						});
+					}
+					else
+						e.printStackTrace();
+				}
+			});
+		}
+		//if no image exists, just continue
+		else
+		{
+			ParseUser.logInInBackground(user.getUsername(), password, new LogInCallback() {
+				@Override
+				public void done(ParseUser user, ParseException e) {
+					if (user != null)
+						//saves the profile picture now if it exists
+						startMainActivity();
+					else
+						e.printStackTrace();
+				}
+			});
+		}
+	}
+	
+	public void alertToVerify()
+	{
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		final FirstPageActivity context = this;
+        builder.setMessage(R.string.verification_code_sent)
+               .setPositiveButton(R.string.enter_code, new DialogInterface.OnClickListener() {
+                   public void onClick(DialogInterface dialog, int id) {
+                	   FragmentTransaction transaction = context.getSupportFragmentManager()
+                       		.beginTransaction();
+                	   transaction.replace(R.id.container, new VerificationFragment());
+                	   transaction.addToBackStack(null);
+                	   transaction.commit();
+                   }
+               })
+               .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                   public void onClick(DialogInterface dialog, int id) {
+                       // User cancelled the dialog
+                   }
+               });
+        // Create the AlertDialog object and return it
+        builder.create().show();
+	}
+	
+	public void verify(View view)
+	{
+		final String verifyCode = (((EditText) findViewById(R.id.password)).getText().toString());
+		//first, close the page
+		getSupportFragmentManager().popBackStackImmediate();
+		if (user.containsKey("verificationCode"))
+			verifyUser(verifyCode);
+		else
+			user.fetchInBackground(new GetCallback<ParseUser>() {
+				@Override
+				public void done(ParseUser u, ParseException e) {
+					if (u != null)
+					{
+						user = u;
+						verifyUser(verifyCode);
+					}
+					else
+						e.printStackTrace();
+				}
+			});
+	}
+	
+	public void verifyUser(String verifyCode)
+	{
+		if (user.getString("verificationCode").equals(verifyCode))
+		{
+			//time to set the user!
+			HashMap<String, Object> params = new HashMap<String, Object>();
+			params.put("proxyUserId", user.getObjectId());
+			params.put("firstName", (((EditText) findViewById(R.id.firstName)).getText().toString()));
+			params.put("lastName", (((EditText) findViewById(R.id.lastName)).getText().toString()));
+			final String password = (((EditText) findViewById(R.id.setPassword)).getText().toString());
+			params.put("newPassword", password);
+			
+			ParseCloud.callFunctionInBackground("convertProxyToRegularUser", params,
+					new FunctionCallback<Object>() {
+				@Override
+				public void done(Object o, ParseException e) {
+					if (e == null)
+					{
+						saveImage(password);
+					}
 					else
 						e.printStackTrace();
 				}
@@ -238,55 +416,78 @@ public class FirstPageActivity extends ActionBarActivity {
 		}
 		else
 		{
-			System.out.println("bitmap does not exist");
-			saveUser(user, null);
+			Toast.makeText(this, "You fucked up", Toast.LENGTH_SHORT).show();
 		}
-	}
-	
-	public void saveUser(ParseUser user, ParseFile image)
-	{
-		if (image != null)
-		{
-			user.put("profilePhoto", image);
-		}
-		final FirstPageActivity context = this;
-		user.signUpInBackground(new SignUpCallback() {
-
-			@Override
-			public void done(ParseException e) {
-				if (e == null)
-				{
-					Intent intent = new Intent(context, MainActivity.class);
-					context.startActivity(intent);
-					context.finish();
-				}
-				else
-					e.printStackTrace();
-			}
-			
-		});
 	}
 	
 	public void login(View view)
 	{
-		final ActionBarActivity context = this;
-		System.out.println(((EditText) findViewById(R.id.mobile)).getText().toString());
-		System.out.println(((EditText) findViewById(R.id.password)).getText().toString());
-		ParseUser.logInInBackground(((EditText) findViewById(R.id.mobile)).getText().toString(),
-				((EditText) findViewById(R.id.password)).getText().toString(), new LogInCallback() {
+		String mobile = (((EditText) findViewById(R.id.mobile)).getText().toString());
+		final String password = (((EditText) findViewById(R.id.password)).getText().toString());
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		JSONArray contacts = new JSONArray();
+		JSONObject contact = new JSONObject();
+		try {
+			contact.put("mobileNumber", mobile);
+			contact.put("firstName", "lol");
+			contact.put("lastName", "lol");
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}
+		contacts.put(contact);
+		params.put("contacts", contacts);
+		
+		//we need to get the correct username with the country codes and pluses and whatnot
+		ParseCloud.callFunctionInBackground("findOrCreateUsers", params,
+				new FunctionCallback<ArrayList<ParseUser>>() {
 			@Override
-			public void done(ParseUser user, ParseException e) {
-				if (user != null)
+			public void done(ArrayList<ParseUser> members, ParseException e) {
+				if (e != null)
 				{
-					Intent intent = new Intent(context, MainActivity.class);
-					context.startActivity(intent);
-					context.finish();
+					loginFailure();
+					e.printStackTrace();
 				}
 				else
-					Toast.makeText(context, "Invalid username or password",
-							Toast.LENGTH_SHORT).show();
+				{
+					System.out.println("Find or create users complete.");
+					ParseUser user = ((ArrayList<ParseUser>) members).get(0);
+					if (!user.getBoolean("isProxy"))
+					{
+						ParseUser.logInInBackground(user.getUsername(), password,
+								new LogInCallback() {
+							@Override
+							public void done(ParseUser user,
+									ParseException e) {
+								if (user != null)
+									startMainActivity();
+								else
+									loginFailure();
+							}
+							
+						});
+					}
+					else
+						loginFailure();
+				}
 			}
 		});
+	}
+
+	public void signupFailure()
+	{
+		Toast.makeText(this, "What a terrible failure.", Toast.LENGTH_SHORT).show();
+	}
+	
+	public void loginFailure()
+	{
+		Toast.makeText(this, "Invalid username or password.", Toast.LENGTH_SHORT).show();
+	}
+	
+	public void startMainActivity()
+	{
+		Intent intent = new Intent(this, MainActivity.class);
+		startActivity(intent);
+		finish();
 	}
 	
 	public static class FirstPageFragment extends Fragment {
@@ -307,8 +508,26 @@ public class FirstPageActivity extends ActionBarActivity {
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_signup, container,
 					false);
-			bm = null;
 			return rootView;
+		}
+		
+		public void onResume()
+		{
+			super.onResume();
+			getActivity().findViewById(R.id.profilePhoto).setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					getActivity().registerForContextMenu(v); 
+				    getActivity().openContextMenu(v);
+				    getActivity().unregisterForContextMenu(v);
+				}
+			});
+			if (bm != null)
+			{
+				ParseImageView view = (ParseImageView) getActivity().findViewById(R.id.photo);
+	            view.setImageBitmap(bm);
+	            view.setVisibility(ImageView.VISIBLE);
+			}
 		}
 	}
 	
@@ -320,6 +539,26 @@ public class FirstPageActivity extends ActionBarActivity {
 			View rootView = inflater.inflate(R.layout.fragment_login, container,
 					false);
 			return rootView;
+		}
+	}
+	
+	public static class VerificationFragment extends Fragment {
+
+		@Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			View rootView = inflater.inflate(R.layout.fragment_verify, container,
+					false);
+			return rootView;
+		}
+		
+		public void onResume()
+		{
+			super.onResume();
+			InputMethodManager imm = (InputMethodManager)getActivity()
+					.getSystemService(Context.INPUT_METHOD_SERVICE);
+			imm.showSoftInput((EditText) getActivity().findViewById(R.id.password),
+					InputMethodManager.SHOW_IMPLICIT);
 		}
 	}
 }
