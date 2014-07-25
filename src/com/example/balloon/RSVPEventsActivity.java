@@ -103,6 +103,7 @@ public class RSVPEventsActivity extends ActionBarActivity {
 		
 		public void getUpcoming()
 		{
+			// TODO make meetups that are have expired go away
 			HashMap<String, Object> params = new HashMap<String, Object>();
 			params.put("user", ParseUser.getCurrentUser().toString());
 			ParseCloud.callFunctionInBackground("loadUpcomingMeetups", params,

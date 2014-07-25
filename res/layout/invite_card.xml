@@ -131,7 +131,7 @@
     </LinearLayout>
 
     <com.example.balloon.TextBox
-        android:id="@+id/textView1"
+        android:id="@+id/leftToRSVP"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/no"
@@ -149,7 +149,7 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="5dp"
         android:layout_marginTop="10dp"
-        android:layout_toLeftOf="@+id/textView1"
+        android:layout_toLeftOf="@+id/leftToRSVP"
         android:background="@color/buttonBlue"
         android:text="@string/fa_times"
         android:textColor="@color/white" />
@@ -164,7 +164,7 @@
         android:layout_marginLeft="5dp"
         android:layout_marginRight="10dp"
         android:layout_marginTop="10dp"
-        android:layout_toRightOf="@+id/textView1"
+        android:layout_toRightOf="@+id/leftToRSVP"
         android:background="@color/buttonBlue"
         android:text="@string/fa_check"
         android:textColor="@color/white" />

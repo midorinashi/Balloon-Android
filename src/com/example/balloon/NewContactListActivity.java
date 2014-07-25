@@ -1,5 +1,9 @@
 package com.example.balloon;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -10,10 +14,15 @@ import org.json.JSONObject;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.Contacts.Data;
@@ -22,31 +31,44 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v7.app.ActionBarActivity;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.View.OnClickListener;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.balloon.NewInvitationActivity.ImageListFragment;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
+import com.squareup.picasso.Picasso;
 
 public class NewContactListActivity extends ActionBarActivity {
 
 	public static String mListName;
 	public static boolean mPublicList;
+	public static ParseFile mContactListImage;
 	private static String nextTitle;
 	private static ListView mListView;
 	private static CheckBox mCheckbox;
 	private static JSONArray mContacts;
+	private File lastSavedFile;
+	private static ContextMenu mMenu;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +83,139 @@ public class NewContactListActivity extends ActionBarActivity {
 		if (savedInstanceState == null) {
 			getSupportFragmentManager().beginTransaction()
 					.add(R.id.container, new NewContactListFragment()).commit();
+		}
+	}
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+	                                ContextMenuInfo menuInfo) {
+	    super.onCreateContextMenu(menu, v, menuInfo);
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.photo_menu, menu);
+	    mMenu = menu;
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+	    switch (item.getItemId()) {
+	        case R.id.action_photo_phone:
+	            return true;
+	        case R.id.action_photo_last:// Find the last picture
+	        	String[] projection = new String[]{
+	        		    MediaStore.Images.ImageColumns._ID,
+	        		    MediaStore.Images.ImageColumns.DATA,
+	        		    MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+	        		    MediaStore.Images.ImageColumns.DATE_TAKEN,
+	        		    MediaStore.Images.ImageColumns.MIME_TYPE
+	        		    };
+	        		final Cursor cursor = getContentResolver()
+	        		        .query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, 
+	        		               null, MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC");
+
+	        		// Put it in the image view
+	        		if (cursor.moveToFirst()) {
+	        		    String imageLocation = cursor.getString(1);
+	        		    File imageFile = new File(imageLocation);
+	        		    if (imageFile.exists()) {   // TODO: is there a better way to do this?
+	        		    	System.out.println("It's working!");
+	        	            Bitmap bm = BitmapFactory.decodeFile(imageLocation);
+	        	            saveBitmap(bm);
+	        		    }
+	        		} 
+	        		cursor.close();
+	            return true;
+	        case R.id.action_photo_take:
+	        	Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+	        	lastSavedFile = getTempFile();
+	        	intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(lastSavedFile));
+	        	startActivityForResult(intent, 0);
+	        	return true;
+	        case R.id.action_photo_library:
+	        	intent = new Intent(Intent.ACTION_PICK, 
+	        			android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+	        	startActivityForResult(intent, 1);
+	        	return true;
+	        default:
+	            return super.onContextItemSelected(item);
+	    }
+	}
+	private File getTempFile() {
+	    // Create an image file name
+	    String imageFileName = "temp.png";
+	    return new File(Environment.getExternalStorageDirectory(), imageFileName);
+	}
+	
+	@Override
+	//this is how we get the picture
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+        	System.out.println("hi");
+        	// if it came from the camera
+			Uri uri;
+			if (requestCode == 0)
+        		uri = android.net.Uri.fromFile(lastSavedFile);
+        	//if it came from the library
+        	else
+        		uri = data.getData();
+        	try {
+				Bitmap bm = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+				saveBitmap(bm);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+        } else if (resultCode == RESULT_CANCELED) {
+        	System.out.println("canceled");
+            // User cancelled the image capture
+        } else {
+        	System.out.println("dedd");
+
+			CharSequence text = "Image capture failed.";
+			int duration = Toast.LENGTH_SHORT;
+
+			Toast toast = Toast.makeText(this, text, duration);
+			toast.show();
+            // Image capture failed, advise user
+        }
+	}
+	
+	public void saveBitmap(Bitmap original)
+	{
+		//first crop it
+		int width = original.getWidth();
+		int height = original.getHeight();
+		Bitmap crop;
+		if (width > height)
+			crop = Bitmap.createBitmap(original, width/2 - height/2, 0, height, height);
+		else
+			crop = Bitmap.createBitmap(original, 0, height/2 - width/2, width, width);
+		//then resize
+		Bitmap bm = Bitmap.createScaledBitmap(crop, 320, 320, true);
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
+		byte[] byteArray = stream.toByteArray();
+		final ParseFile image = new ParseFile("profile.png", byteArray);
+		image.saveInBackground(new SaveCallback(){
+			public void done(ParseException e) {
+				if (e == null)
+				{
+					mContactListImage = image;
+					setContactListImage();
+				}
+				else
+					e.printStackTrace();
+			}
+		});
+	}
+	
+	public void setContactListImage()
+	{
+		ImageView view = (ImageView) findViewById(R.id.image);
+		if (view != null)
+		{
+			Picasso.with(this).load(mContactListImage.getUrl()).into(view);
+			findViewById(R.id.addPhoto).setVisibility(View.GONE);
 		}
 	}
 
@@ -269,6 +424,7 @@ public class NewContactListActivity extends ActionBarActivity {
 		list.put("name", mListName);
 		list.put("owner", ParseUser.getCurrentUser());
 		list.put("isVisibleToMembers", mPublicList);
+		list.put("photo", mContactListImage);
 		list.addAll("members", members);
 		System.out.println("Saving...");
 		list.saveInBackground(new SaveCallback() {
@@ -313,6 +469,7 @@ public class NewContactListActivity extends ActionBarActivity {
 					container, false);
 			mListName = "";
 			mPublicList = false;
+			mContactListImage = null;
 			return rootView;
 		}
 	
@@ -322,6 +479,21 @@ public class NewContactListActivity extends ActionBarActivity {
 			getActivity().setTitle(getResources().getString(R.string.title_create_list));
 			nextTitle = "Next";
 			getActivity().invalidateOptionsMenu();
+			ImageView view = (ImageView) getActivity().findViewById(R.id.image);
+			view.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					getActivity().registerForContextMenu(v); 
+				    getActivity().openContextMenu(v);
+				    SubMenu s = mMenu.getItem(1).getSubMenu();
+				    mMenu.performIdentifierAction(s.getItem().getItemId(), 0);
+				    getActivity().unregisterForContextMenu(v);
+				}
+			});
+			if (mContactListImage != null)
+			{
+				Picasso.with(getActivity()).load(mContactListImage.getUrl()).into(view);
+				getActivity().findViewById(R.id.addPhoto).setVisibility(View.GONE);
+			}
 		}
 		
 		public void onPause()

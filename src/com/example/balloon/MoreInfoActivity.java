@@ -27,7 +27,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,6 +43,7 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
+import com.squareup.picasso.Picasso;
 
 public class MoreInfoActivity extends ActionBarActivity
 {
@@ -104,7 +108,7 @@ public class MoreInfoActivity extends ActionBarActivity
 						ParseQuery<ParseObject> commentQuery = new ParseQuery<ParseObject>("Comment");
 						commentQuery.whereEqualTo("meetup", meetup);
 						commentQuery.include("commenter");
-						commentQuery.orderByAscending("createdAt");
+						commentQuery.orderByDescending("createdAt");
 						commentQuery.findInBackground(new FindCallback<ParseObject>() {
 
 							@Override
@@ -125,6 +129,7 @@ public class MoreInfoActivity extends ActionBarActivity
 						ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
 						comingQuery.whereEqualTo("meetup", meetup);
 						comingQuery.whereEqualTo("isAttending", true);
+						comingQuery.include("responder");
 						comingQuery.findInBackground(new FindCallback<ParseObject>() {
 
 							@Override
@@ -133,8 +138,8 @@ public class MoreInfoActivity extends ActionBarActivity
 								{
 									if (responses.size() > 0)
 										fetchNames(responses, false);
-									else
-										makeComingList(new String[0]);
+									//else
+										//makeComingList(new String[0]);
 								}
 								else
 									e.printStackTrace();
@@ -155,6 +160,7 @@ public class MoreInfoActivity extends ActionBarActivity
 	
 	public void makeCommentList(final List<ParseObject> comments)
 	{
+		/*
 		for (ParseObject c : comments)
 		{
 			System.out.println(c.getString("comment"));
@@ -180,6 +186,22 @@ public class MoreInfoActivity extends ActionBarActivity
 	    ListView lv = (ListView) findViewById(R.id.commentsList);
 	    lv.setAdapter(arrayAdapter);
 	    System.out.println("num list items is : " + lv.getCount());
+	    */
+		LinearLayout lin = (LinearLayout) findViewById(R.id.linearLayout);
+		TextView header = (TextView) findViewById(R.id.comments);
+		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
+				.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+		for (int i = 0; i < comments.size(); i++)
+		{
+			View comment = View.inflate(this, R.layout.list_item_comment, null);
+			((TextView) comment.findViewById(R.id.comment)).setText(comments.get(i).getString("comment"));
+			ParseUser commenter = comments.get(i).getParseUser("commenter");
+			((TextView) comment.findViewById(R.id.commenter)).setText(commenter.getString("firstName") + " "
+					+ commenter.getString("lastName"));
+			Picasso.with(this).load(commenter.getParseFile("profilePhoto").getUrl())
+				.into((ImageView) comment.findViewById(R.id.imageView1));
+			lin.addView(comment, 2, lp);
+		}
 	}
 	
 	//forComments is true when fetching names of commenters, false when it's for responses
@@ -474,6 +496,89 @@ public class MoreInfoActivity extends ActionBarActivity
 				Bundle savedInstanceState)
 		{
 			View rootView = inflater.inflate(R.layout.fragment_more_info,
+					container, false);
+			//Handles changing the RSVP time every second with the timer
+			mHandler = new Handler() {
+				public void handleMessage(Message message)
+				{
+					Date now = new Date();
+					long timeToRSVP = mExpiresAt.getTime() - now.getTime();
+					mTimeToRSVP = "" + (int)timeToRSVP/(60*60*1000) + ":";
+					int minutes = (int)(timeToRSVP/(60*1000))%60;
+					if (minutes < 10)
+						mTimeToRSVP = mTimeToRSVP + "0";
+					mTimeToRSVP = mTimeToRSVP + minutes + ":";
+					int seconds = (int)(timeToRSVP/1000)%60;
+					if (seconds < 10)
+						mTimeToRSVP = mTimeToRSVP+ "0";
+					mTimeToRSVP = mTimeToRSVP + seconds;
+					TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
+					tv.setText(mTimeToRSVP);
+					tv.invalidate();
+					tv.requestLayout();
+				}
+			};
+			
+			mTimer = new Timer();
+			mTimer.schedule(new RSVPTimerTask(), 0, 1000);
+			return rootView;
+		}
+		
+		//make sure all the info is current
+		public void onResume()
+		{
+			super.onResume();
+			
+			Resources res = getResources();
+			
+			if (mCreator == null)
+			{
+				mCreator = String.format(res.getString(R.string.dummy_name));
+				mAgenda = String.format(res.getString(R.string.dummy_agenda));
+				mVenueInfo = String.format(res.getString(R.string.dummy_location));
+			}
+			
+			TextView tv = (TextView) getActivity().findViewById(R.id.creator);
+			System.out.println("RAWR");
+			tv.setText(mCreator);
+			tv = (TextView) getActivity().findViewById(R.id.agenda);
+			tv.setText(mAgenda);
+			tv = (TextView) getActivity().findViewById(R.id.venueInfo);
+			tv.setText(mVenueInfo);
+			if (mHasResponded)
+				if (mWillAttend)
+					getActivity().findViewById(R.id.yes)
+						.setBackgroundColor(getResources().getColor(R.color.green));
+				else
+					getActivity().findViewById(R.id.no)
+						.setBackgroundColor(getResources().getColor(R.color.red));
+		}
+		
+		public void onStop()
+		{
+			super.onStop();
+			mTimer.cancel();
+			mTimer.purge();
+		}
+		
+		public class RSVPTimerTask extends TimerTask
+		{
+			public void run() {
+				mHandler.obtainMessage(1).sendToTarget();
+			}
+		}
+	}	
+	
+	public static class InfoFragment extends Fragment
+	{
+		private Handler mHandler;
+		private Timer mTimer;
+
+		@Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState)
+		{
+			View rootView = inflater.inflate(R.layout.fragment_info,
 					container, false);
 			//Handles changing the RSVP time every second with the timer
 			mHandler = new Handler() {

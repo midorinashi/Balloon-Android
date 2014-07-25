@@ -53,6 +53,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -105,14 +106,14 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	private static String mPreviewName;
 	private static String mCurrentFragment;
 	//ayyyyyy because sometimes we go outside of the flow
-	//TODO change the buttons to done if needed
 	private static boolean mAfterFinalEdit;
 	
 	//views to mangae select members fragment
 	private static CheckBox mCheckbox;
 	private static ListView mListView;
-	private ContextMenu mMenu;
+	private static ContextMenu mMenu;
 	private File lastSavedFile;
+	protected static ParseFile mContactListImage;
 	
 	//to manage the buttons at the top
 	private static boolean mPlus;
@@ -151,12 +152,14 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		mMakeContactList = false;
 		mMemberIds = null;
 		mMembers = null;
+		mMemberNames = null;
 		mPreviewName = null;
 		mCurrentFragment = "";
 		mAfterFinalEdit = false;
 		mCheckbox = null;
 		mListView = null;
 		mPlus = true;
+		mContactListImage = null;
 	}
 
 	@Override
@@ -487,11 +490,21 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 						ParseObject contactList = new ParseObject("ContactList");
 						contactList.put("owner", ParseUser.getCurrentUser());
 						contactList.put("name", mListName);
+						contactList.put("photo", mContactListImage);
 						contactList.put("isVisibleToMembers", mPublicList);
+						JSONArray mContacts = new JSONArray();
+						//two different json arrays because send invites need json objects, not parse objects
 						mMembers = new JSONArray();
 						for (int i = 0; i < list.size(); i++)
-							mMembers.put(list.get(i));
-						contactList.put("members", mMembers);
+						{
+							mContacts.put(list.get(i));
+							try {
+								mMembers.put(new JSONObject(mContacts.get(i).toString()));
+							} catch (JSONException e1) {
+								e1.printStackTrace();
+							}
+						}
+						contactList.put("members", mContacts);
 						contactList.saveInBackground(new SaveCallback() {
 							@Override
 							public void done(ParseException e) {
@@ -522,7 +535,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		//params.put("contactList", mListId);
 		meetup.put("creator", ParseUser.getCurrentUser());
 		meetup.put("expiresAt", changeToDate());
-		//TODO make sure members are actually members when making new list
 		meetup.put("invitedUsers", mMembers);
 		meetup.put("venueInfo", mVenue);
 		if (mVenuePhotoUrls != null)
@@ -551,6 +563,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		params.put("meetupId", meetup.getObjectId());
 		params.put("creator", meetup.getParseUser("creator").getObjectId());
 		params.put("invitedUsers", meetup.getJSONArray("invitedUsers"));
+	
 		ParseCloud.callFunctionInBackground("sendInvites", params, new FunctionCallback<Object>(){
 
 			@Override
@@ -653,6 +666,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	        	            saveBitmap(bm);
 	        		    }
 	        		} 
+	        		cursor.close();
 	            return true;
 	        case R.id.action_photo_take:
 	        	Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -712,30 +726,71 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	
 	public void saveBitmap(Bitmap original)
 	{
-		//first crop it
-		int width = original.getWidth();
-		int height = original.getHeight();
-		Bitmap crop;
-		if (width > 3*height)
-			crop = Bitmap.createBitmap(original, width/2 - (int)(1.5*height), 0, 3*height, height);
-		else
-			crop = Bitmap.createBitmap(original, 0, height/2 - width/6, width, width/3);
-		//then resize
-		Bitmap bm = Bitmap.createScaledBitmap(crop, 300, 100, true);
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
-		byte[] byteArray = stream.toByteArray();
-		final ParseFile image = new ParseFile("profile.png", byteArray);
-		image.saveInBackground(new SaveCallback(){
-			public void done(ParseException e) {
-				if (e == null)
-				{
-					addImage(image.getUrl());
+		if (mCurrentFragment == "FinalEditFragment")
+		{
+			//first crop it
+			int width = original.getWidth();
+			int height = original.getHeight();
+			Bitmap crop;
+			if (width > 3*height)
+				crop = Bitmap.createBitmap(original, width/2 - (int)(1.5*height), 0, 3*height, height);
+			else
+				crop = Bitmap.createBitmap(original, 0, height/2 - width/6, width, width/3);
+			//then resize
+			Bitmap bm = Bitmap.createScaledBitmap(crop, 300, 100, true);
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
+			byte[] byteArray = stream.toByteArray();
+			final ParseFile image = new ParseFile("profile.png", byteArray);
+			image.saveInBackground(new SaveCallback(){
+				public void done(ParseException e) {
+					if (e == null)
+					{
+						addImage(image.getUrl());
+					}
+					else
+						e.printStackTrace();
 				}
-				else
-					e.printStackTrace();
-			}
-		});
+			});
+		}
+		else
+		{
+			//first crop it
+			int width = original.getWidth();
+			int height = original.getHeight();
+			Bitmap crop;
+			if (width > height)
+				crop = Bitmap.createBitmap(original, width/2 - height/2, 0, height, height);
+			else
+				crop = Bitmap.createBitmap(original, 0, height/2 - width/2, width, width);
+			//then resize
+			Bitmap bm = Bitmap.createScaledBitmap(crop, 320, 320, true);
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
+			byte[] byteArray = stream.toByteArray();
+			final ParseFile image = new ParseFile("profile.png", byteArray);
+			image.saveInBackground(new SaveCallback(){
+				public void done(ParseException e) {
+					if (e == null)
+					{
+						mContactListImage = image;
+						setContactListImage();
+					}
+					else
+						e.printStackTrace();
+				}
+			});
+		}
+	}
+	
+	public void setContactListImage()
+	{
+		if (mCurrentFragment == "CreateListFragment")
+		{
+			ImageView view = (ImageView) findViewById(R.id.image);
+			Picasso.with(this).load(mContactListImage.getUrl()).into(view);
+			findViewById(R.id.addPhoto).setVisibility(View.GONE);
+		}
 	}
 	
 	public static void addImage(String imageUrl)
@@ -868,6 +923,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_create_list));
 			mCurrentFragment = "CreateListFragment";
+			getActivity().findViewById(R.id.button1).setVisibility(View.GONE);
 
 			mNext = getResources().getString(R.string.action_next);
 			getActivity().invalidateOptionsMenu();
@@ -877,10 +933,25 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				EditText et = (EditText) getActivity().findViewById(R.id.editContactListName);
 				et.setText(mListName);
 			}
-			if (mPublicList == true)
+			if (mPublicList)
 			{
 				CheckBox checkbox = (CheckBox) getActivity().findViewById(R.id.publicListCheckBox);
 				checkbox.setChecked(true);
+			}
+			ImageView view = (ImageView) getActivity().findViewById(R.id.image);
+			view.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					getActivity().registerForContextMenu(v); 
+				    getActivity().openContextMenu(v);
+				    SubMenu s = mMenu.getItem(1).getSubMenu();
+				    mMenu.performIdentifierAction(s.getItem().getItemId(), 0);
+				    getActivity().unregisterForContextMenu(v);
+				}
+			});
+			if (mContactListImage != null)
+			{
+				Picasso.with(getActivity()).load(mContactListImage.getUrl()).into(view);
+				getActivity().findViewById(R.id.addPhoto).setVisibility(View.GONE);
 			}
 		}
 		
@@ -1524,14 +1595,12 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 					System.out.println("adding image " + i);
 					addImage(urls.getString(i));
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
 		}
 	}
 	
-	//TODO uh this shit
 	public static class PreviewFragment extends Fragment {
 		
 		private Timer timer;
@@ -1566,7 +1635,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				try {
 					Picasso.with(getActivity()).load(mVenuePhotoUrls.getString(0)).into(v);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				v.invalidate();
