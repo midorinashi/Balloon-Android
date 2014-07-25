@@ -2,15 +2,15 @@ package com.example.balloon;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,11 +24,15 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Contacts.Data;
 import android.provider.ContactsContract.RawContacts;
@@ -55,9 +59,12 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
@@ -72,7 +79,6 @@ import com.parse.GetCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseFile;
-import com.parse.ParseImageView;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -92,9 +98,11 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	private static JSONArray mVenuePhotoUrls;
 	private static JSONArray mMemberObjectIds;
 	private static String[] mPhoneNumbers;
+	private static String[] mMemberNames;
 	private static boolean mMakeContactList;
 	private static String[] mMemberIds;
 	private static JSONArray mMembers;
+	private static String mPreviewName;
 	private static String mCurrentFragment;
 	//ayyyyyy because sometimes we go outside of the flow
 	//TODO change the buttons to done if needed
@@ -143,6 +151,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		mMakeContactList = false;
 		mMemberIds = null;
 		mMembers = null;
+		mPreviewName = null;
 		mCurrentFragment = "";
 		mAfterFinalEdit = false;
 		mCheckbox = null;
@@ -290,10 +299,19 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		//  i get the checked contact_id
 		long[] id = ((ListView) findViewById(R.id.contactsList)).getCheckedItemIds();
         mPhoneNumbers = new String[id.length];
+        mMemberNames = new String[id.length];
         for (int i = 0; i < id.length; i++)
         {
             mPhoneNumbers[i] = getPhoneNumber(id[i]); // get phonenumber from selected id
+            mMemberNames[i] = getName(id[i]);
+
+			System.out.println(mMemberNames[i] +" " + mPhoneNumbers[i]);
         }
+        if (id.length > 0)
+        	if (mMemberNames[0].indexOf(' ') > -1)
+        		mPreviewName = mMemberNames[0].substring(0, mMemberNames[0].indexOf(' '));
+        	else
+        		mPreviewName = mMemberNames[0];
 	}
 	
 	/* References
@@ -335,6 +353,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
         	phone = "1" + phone;
         phone = "+" + phone;
         */
+        phonesCursor.close();
 	    return phone;
 	}
 	
@@ -353,6 +372,46 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	    if (c != null && c.moveToFirst()) {
 	        return c;
 	    }
+	    return null;
+	}
+	
+	private String getName(long id) {
+	    String name = null;
+	    Cursor namesCursor = null;
+	    namesCursor = queryName(id);
+	    if (namesCursor == null || namesCursor.getCount() == 0) {
+	        // No valid number
+	    	System.out.println("No Name");
+	        return null;
+	    }
+	    else {
+	    	namesCursor.moveToPosition(0);
+	        name = namesCursor.getString(namesCursor.getColumnIndex(StructuredName.DISPLAY_NAME));
+	    }
+	    if (name == null)
+	    {
+	        name = "";
+	    }
+	    if (name.indexOf(' ') > -1)
+	    	name = name.substring(0, name.indexOf(' '));
+	    namesCursor.close();
+	    return name;
+	}
+	
+	// http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
+	private Cursor queryName(long contactId) {
+	    ContentResolver cr = getContentResolver();
+	    Uri baseUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI,
+	            contactId);
+	    Uri dataUri = Uri.withAppendedPath(baseUri,
+	            ContactsContract.Contacts.Data.CONTENT_DIRECTORY);
+
+	    Cursor c = cr.query(dataUri, new String[] { StructuredName.DISPLAY_NAME }, Data.MIMETYPE + "=?",
+	            new String[] { StructuredName.CONTENT_ITEM_TYPE }, null);
+	    if (c != null && c.moveToFirst()) {
+	        return c;
+	    } 
+	    
 	    return null;
 	}
 	
@@ -398,8 +457,62 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		transaction.commit();
 	}
 	
-	public void makeMeetup(View view)
+	public void makeMeetup(final View view)
 	{
+		//make the contact list if we need to
+		if (mMakeContactList)
+		{
+			HashMap<String, Object> params = new HashMap<String, Object>();
+			JSONArray contacts = new JSONArray();
+			for (int i = 0; i < mMemberNames.length; i++)
+			{
+				JSONObject contact = new JSONObject();
+				try {
+					contact.put("firstName", mMemberNames[i]);
+					contact.put("mobileNumber", mPhoneNumbers[i]);
+					System.out.println(mMemberNames[i] +" " + mPhoneNumbers[i]);
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				contacts.put(contact);
+			}
+			params.put("contacts", contacts);
+			ParseCloud.callFunctionInBackground("findOrCreateUsers", params, new FunctionCallback<ArrayList<ParseUser>>() {
+
+				@Override
+				public void done(ArrayList<ParseUser> list, ParseException e) {
+					if (e == null)
+					{
+						// need to give all the members to makeMeetup and to create a new contact list
+						ParseObject contactList = new ParseObject("ContactList");
+						contactList.put("owner", ParseUser.getCurrentUser());
+						contactList.put("name", mListName);
+						contactList.put("isVisibleToMembers", mPublicList);
+						mMembers = new JSONArray();
+						for (int i = 0; i < list.size(); i++)
+							mMembers.put(list.get(i));
+						contactList.put("members", mMembers);
+						contactList.saveInBackground(new SaveCallback() {
+							@Override
+							public void done(ParseException e) {
+								if (e == null)
+								{
+									System.out.println("save success");
+									makeMeetup(view);
+								}
+								else
+									e.printStackTrace();
+							}
+						});
+					}
+					else
+						e.printStackTrace();
+				}
+				
+			});
+			mMakeContactList = false;
+			return;
+		}
 		final ParseObject meetup = new ParseObject("Meetup");
 		meetup.put("agenda", mAgenda);
 		//make the contact list if we need to
@@ -414,7 +527,6 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		meetup.put("venueInfo", mVenue);
 		if (mVenuePhotoUrls != null)
 			meetup.put("venuePhotoURLs", mVenuePhotoUrls);
-		//TODO save phone photos
 		//TODO learn where invite more happens
 		meetup.put("allowInviteMore", true);
 		meetup.saveInBackground(new SaveCallback(){
@@ -457,7 +569,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		});
 	}
 	
-	public Date changeToDate()
+	public static Date changeToDate()
 	{
 		GregorianCalendar calendar = new GregorianCalendar();
 		//TODO Using current timeLocale see if fix is needed
@@ -848,7 +960,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			if (getActivity() instanceof NewInvitationActivity)
 				mCurrentFragment = "SelectMembersFromContactsFragment";
 		}
-
+	    
 	    @Override
 	    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
@@ -1041,6 +1153,14 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			mMemberIds = new String[viewIds.length];
 			mMembers = new JSONArray();
 			mMemberObjectIds = new JSONArray();
+			if (viewIds.length > 0)
+			{
+				mPreviewName = names[(int) viewIds[0]];
+				if (names[0].indexOf(' ') > -1)
+	        		mPreviewName = names[0].substring(0, names[0].indexOf(' '));
+	        	else
+	        		mPreviewName = names[0];
+			}
 			for (int i = 0; i < viewIds.length; i++)
 			{
 				mMemberIds[i] = ids.get((int) viewIds[i]);
@@ -1357,6 +1477,17 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			});
 			
 		}
+		
+		//if we go back in the flow, we gotta readd the next button
+		public void onDestroyView()
+		{
+			super.onDestroyView();
+			if (!mAfterFinalEdit)
+			{
+				mNext = getResources().getString(R.string.action_next);
+				getActivity().invalidateOptionsMenu();
+			}
+		}
 	}
 	
 	public static class ImageListFragment extends AbstractImageListFragment {
@@ -1403,6 +1534,9 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	//TODO uh this shit
 	public static class PreviewFragment extends Fragment {
 		
+		private Timer timer;
+		public static Handler mHandler;
+		
 		public PreviewFragment(){
 		}
 		
@@ -1411,18 +1545,88 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			View rootView = inflater.inflate(R.layout.fragment_preview,
 					container, false);
 			
-			getActivity().setTitle(getResources().getString(R.string.title_preview));
-			mCurrentFragment = "PreviewFragment";
-			
-			TextView tv = (TextView) rootView.findViewById(R.id.creator);
-			tv.setText(R.string.dummy_name);
-			tv = (TextView) rootView.findViewById(R.id.agenda);
-			tv.setText(mAgenda);
-			tv = (TextView) rootView.findViewById(R.id.venueInfo);
-			tv.setText(mVenueInfo);
-			tv = (TextView) rootView.findViewById(R.id.timeToRSVP);
-			tv.setText(formatTime(mExpiresAtHour, mExpiresAtMinute));
 			return rootView;
+		}
+		
+		public void onResume()
+		{	
+			super.onResume();
+			LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
+			View event = View.inflate(getActivity(), R.layout.invite_card, null);
+			TextView tv = (TextView) event.findViewById(R.id.creator);
+			tv.setText(ParseUser.getCurrentUser().getString("firstName") + "  " +
+					ParseUser.getCurrentUser().getString("lastName"));
+			tv = (TextView) event.findViewById(R.id.agenda);
+			tv.setText(mPreviewName + ", " + mAgenda);
+			tv = (TextView) event.findViewById(R.id.venueInfo);
+			tv.setText(mVenueInfo);
+			ImageView v = ((ImageView) event.findViewById(R.id.image));
+			if (mVenuePhotoUrls.length() > 0)
+			{
+				try {
+					Picasso.with(getActivity()).load(mVenuePhotoUrls.getString(0)).into(v);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				v.invalidate();
+				v.requestLayout();
+			}
+			
+			timer = new Timer("RSVPTimer");
+			final Date expiresAt = changeToDate();
+			final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
+			mHandler = new Handler() {
+				public void handleMessage(Message message)
+				{
+					Date now = new Date();
+					long timeToRSVP = expiresAt.getTime() - now.getTime();
+					String time = "" + (int)timeToRSVP/(60*60*1000) + ":";
+					int minutes = (int)(timeToRSVP/(60*1000))%60;
+					if (minutes < 10)
+						time = time + "0";
+					time = time + minutes + ":";
+					int seconds = (int)(timeToRSVP/1000)%60;
+					if (seconds < 10)
+						time = time+ "0";
+					time = time + seconds;
+					System.out.println(time);
+					mTimeToRSVPView.setText(time);
+					mTimeToRSVPView.invalidate();
+					mTimeToRSVPView.requestLayout();
+					//invalidate();
+					//requestLayout();
+				}
+			};
+			timer.schedule(new RSVPTimerTask(), 10, 1000);
+			Button button = (Button) event.findViewById(R.id.no);
+			button.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),
+					 "fonts/fontawesome-webfont.ttf"));
+			button = (Button) event.findViewById(R.id.yes);
+			button.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),
+					 "fonts/fontawesome-webfont.ttf"));
+			
+			LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+			lp.setMargins(20, 20, 20, 20);
+			event.setLayoutParams(lp);
+			
+			lin.addView(event);
+		}
+		
+		public void onStop()
+		{
+			super.onStop();
+			timer.cancel();
+		}
+		
+		public class RSVPTimerTask extends TimerTask
+		{
+			
+			@Override
+			public void run() {
+				//System.out.println(pos);
+				mHandler.obtainMessage(1).sendToTarget();
+			}
 		}
 	}
 }

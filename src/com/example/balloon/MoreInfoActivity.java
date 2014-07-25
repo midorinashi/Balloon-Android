@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -419,8 +420,19 @@ public class MoreInfoActivity extends ActionBarActivity
 			else
 			{
 				//TODO puts down a lot of markers. Don't know why
-				String url = ("https://www.google.com/maps/place/"+mVenueInfo+"/@"+lat+","+lng)
-						.replaceAll(" ", "%20");
+				String address = "";
+				JSONArray formattedAddress;
+				try {
+					formattedAddress = mVenueLocation.getJSONArray("formattedAddress");
+					for (int i = 0; i < formattedAddress.length(); i++)
+						address += " " + formattedAddress.getString(i);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				//need to get rid of first space
+				String url = ("https://www.maps.google.com/maps?q="+(address).substring(1))
+						.replaceAll(" ", "+");
 				uri = Uri.parse(url);
 				intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
 				if (intent.resolveActivity(getPackageManager()) != null)

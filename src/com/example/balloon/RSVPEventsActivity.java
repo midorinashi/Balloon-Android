@@ -120,53 +120,56 @@ public class RSVPEventsActivity extends ActionBarActivity {
 		// TODO I need to make a list of events to avoid memory leaks, also stop all timers
 		public void makeList(ArrayList<HashMap<String, Object>> upcoming)
 		{
-			LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
-			//removes all the views for now because EFFICIENCY WHAT
-			lin.removeAllViews();
-			
-			for (int i = 0; i < upcoming.size(); i++)
+			if (getActivity() instanceof RSVPEventsActivity)
 			{
-				Event event = new Event(getActivity());
-				ParseObject meetup = (ParseObject) upcoming.get(i).get("meetup");
-				//invite.setVenuePhoto(event.getParseFile(key));
-				try {
-					
-					event.setObjectId(meetup.getObjectId());
-					event.setCreator(meetup.getParseUser("creator").getString("firstName") + " " +
-							meetup.getParseUser("creator").getString("lastName"));
-					event.setAgenda(meetup.getString("agenda"));
-					
-					JSONArray formattedAddress = meetup.getJSONObject("venueInfo").getJSONObject("location")
-							.getJSONArray("formattedAddress");
-					String address = "";
-					for (int j = 0; j < formattedAddress.length(); j++)
-					{
-						address += formattedAddress.getString(j);
-						if (j != formattedAddress.length() - 1)
-							address += ", ";
-					}
-					event.setVenueInfo(address);
-
-					JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
-					if (urls != null && urls.length() > 0)
-						event.setVenuePhoto(getActivity(), urls.getString(0));
-					
-					event.setExpiresAt((Date) meetup.get("expiresAt"));
-					event.setHasResponded(true);
-					event.setWillAttend(true);
-					event.setIsCreator(ParseUser.getCurrentUser().getObjectId()
-							.equals(meetup.getParseUser("creator").getObjectId()));
-					if (!event.getIsCreator())
-						event.setWillAttend(((ParseObject) upcoming.get(i).get("response"))
-								.getBoolean("isAttending"));
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
+				//removes all the views for now because EFFICIENCY WHAT
+				lin.removeAllViews();
 				
-				if (i % 2 == 0)
-					event.setBackgroundColor(getResources().getColor(R.color.lightBlue));
-				lin.addView(event);
+				for (int i = 0; i < upcoming.size(); i++)
+				{
+					Event event = new Event(getActivity());
+					ParseObject meetup = (ParseObject) upcoming.get(i).get("meetup");
+					//invite.setVenuePhoto(event.getParseFile(key));
+					try {
+						
+						event.setObjectId(meetup.getObjectId());
+						event.setCreator(meetup.getParseUser("creator").getString("firstName") + " " +
+								meetup.getParseUser("creator").getString("lastName"));
+						event.setAgenda(meetup.getString("agenda"));
+						
+						JSONArray formattedAddress = meetup.getJSONObject("venueInfo").getJSONObject("location")
+								.getJSONArray("formattedAddress");
+						String address = "";
+						for (int j = 0; j < formattedAddress.length(); j++)
+						{
+							address += formattedAddress.getString(j);
+							if (j != formattedAddress.length() - 1)
+								address += ", ";
+						}
+						event.setVenueInfo(address);
+	
+						JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
+						if (urls != null && urls.length() > 0)
+							event.setVenuePhoto(getActivity(), urls.getString(0));
+						
+						event.setExpiresAt((Date) meetup.get("expiresAt"));
+						event.setHasResponded(true);
+						event.setWillAttend(true);
+						event.setIsCreator(ParseUser.getCurrentUser().getObjectId()
+								.equals(meetup.getParseUser("creator").getObjectId()));
+						if (!event.getIsCreator())
+							event.setWillAttend(((ParseObject) upcoming.get(i).get("response"))
+									.getBoolean("isAttending"));
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					if (i % 2 == 0)
+						event.setBackgroundColor(getResources().getColor(R.color.lightBlue));
+					lin.addView(event);
+				}
 			}
 		}
 	}

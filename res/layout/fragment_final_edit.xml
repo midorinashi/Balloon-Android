@@ -32,6 +32,7 @@
 	            android:id="@+id/finalEditToText"
 	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
+	            android:layout_marginBottom="10dp"
 	            android:gravity="right"
 	            android:text="@string/dummy_name"
 	            android:textColor="@color/blue" />
@@ -55,21 +56,12 @@
 	            android:text="@string/final_edit_agenda" />
 	
 	        <TextView
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:text="@string/white_space" />
-	
-	        <TextView
 	            android:id="@+id/finalEditAgendaText"
-	            android:layout_width="wrap_content"
+	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
+	            android:gravity="right"
 	            android:text="@string/dummy_agenda"
 	            android:textColor="@color/blue" />
-	
-	        <TextView
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:text="@string/white_space" />
 	        
 	    </LinearLayout>
 	
