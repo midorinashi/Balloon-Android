@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/white"
@@ -14,7 +15,7 @@
         android:layout_marginRight="10dp"
         android:src="@drawable/abc_ab_bottom_solid_dark_holo" />
 
-    <TextView
+    <com.example.balloon.TextBox
         android:id="@+id/comment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,16 +23,18 @@
         android:layout_alignTop="@+id/imageView1"
         android:layout_toRightOf="@+id/imageView1"
         android:gravity="center|left"
-        android:minLines="2"
-        android:text="TextView" />
+        android:text="TextView"
+	    custom:fontName="Roboto-Light.ttf" />
 
-    <TextView
+    <com.example.balloon.TextBox
         android:id="@+id/commenter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/imageView1"
+        android:layout_below="@id/comment"
         android:layout_toRightOf="@+id/imageView1"
         android:text="TextView"
-        android:textColor="@color/gray" />
+        
+        android:textColor="@color/gray"
+	    custom:fontName="Roboto-Light.ttf" />
 
 </RelativeLayout>

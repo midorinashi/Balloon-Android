@@ -810,6 +810,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	public static class SelectListFragment extends Fragment {
 
 		protected String[] lists;
+		protected String[] photoURLs;
 		protected String[] ids;
 		protected OnMemberListSelectedListener mListener;
 		
@@ -863,10 +864,13 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 					if (e == null)
 					{
 						lists = new String[memberLists.size()];
+						photoURLs = new String[memberLists.size()];
 						ids = new String[memberLists.size()];
 						for (int i = 0; i < memberLists.size(); i++)
 						{
 							lists[i] = memberLists.get(i).getString("name");
+							if (memberLists.get(i).containsKey("photo"))
+								photoURLs[i] = memberLists.get(i).getParseFile("photo").getUrl();
 							ids[i] = memberLists.get(i).getObjectId();
 						}
 						addListsToView();
@@ -881,10 +885,10 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		{
 			if (mCurrentFragment.equals("SelectListFragment"))
 			{
-				ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(),
-						android.R.layout.simple_list_item_1, lists);
+				GroupAdapter adapter = new GroupAdapter(getActivity(), R.layout.list_group,
+						lists, photoURLs);
 		        ListView lv = (ListView) getActivity().findViewById(R.id.groupList);
-		        lv.setAdapter(arrayAdapter);
+		        lv.setAdapter(adapter);
 		        lv.setOnItemClickListener(new OnItemClickListener() {
 					public void onItemClick(AdapterView<?> a, View v, int position, long id) {
 						mListName = lists[position];
@@ -901,6 +905,13 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		{
 			super.onPause();
 			mPlus = false;
+		}
+		
+		//to prevent crashes when clicking the back button too fast
+		public void onStop()
+		{
+			super.onStop();
+			mCurrentFragment = "";
 		}
 	}
 	
@@ -1065,6 +1076,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		
 		// and name should be displayed in the text1 textview in item layout
 		private String[] names;
+		private String[] photoURLs;
 		private ArrayList<String> ids;
 		private JSONArray users;
 		private ListAdapter mArrayAdapter;
@@ -1167,12 +1179,15 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 					if (e == null)
 					{
 						names = new String[userList.size()];
+						photoURLs = new String[userList.size()];
 						//we want a JSONArray of users, not just of userIds
 						users = new JSONArray();
 						for (int i = 0; i < userList.size(); i++)
 						{
 							names[i] = userList.get(i).getString("firstName") + " " + 
 										userList.get(i).getString("lastName");
+							if (userList.get(i).containsKey("profilePhoto"))
+								photoURLs[i] = userList.get(i).getParseFile("profilePhoto").getUrl();
 							//because the ids are no longer in the same order as they used to be!
 							ids.set(i, userList.get(i).getObjectId());
 							users.put(userList.get(i));
@@ -1191,10 +1206,9 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			//so that it won't crash if i move between pages too fast
 		    if (mCurrentFragment == "SelectMembersFromListFragment")
 		    {
-			    int layout = android.R.layout.simple_list_item_multiple_choice;
 			    if (mArrayAdapter == null)
-				    mArrayAdapter = new CheckArrayAdapter(getActivity(),
-							layout, names);
+				    mArrayAdapter = new GroupAdapter(getActivity(), R.layout.list_item_select_members,
+							names, photoURLs);
 			    mCheckbox = (CheckBox) getActivity().findViewById(R.id.membersSelectAll);
 			    
 			    // each time we are started use our listadapter

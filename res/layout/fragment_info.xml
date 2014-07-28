@@ -1,23 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/lightBlue"
     android:orientation="vertical" >
 
     <LinearLayout
+        android:id="@+id/buttons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true" >
+        android:layout_alignParentRight="true"
+        android:background="@color/lightBlue" >
 
         <Button
             android:id="@+id/no"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginRight="1dp"
             android:layout_weight="1"
             android:background="@color/buttonBlue"
+            android:onClick="respondNo"
             android:text="@string/fa_times"
             android:textColor="@color/white" />
 
@@ -25,17 +30,20 @@
             android:id="@+id/yes"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="1dp"
             android:layout_weight="1"
             android:background="@color/buttonBlue"
+            android:onClick="respondYes"
             android:text="@string/fa_check"
             android:textColor="@color/white" />
+
     </LinearLayout>
 
     <ScrollView
         android:id="@+id/scrollView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/linearLayout1"
+        android:layout_above="@id/buttons"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true" >
@@ -60,7 +68,7 @@
                     android:layout_marginRight="10dp"
                     android:src="@drawable/abc_ab_bottom_solid_dark_holo" />
 
-                <TextView
+                <com.example.balloon.TextBox
                     android:id="@+id/creator"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -68,9 +76,10 @@
                     android:layout_alignTop="@+id/eventImage"
                     android:layout_toRightOf="@+id/eventImage"
                     android:text="TextView"
-                    android:textSize="16sp" />
+                    android:textSize="14sp"
+	   				custom:fontName="Roboto-Light.ttf" />
 
-                <TextView
+                <com.example.balloon.TextBox
                     android:id="@+id/agenda"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -83,21 +92,24 @@
                     android:lines="1"
                     android:maxLines="1"
                     android:text="TextView"
-                    android:textColor="@color/gray" />
+                    android:textColor="@color/gray"
+                    android:textSize="14sp"
+                     />
 
-                <TextView
+                <com.example.balloon.TextBox
                     android:id="@+id/leftToRSVP"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignBaseline="@+id/timer"
-                    android:layout_alignBottom="@+id/timer"
-                    android:layout_toRightOf="@+id/timer"
+                    android:layout_alignBaseline="@+id/timeToRSVP"
+                    android:layout_alignBottom="@+id/timeToRSVP"
+                    android:layout_toRightOf="@+id/timeToRSVP"
                     android:text="@string/leftToRSVP"
                     android:textColor="@color/red"
-                    android:textSize="16sp" />
+                    android:textSize="14sp"
+	    			custom:fontName="Roboto-Light.ttf" />
 
-                <TextView
-                    android:id="@+id/timer"
+                <com.example.balloon.TextBox
+                    android:id="@+id/timeToRSVP"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignBottom="@+id/eventImage"
@@ -105,42 +117,66 @@
                     android:layout_marginRight="5dp"
                     android:text="TextView"
                     android:textColor="@color/red"
-                    android:textSize="16sp" />
+                    android:textSize="14sp"
+				    custom:fontName="Roboto-Light.ttf" />
 
-                <TextView
+                <com.example.balloon.TextBox
                     android:id="@+id/venueInfo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_above="@+id/leftToRSVP"
                     android:layout_alignLeft="@+id/agenda"
-                    android:layout_alignRight="@+id/agenda"
+                    android:layout_alignParentRight="true"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="TextView"
                     android:textColor="@color/blue"
-                    android:textSize="16sp" />
+                    android:textSize="14sp" 
+				    custom:fontName="Roboto-Light.ttf" />
 
             </RelativeLayout>
 
-            <TextView
-                android:id="@+id/updates"
+            <com.example.balloon.TextBox
+                android:id="@+id/updatesHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="30dp"
                 android:text="@string/comments_header"
-                android:textColor="@color/blue" />
+                android:textColor="@color/blue"
+	    		custom:fontName="Roboto-Light.ttf" />
 
-            <TextView
-                android:id="@+id/comments"
+            <LinearLayout
+                android:id="@+id/updates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+            </LinearLayout>
+
+            <com.example.balloon.TextBox
+                android:id="@+id/comingHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="30dp"
                 android:text="@string/coming_header"
-                android:textColor="@color/blue" />
+                android:textColor="@color/blue"
+	    		custom:fontName="Roboto-Light.ttf" />
+
+            <LinearLayout
+                android:id="@+id/coming"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="30dp"
+                android:orientation="vertical" >
+
+            </LinearLayout>
 
         </LinearLayout>
+        
     </ScrollView>
 
 </RelativeLayout>

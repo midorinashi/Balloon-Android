@@ -129,10 +129,9 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 		
 		public void addListsToView()
 		{
-			ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(),
-					android.R.layout.simple_list_item_1, lists);
+			GroupAdapter adapter = new GroupAdapter(getActivity(), R.layout.list_group, lists, photoURLs);
 	        ListView lv = (ListView) getActivity().findViewById(R.id.groupList);
-	        lv.setAdapter(arrayAdapter);
+	        lv.setAdapter(adapter);
 	        lv.setOnItemClickListener(new OnItemClickListener() {
 
 				public void onItemClick(AdapterView<?> a, View v, int position, long id) {
@@ -147,6 +146,7 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 	public static class ShowListFragment extends Fragment {
 		protected String[] names;
 		protected ArrayList<String> ids;
+		protected String[] photoURLs;
 
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
@@ -173,10 +173,13 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 						int length = members.length();
 						names = new String[length + 1];
 						ids = new ArrayList<String>();
+						photoURLs = new String[length + 1];
 						//first add the owner
 						names[0] = contactList.getParseUser("owner").getString("firstName") + 
 								" " + contactList.getParseUser("owner").getString("lastName");
-						
+						if (contactList.getParseUser("owner").containsKey("profilePhoto"))
+							photoURLs[0] = contactList.getParseUser("owner")
+									.getParseFile("profilePhoto").getUrl();
 						//put all member names and ids into respective arrays
 						for (int i = 0; i < members.length(); i++)
 						{
@@ -219,6 +222,8 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 							//make room for the creator
 							names[i + 1] = userList.get(i).getString("firstName") + " " + 
 										userList.get(i).getString("lastName");
+							if (userList.get(i).containsKey("profilePhoto"))
+								photoURLs[i + 1] = userList.get(i).getParseFile("profilePhoto").getUrl();
 						}
 						finishResume();
 					}
@@ -233,13 +238,12 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 			//so that it won't crash if i move between pages too fast
 		    if (mCurrentFragment == "SelectMembersFromListFragment")
 		    {
-			    int layout = android.R.layout.simple_list_item_1;
-			    CheckArrayAdapter mArrayAdapter = new CheckArrayAdapter(getActivity(),
-							layout, names);
+			    GroupAdapter adapter = new GroupAdapter(getActivity(),
+			    		R.layout.list_members, names, photoURLs);
 			    
 			    // each time we are started use our listadapter
 			    ListView lv = (ListView) getActivity().findViewById(R.id.showMembers);
-			    lv.setAdapter(mArrayAdapter);
+			    lv.setAdapter(adapter);
 			    lv.setItemsCanFocus(false);
 		    }
 		}

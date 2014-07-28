@@ -46,7 +46,6 @@ public class SettingsActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_contact_lists);
-
 		if (savedInstanceState == null) {
 			getSupportFragmentManager().beginTransaction()
 					.add(R.id.container, new SettingsFragment()).commit();
@@ -306,10 +305,11 @@ public class SettingsActivity extends ActionBarActivity {
 			et.setText(user.getString("firstName"));
 			et = (EditText) getActivity().findViewById(R.id.lastName);
 			et.setText(user.getString("lastName"));
-			ParseImageView pv = (ParseImageView) getActivity().findViewById(R.id.photo);
-			System.out.println("contains profile photo " + user.containsKey("profilePhoto"));
-			pv.setParseFile(user.getParseFile("profilePhoto"));
-			pv.loadInBackground();
+			if (user.containsKey("profilePhoto"))
+			{
+				Picasso.with(getActivity()).load(user.getParseFile("profilePhoto").getUrl())
+					.resize(160, 160).into((ImageView) getActivity().findViewById(R.id.photo));
+			}
 			toRefresh = false;
 		}
 	}

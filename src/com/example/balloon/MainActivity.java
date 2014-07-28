@@ -523,11 +523,7 @@ public class MainActivity extends ActionBarActivity
 					JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
 					ImageView v = ((ImageView) event.findViewById(R.id.image));
 					if (urls != null && urls.length() > 0)
-					{
 						Picasso.with(getActivity()).load(urls.getString(0)).into(v);
-						v.invalidate();
-						v.requestLayout();
-					}
 				} catch (JSONException e) {
 					// Auto-generated catch block
 					e.printStackTrace();

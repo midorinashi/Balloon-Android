@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -52,6 +54,7 @@ public class MoreInfoActivity extends ActionBarActivity
 	private static String mCreator;
 	private static String mAgenda;
 	private static String mVenueInfo;
+	private static String mVenuePhotoURL;
 	private static Date mExpiresAt;
 	private static String mTimeToRSVP;
 	private static boolean mHasResponded;
@@ -66,7 +69,8 @@ public class MoreInfoActivity extends ActionBarActivity
 		mObjectId = getIntent().getExtras().getString("objectId");
 		System.out.println(mObjectId);
 		
-		if (savedInstanceState == null) {
+		if (savedInstanceState == null)
+		{
 
 			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
 			query.whereEqualTo("objectId", mObjectId);
@@ -96,55 +100,26 @@ public class MoreInfoActivity extends ActionBarActivity
 						}
 						
 						try {
-							mVenueLocation = meetup.getJSONObject("venueInfo").getJSONObject("location");
+							mVenueLocation = meetup.getJSONObject("venueInfo")
+									.getJSONObject("location");
 						} catch (JSONException e1) {
 							//it's a custom venue
 							mVenueLocation = null;
 						}
 						
+						try {
+							if (meetup.containsKey("venuePhotoURLs") && 
+									meetup.getJSONArray("venuePhotoURLs").length() > 0)
+								mVenuePhotoURL = meetup.getJSONArray("venuePhotoURLs").getString(0);
+						} catch (JSONException e1) {
+							mVenuePhotoURL = null;
+						}
+						
 						mExpiresAt = meetup.getDate("expiresAt");
 						
-						//this will get all the comments
-						ParseQuery<ParseObject> commentQuery = new ParseQuery<ParseObject>("Comment");
-						commentQuery.whereEqualTo("meetup", meetup);
-						commentQuery.include("commenter");
-						commentQuery.orderByDescending("createdAt");
-						commentQuery.findInBackground(new FindCallback<ParseObject>() {
-
-							@Override
-							public void done(List<ParseObject> comments, ParseException e) {
-								if (e == null)
-								{
-									System.out.println(comments.size());
-									if (comments.size() > 0)
-										makeCommentList(comments);
-								}
-								else
-									e.printStackTrace();
-							}
-						});
+						fetchComments();
 						
-						//this will get who's coming, starting with all the responses
-						//TODO Look into using include?? I can't seem to get first names tho
-						ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
-						comingQuery.whereEqualTo("meetup", meetup);
-						comingQuery.whereEqualTo("isAttending", true);
-						comingQuery.include("responder");
-						comingQuery.findInBackground(new FindCallback<ParseObject>() {
-
-							@Override
-							public void done(List<ParseObject> responses, ParseException e) {
-								if (e == null)
-								{
-									if (responses.size() > 0)
-										fetchNames(responses, false);
-									//else
-										//makeComingList(new String[0]);
-								}
-								else
-									e.printStackTrace();
-							}
-						});
+						fetchComing();
 						
 						makeMoreInfoFragment();
 					}
@@ -158,74 +133,21 @@ public class MoreInfoActivity extends ActionBarActivity
 		mIsCreator = getIntent().getExtras().getBoolean("isCreator");
 	}
 	
-	public void makeCommentList(final List<ParseObject> comments)
+	public void fetchComments()
 	{
-		/*
-		for (ParseObject c : comments)
-		{
-			System.out.println(c.getString("comment"));
-		}
-		ArrayAdapter<ParseObject> arrayAdapter = new ArrayAdapter<ParseObject>(this,
-				android.R.layout.simple_list_item_2, android.R.id.text1, comments) {
-			  @Override
-			  public View getView(int position, View convertView, ViewGroup parent) {
-			    View view = super.getView(position, convertView, parent);
-			    ParseUser user = comments.get(position).getParseUser("commenter");
-			    TextView text1 = (TextView) view.findViewById(android.R.id.text1);
-			    TextView text2 = (TextView) view.findViewById(android.R.id.text2);
+		//this will get all the comments
+		ParseQuery<ParseObject> commentQuery = new ParseQuery<ParseObject>("Comment");
+		commentQuery.whereEqualTo("meetup", mMeetup);
+		commentQuery.include("commenter");
+		commentQuery.orderByDescending("createdAt");
+		commentQuery.findInBackground(new FindCallback<ParseObject>() {
 
-			    text1.setText(user.getString("firstName") + " " + user.getString("lastName"));
-			    text2.setText(comments.get(position).getString("comment"));
-			    
-			    System.out.println(text1.getText());
-			    System.out.println(text2.getText());
-			    System.out.println(position);
-			    return view;
-			  }
-		};
-	    ListView lv = (ListView) findViewById(R.id.commentsList);
-	    lv.setAdapter(arrayAdapter);
-	    System.out.println("num list items is : " + lv.getCount());
-	    */
-		LinearLayout lin = (LinearLayout) findViewById(R.id.linearLayout);
-		TextView header = (TextView) findViewById(R.id.comments);
-		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
-				.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-		for (int i = 0; i < comments.size(); i++)
-		{
-			View comment = View.inflate(this, R.layout.list_item_comment, null);
-			((TextView) comment.findViewById(R.id.comment)).setText(comments.get(i).getString("comment"));
-			ParseUser commenter = comments.get(i).getParseUser("commenter");
-			((TextView) comment.findViewById(R.id.commenter)).setText(commenter.getString("firstName") + " "
-					+ commenter.getString("lastName"));
-			Picasso.with(this).load(commenter.getParseFile("profilePhoto").getUrl())
-				.into((ImageView) comment.findViewById(R.id.imageView1));
-			lin.addView(comment, 2, lp);
-		}
-	}
-	
-	//forComments is true when fetching names of commenters, false when it's for responses
-	public void fetchNames(List<ParseObject> list, boolean forComments)
-	{
-		ArrayList<ParseQuery<ParseUser>> queries = new ArrayList<ParseQuery<ParseUser>>();
-		for (int i = 0; i < list.size(); i++)
-		{
-			ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
-			userQuery.whereEqualTo("objectId", list.get(i).getParseUser("responder").getObjectId());
-			queries.add(userQuery);
-		}
-		ParseQuery<ParseUser> mainQuery = ParseQuery.or(queries);
-		mainQuery.orderByAscending("firstName");
-		mainQuery.addAscendingOrder("lastName");
-		mainQuery.findInBackground(new FindCallback<ParseUser>() {
-			public void done(List<ParseUser> userList, ParseException e) {
+			@Override
+			public void done(List<ParseObject> comments, ParseException e) {
 				if (e == null)
 				{
-					String[] names = new String[userList.size()];
-					for (int i = 0; i < userList.size(); i++)
-						names[i] = userList.get(i).getString("firstName") + " " + 
-									userList.get(i).getString("lastName");
-					makeComingList(names);
+					if (comments.size() > 0)
+						makeCommentList(comments);
 				}
 				else
 					e.printStackTrace();
@@ -233,21 +155,81 @@ public class MoreInfoActivity extends ActionBarActivity
 		});
 	}
 	
-	public void makeComingList(String[] names)
+	public void makeCommentList(final List<ParseObject> comments)
 	{
-		System.out.println("Making coming list names# = " + names.length);
-		int layout = android.R.layout.simple_list_item_1;
-		ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, layout, names);
-	    
-	    // each time we are started use our listadapter
-	    ListView lv = (ListView) findViewById(R.id.comingList);
-	    lv.setAdapter(arrayAdapter);
+		LinearLayout lin = (LinearLayout) findViewById(R.id.updates);
+		if (lin != null)
+		{
+			lin.removeAllViews();
+			RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
+					.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+			for (int i = 0; i < comments.size(); i++)
+			{
+				View comment = View.inflate(this, R.layout.list_item_comment, null);
+				((TextView) comment.findViewById(R.id.comment)).setText(comments.get(i)
+						.getString("comment"));
+				ParseUser commenter = comments.get(i).getParseUser("commenter");
+				((TextView) comment.findViewById(R.id.commenter)).setText(commenter
+						.getString("firstName") + " " + commenter.getString("lastName"));
+				Picasso.with(this).load(commenter.getParseFile("profilePhoto").getUrl()).resize(100, 100)
+					.into((ImageView) comment.findViewById(R.id.imageView1));
+				lin.addView(comment, lp);
+			}
+		}
+	}
+	
+	public void fetchComing()
+	{
+		//this will get who's coming, starting with all the responses
+		//TODO Look into using include?? I can't seem to get first names tho
+		ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
+		comingQuery.whereEqualTo("meetup", mMeetup);
+		comingQuery.whereEqualTo("isAttending", true);
+		comingQuery.include("responder");
+		comingQuery.findInBackground(new FindCallback<ParseObject>() {
+
+			@Override
+			public void done(List<ParseObject> responses, ParseException e) {
+				if (e == null)
+				{
+					if (responses.size() > 0)
+						makeComingList(responses);
+					else
+						makeComingList(new ArrayList<ParseObject>());
+				}
+				else
+					e.printStackTrace();
+			}
+		});
+	}
+	
+	public void makeComingList(List<ParseObject> responses)
+	{
+		System.out.println("makeComingList activated");
+	    LinearLayout lin = (LinearLayout) findViewById(R.id.coming);
+	    if (lin != null)
+	    {
+	    	System.out.println(responses.size());
+		    lin.removeAllViews();
+		    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
+					.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+		    for (int i = 0; i < responses.size(); i++)
+		    {
+				View response = View.inflate(this, R.layout.list_item_coming, null);
+				ParseUser user = responses.get(i).getParseUser("responder");
+				((TextView) response.findViewById(R.id.responder)).setText(user
+						.getString("firstName") + " " + user.getString("lastName"));
+				Picasso.with(this).load(user.getParseFile("profilePhoto").getUrl()).resize(100, 100)
+					.into((ImageView) response.findViewById(R.id.profilePhoto));
+				lin.addView(response, lp);
+		    }
+	    }
 	}
 	
 	private void makeMoreInfoFragment()
 	{
 		getSupportFragmentManager().beginTransaction()
-				.add(R.id.moreinfocontainer, new MoreInfoFragment()).commit();
+				.add(R.id.moreinfocontainer, new InfoFragment()).commit();
 	}
 
 	@Override
@@ -314,27 +296,7 @@ public class MoreInfoActivity extends ActionBarActivity
 		ParseCloud.callFunctionInBackground("respondToMeetup", params, new FunctionCallback<Object>() {
 			public void done(Object o, ParseException e) {
 				if (e == null)
-				{
-					//gotta refetch the people coming cause i changed everything
-					ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
-					comingQuery.whereEqualTo("meetup", mMeetup);
-					comingQuery.whereEqualTo("isAttending", true);
-					comingQuery.findInBackground(new FindCallback<ParseObject>() {
-
-						@Override
-						public void done(List<ParseObject> responses, ParseException e) {
-							if (e == null)
-							{
-								if (responses.size() > 0)
-									fetchNames(responses, false);
-								else
-									makeComingList(new String[0]);
-							}
-							else
-								e.printStackTrace();
-						}
-					});
-				}
+					fetchComing();
 				else
 					e.printStackTrace();
 			}
@@ -351,27 +313,7 @@ public class MoreInfoActivity extends ActionBarActivity
 		ParseCloud.callFunctionInBackground("respondToMeetup", params, new FunctionCallback<Object>() {
 			public void done(Object o, ParseException e) {
 				if (e == null)
-				{
-					//gotta refetch the people coming cause i changed everything
-					ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
-					comingQuery.whereEqualTo("meetup", mMeetup);
-					comingQuery.whereEqualTo("isAttending", true);
-					comingQuery.findInBackground(new FindCallback<ParseObject>() {
-
-						@Override
-						public void done(List<ParseObject> responses, ParseException e) {
-							if (e == null)
-							{
-								if (responses.size() > 0)
-									fetchNames(responses, false);
-								else
-									makeComingList(new String[0]);
-							}
-							else
-								e.printStackTrace();
-						}
-					});
-				}
+					fetchComing();
 				else
 					e.printStackTrace();
 			}
@@ -393,7 +335,10 @@ public class MoreInfoActivity extends ActionBarActivity
 			@Override
 			public void done(ParseException e) {
 				if (e == null)
-					outputToast("Comment added!");
+				{
+					outputToast("Update added!");
+					fetchComments();
+				}
 				else
 					e.printStackTrace();
 			}
@@ -470,10 +415,7 @@ public class MoreInfoActivity extends ActionBarActivity
 	
 	public void outputToast(CharSequence text)
 	{
-		int duration = Toast.LENGTH_SHORT;
-
-		Toast toast = Toast.makeText(this, text, duration);
-		toast.show();
+		Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
 		
 		cancel(null);
 	}
@@ -596,9 +538,12 @@ public class MoreInfoActivity extends ActionBarActivity
 						mTimeToRSVP = mTimeToRSVP+ "0";
 					mTimeToRSVP = mTimeToRSVP + seconds;
 					TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
-					tv.setText(mTimeToRSVP);
-					tv.invalidate();
-					tv.requestLayout();
+					if (tv != null)
+					{
+						tv.setText(mTimeToRSVP);
+						tv.invalidate();
+						tv.requestLayout();
+					}
 				}
 			};
 			
@@ -614,6 +559,12 @@ public class MoreInfoActivity extends ActionBarActivity
 			
 			Resources res = getResources();
 			
+			Button button = (Button) getActivity().findViewById(R.id.no);
+			button.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),
+					 "fonts/fontawesome-webfont.ttf"));
+			button = (Button) getActivity().findViewById(R.id.yes);
+			button.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),
+					 "fonts/fontawesome-webfont.ttf"));
 			if (mCreator == null)
 			{
 				mCreator = String.format(res.getString(R.string.dummy_name));
@@ -628,6 +579,9 @@ public class MoreInfoActivity extends ActionBarActivity
 			tv.setText(mAgenda);
 			tv = (TextView) getActivity().findViewById(R.id.venueInfo);
 			tv.setText(mVenueInfo);
+			if (mVenuePhotoURL != null)
+				Picasso.with(getActivity()).load(mVenuePhotoURL).resize(160, 160).centerCrop().into
+					((ImageView) getActivity().findViewById(R.id.eventImage));
 			if (mHasResponded)
 				if (mWillAttend)
 					getActivity().findViewById(R.id.yes)

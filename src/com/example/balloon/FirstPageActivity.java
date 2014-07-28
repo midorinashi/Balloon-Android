@@ -65,6 +65,7 @@ public class FirstPageActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_first_page);
+		setTitle(getResources().getString(R.string.title_first_page));
 		bm = null;
 		if (savedInstanceState == null) {
 			getSupportFragmentManager().beginTransaction()
@@ -422,54 +423,19 @@ public class FirstPageActivity extends ActionBarActivity {
 	
 	public void login(View view)
 	{
-		String mobile = (((EditText) findViewById(R.id.mobile)).getText().toString());
+		String mobile = "+" + (((EditText) findViewById(R.id.mobile)).getText().toString())
+				.replaceAll("[^0-9]", "");
 		final String password = (((EditText) findViewById(R.id.password)).getText().toString());
-		HashMap<String, Object> params = new HashMap<String, Object>();
-		JSONArray contacts = new JSONArray();
-		JSONObject contact = new JSONObject();
-		try {
-			contact.put("mobileNumber", mobile);
-			contact.put("firstName", "lol");
-			contact.put("lastName", "lol");
-		} catch (JSONException e1) {
-			e1.printStackTrace();
-		}
-		contacts.put(contact);
-		params.put("contacts", contacts);
 		
-		//we need to get the correct username with the country codes and pluses and whatnot
-		ParseCloud.callFunctionInBackground("findOrCreateUsers", params,
-				new FunctionCallback<ArrayList<ParseUser>>() {
+		ParseUser.logInInBackground(mobile, password, new LogInCallback() {
 			@Override
-			public void done(ArrayList<ParseUser> members, ParseException e) {
-				if (e != null)
-				{
-					loginFailure();
-					e.printStackTrace();
-				}
+			public void done(ParseUser user, ParseException e) {
+				if (user != null)
+					startMainActivity();
 				else
-				{
-					System.out.println("Find or create users complete.");
-					ParseUser user = ((ArrayList<ParseUser>) members).get(0);
-					if (!user.getBoolean("isProxy"))
-					{
-						ParseUser.logInInBackground(user.getUsername(), password,
-								new LogInCallback() {
-							@Override
-							public void done(ParseUser user,
-									ParseException e) {
-								if (user != null)
-									startMainActivity();
-								else
-									loginFailure();
-							}
-							
-						});
-					}
-					else
-						loginFailure();
-				}
+					loginFailure();
 			}
+			
 		});
 	}
 
