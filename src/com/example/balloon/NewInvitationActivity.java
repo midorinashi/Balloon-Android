@@ -94,6 +94,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	private static String mAgenda;
 	private static String mVenueInfo;
 	private static JSONObject mVenue;
+	private static boolean mToday;
 	private static int mExpiresAtHour;
 	private static int mExpiresAtMinute;
 	private static JSONArray mVenuePhotoUrls;
@@ -144,6 +145,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		mAgenda = null;
 		mVenueInfo = null;
 		mVenue = null;
+		mToday = true;
 		mExpiresAtHour = -1;
 		mExpiresAtMinute = 0;
 		mVenuePhotoUrls = new JSONArray();
@@ -588,8 +590,16 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		//TODO Using current timeLocale see if fix is needed
 		calendar.set(GregorianCalendar.HOUR_OF_DAY, mExpiresAtHour);
 		calendar.set(GregorianCalendar.MINUTE, mExpiresAtMinute);
-		//TODO make sure that current day is correct - might be tomorrow
 		Date date = calendar.getTime();
+		//if we're doing tomorrow, we need to incrememnt the dat
+		if (date.compareTo(new Date()) < 0)
+		{
+			calendar.add(GregorianCalendar.DAY_OF_MONTH, 1);
+			date = calendar.getTime();
+			mToday = false;
+		}
+		else
+			mToday = true;
 		return date;
 	}
 	
@@ -1419,22 +1429,28 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	public static class SetDeadlineFragment extends Fragment {
 
 		public TimePicker.OnTimeChangedListener mTimeListener;
-		
-		public SetDeadlineFragment() {
-		}
+
+		private String TODAY;
+		private String TOMORROW;
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_set_deadline,
 					container, false);
+			TODAY = getActivity().getResources().getString(R.string.today);
+			TOMORROW = getActivity().getResources().getString(R.string.tomorrow);
 			mTimeListener = new TimePicker.OnTimeChangedListener() {
 				@Override
 				public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
 					TextView tv = (TextView) getActivity().findViewById(R.id.deadlineTime);
 					mExpiresAtHour = hourOfDay;
 					mExpiresAtMinute = minute;
-					tv.setText(formatTime(hourOfDay, minute));
+					changeToDate();
+					String day = TODAY;
+					if (!mToday)
+						day = TOMORROW;
+					tv.setText(formatTime(hourOfDay, minute) + " " + day);
 					tv.invalidate();
 					tv.requestLayout();
 				}
@@ -1459,7 +1475,10 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 			tp.setOnTimeChangedListener(mTimeListener);
 		
 			TextView tv = (TextView) getActivity().findViewById(R.id.deadlineTime);
-			tv.setText(formatTime(tp.getCurrentHour(), tp.getCurrentMinute()));
+			String day = TODAY;
+			if (!mToday)
+				day = TOMORROW;
+			tv.setText(formatTime(tp.getCurrentHour(), tp.getCurrentMinute()) + " " + day);
 		}
 	}
 	

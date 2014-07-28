@@ -98,6 +98,8 @@
     <string name="title_set_deadline">Set Deadline</string>
     <string name="title_activity_first_page">FirstPageActivity</string>
     <string name="title_verification_code">Verification Code</string>
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
     <string name="verification_code_sent">A verification code has been sent to you via SMS.</string>
     <string name="white_space"></string>
     

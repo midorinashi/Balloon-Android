@@ -59,10 +59,10 @@
         android:layout_alignLeft="@+id/passwordHeader"
         android:layout_alignRight="@id/password"
         android:layout_below="@id/password"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="30dp"
+        android:background="@color/buttonBlue"
         android:onClick="login"
-        android:background="@color/white"
         android:text="@string/login"
-        android:textColor="@color/blue" />
+        android:textColor="@color/white" />
 
 </RelativeLayout>
