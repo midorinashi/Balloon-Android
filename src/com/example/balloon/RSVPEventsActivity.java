@@ -3,28 +3,34 @@ package com.example.balloon;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.os.Handler;
+import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
+import com.squareup.picasso.Picasso;
 
-public class RSVPEventsActivity extends ActionBarActivity {
+public class RSVPEventsActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +39,7 @@ public class RSVPEventsActivity extends ActionBarActivity {
 		setTitle(R.string.title_activity_rsvpevents);
 
 		if (savedInstanceState == null) {
-			getSupportFragmentManager().beginTransaction()
+			getFragmentManager().beginTransaction()
 					.add(R.id.container, new PlaceholderFragment()).commit();
 		}
 	}
@@ -84,6 +90,9 @@ public class RSVPEventsActivity extends ActionBarActivity {
 	 */
 	public static class PlaceholderFragment extends MainActivity.InvitationsFragment {
 
+		private ArrayList<Handler> handlers;
+		protected ArrayList<Timer> timers;
+
 		public PlaceholderFragment() {
 		}
 
@@ -92,6 +101,8 @@ public class RSVPEventsActivity extends ActionBarActivity {
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_rsvpevents,
 					container, false);
+			handlers = new ArrayList<Handler>();
+			timers = new ArrayList<Timer>();
 			return rootView;
 		}
 		
@@ -129,15 +140,14 @@ public class RSVPEventsActivity extends ActionBarActivity {
 				
 				for (int i = 0; i < upcoming.size(); i++)
 				{
-					Event event = new Event(getActivity());
+					View event = View.inflate(getActivity(), R.layout.list_item_plans, null);
 					ParseObject meetup = (ParseObject) upcoming.get(i).get("meetup");
 					//invite.setVenuePhoto(event.getParseFile(key));
 					try {
-						
-						event.setObjectId(meetup.getObjectId());
-						event.setCreator(meetup.getParseUser("creator").getString("firstName") + " " +
+						((TextView) event.findViewById(R.id.creator)).setText(meetup
+								.getParseUser("creator").getString("firstName") + " " + 
 								meetup.getParseUser("creator").getString("lastName"));
-						event.setAgenda(meetup.getString("agenda"));
+						((TextView) event.findViewById(R.id.agenda)).setText(meetup.getString("agenda"));
 						
 						JSONArray formattedAddress = meetup.getJSONObject("venueInfo").getJSONObject("location")
 								.getJSONArray("formattedAddress");
@@ -148,29 +158,113 @@ public class RSVPEventsActivity extends ActionBarActivity {
 							if (j != formattedAddress.length() - 1)
 								address += ", ";
 						}
-						event.setVenueInfo(address);
-	
+						((TextView) event.findViewById(R.id.venueInfo)).setText(address);
+	 
 						JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
 						if (urls != null && urls.length() > 0)
-							event.setVenuePhoto(getActivity(), urls.getString(0));
+							Picasso.with(getActivity()).load(urls.getString(0)).resize(150, 150).centerCrop()
+								.into((ImageView) event.findViewById(R.id.eventImage));
 						
-						event.setExpiresAt((Date) meetup.get("expiresAt"));
-						event.setHasResponded(true);
-						event.setWillAttend(true);
-						event.setIsCreator(ParseUser.getCurrentUser().getObjectId()
-								.equals(meetup.getParseUser("creator").getObjectId()));
-						if (!event.getIsCreator())
-							event.setWillAttend(((ParseObject) upcoming.get(i).get("response"))
-									.getBoolean("isAttending"));
+						final Date mExpiresAt = meetup.getDate("expiresAt");
+						if (mExpiresAt.getTime() - new Date().getTime() > 0)
+						{
+							Timer timer = new Timer("RSVPTimer");
+							timers.add(timer);
+							final Date expiresAt = meetup.getDate("expiresAt");
+							final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
+							final TextView mLeftToRSVP = (TextView) event.findViewById(R.id.leftToRSVP);
+							//Handles changing the RSVP time every second with the timer
+							Handler handler = new Handler() {
+								public void handleMessage(Message message)
+								{
+									Date now = new Date();
+									long timeToRSVP = expiresAt.getTime() - now.getTime();
+									if (timeToRSVP < 0)
+									{
+										mTimeToRSVPView.setText("");
+										mLeftToRSVP.setText("");
+										// I want to cancel the handler, timer, and view
+										int index = handlers.indexOf(this);
+										timers.get(index).cancel();
+									}
+									else
+									{
+										String time = "" + (int)timeToRSVP/(60*60*1000) + ":";
+										int minutes = (int)(timeToRSVP/(60*1000))%60;
+										if (minutes < 10)
+											time = time + "0";
+										time = time + minutes + ":";
+										int seconds = (int)(timeToRSVP/1000)%60;
+										if (seconds < 10)
+											time = time+ "0";
+										time = time + seconds;
+										//System.out.println(time);
+										mTimeToRSVPView.setText(time);
+										mTimeToRSVPView.invalidate();
+										mTimeToRSVPView.requestLayout();
+										//invalidate();
+										//requestLayout();
+									}
+								}
+							};
+							handlers.add(handler);
+							timer.schedule(new RSVPTimerTask(handlers.size() - 1), 10, 1000);
+							
+						}
+						else
+							((TextView) getActivity().findViewById(R.id.leftToRSVP)).setText("");
+						
+						//to set the onclick listener
+						final String objectId = meetup.getObjectId();
+						final boolean hasResponded = true;
+						final boolean isCreator = ParseUser.getCurrentUser().getObjectId()
+								.equals(meetup.getParseUser("creator").getObjectId());
+						final boolean willAttend = isCreator || ((ParseObject) upcoming.get(i)
+								.get("response")).getBoolean("isAttending");
+
+						event.setOnClickListener(new View.OnClickListener() {
+							public void onClick(View v) {
+								Intent intent = new Intent(getActivity(), MoreInfoActivity.class);
+								Bundle bundle = new Bundle();
+								bundle.putString("objectId", objectId);
+								bundle.putBoolean("hasResponded", hasResponded);
+								bundle.putBoolean("willAttend", willAttend);
+								bundle.putBoolean("isCreator", isCreator);
+								intent.putExtras(bundle);
+								(getActivity()).startActivity(intent);
+								
+							}
+						});
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					
-					if (i % 2 == 0)
-						event.setBackgroundColor(getResources().getColor(R.color.lightBlue));
 					lin.addView(event);
 				}
+			}
+		}
+		
+		public void onStop()
+		{
+			super.onStop();
+			for (int i = 0; i < timers.size(); i++)
+				timers.get(i).cancel();
+		}
+		
+		public class RSVPTimerTask extends TimerTask
+		{ 
+			private int pos;
+			
+			public RSVPTimerTask(int i)
+			{
+				super();
+				pos = i;
+			}
+			
+			@Override
+			public void run() {
+				//System.out.println(pos);
+				handlers.get(pos).obtainMessage(1).sendToTarget();
 			}
 		}
 	}

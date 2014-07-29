@@ -22,6 +22,7 @@
     <string name="already_have_account">Already have an account? <u>Login</u></string>
     <string name="balloon">Balloon</string>
     <string name="cancel">Cancel</string>
+    <string name="check_your_plans">Check your plans for\nupcoming events</string>
     <string name="comments_header">UPDATES</string>
     <string name="comments_hint">Your update here</string>
     <string name="coming_header">COMING</string>
@@ -35,6 +36,8 @@
     <string name="empty"></string>
     <string name="enter_code">Enter Code</string>
     <string name="enter_verification_code">Enter Verification Code</string>
+    <string name="go_to_plans">Go to Plans</string>
+    <string name="fa_calendar"><node>&#xf073;</node></string>
     <string name="fa_check"><node>&#xf00c;</node></string>
     <string name="fa_chevron"><node>&#xf054;</node></string>
     <string name="fa_info"><node>&#xf129;</node></string>
@@ -58,6 +61,7 @@
     <string name="more_info">More info</string>
     <string name="new_contact_list">Name The Contact List</string>
     <string name="next">Next</string>
+    <string name="no_invites"><b>No Invites</b></string>
     <string name="no_time">000:00:00 </string>
     <string name="password">Password</string>
     <string name="photo_foursquare">Add Location Photos</string>

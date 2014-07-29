@@ -17,10 +17,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
+import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -37,15 +42,7 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Contacts.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.MediaStore;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
-import android.support.v4.widget.CursorAdapter;
-import android.support.v4.widget.SimpleCursorAdapter;
-import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -62,6 +59,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -70,6 +68,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
+import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -86,7 +85,7 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.squareup.picasso.Picasso;
 
-public class NewInvitationActivity extends ActionBarActivity implements OnMemberListSelectedListener {
+public class NewInvitationActivity extends Activity implements OnMemberListSelectedListener {
 
 	private static String mListName;
 	private static boolean mPublicList;
@@ -131,7 +130,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		
 		if (savedInstanceState == null) {
 			mAfterFinalEdit = false;
-			getSupportFragmentManager().beginTransaction()
+			getFragmentManager().beginTransaction()
 					.add(R.id.container, new SelectListFragment()).commit();
 		}
 	}
@@ -194,7 +193,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		int id = item.getItemId();
 		if (id == R.id.action_plus)
 		{
-			FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+			FragmentTransaction transaction = getFragmentManager().beginTransaction();
 			transaction.replace(R.id.container, new CreateListFragment());
 			transaction.addToBackStack(null);
 			transaction.commit();
@@ -211,7 +210,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	//basically manages entire flow
 	public void next()
 	{
-		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
 		if (mCurrentFragment.equals("SelectListFragment"))
 			transaction.replace(R.id.container, new CreateListFragment());
 		else if (mCurrentFragment.equals("CreateListFragment"))
@@ -229,9 +228,9 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				mMakeContactList = true;
 				if (mAfterFinalEdit)
 				{
-					getSupportFragmentManager().popBackStack();
-					getSupportFragmentManager().popBackStack();
-					getSupportFragmentManager().popBackStack();
+					getFragmentManager().popBackStack();
+					getFragmentManager().popBackStack();
+					getFragmentManager().popBackStack();
 					return;
 				}
 				else
@@ -247,8 +246,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				mMakeContactList = false;
 				if (mAfterFinalEdit)
 				{
-					getSupportFragmentManager().popBackStack();
-					getSupportFragmentManager().popBackStack();
+					getFragmentManager().popBackStack();
+					getFragmentManager().popBackStack();
 					return;
 				}
 				transaction.replace(R.id.container, new EditAgendaFragment());
@@ -281,7 +280,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		else if (mCurrentFragment.equals("ImageListFragment"))
 		{
 			ImageListFragment.setSave(true);
-			getSupportFragmentManager().popBackStack();
+			getFragmentManager().popBackStack();
 			return;
 		}
 		else
@@ -292,7 +291,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	
 	//opens up the SelectMembersFromListFragment when a list is selected
 	public void onMemberListSelected() {
-		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
 		transaction.replace(R.id.container, new SelectMembersFromListFragment());
 		transaction.addToBackStack(null);
 		transaction.commit();
@@ -427,10 +426,8 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 		if (mListView != null)
 		{
 			int items = mListView.getCount();
-			int checked = mListView.getCheckedItemIds().length;
+			int checked = mListView.getCheckedItemCount();
 			boolean select = false;
-			System.out.println("Items: " + items);
-			System.out.println("Checked: " + checked);
 			if (checked != items)
 				select = true;
 			mCheckbox.setChecked(select);
@@ -456,7 +453,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	{
 		// :)
 		//Look, it's Brian!
-		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
 		transaction.replace(R.id.container, new PreviewFragment());
 		transaction.addToBackStack(null);
 		transaction.commit();
@@ -642,7 +639,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	public boolean onContextItemSelected(MenuItem item) {
 	    switch (item.getItemId()) {
 	        case R.id.action_photo_foursquare:
-	        	FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+	        	FragmentTransaction transaction = getFragmentManager().beginTransaction();
 	        	transaction.replace(R.id.container, new ImageListFragment());
 	        	transaction.addToBackStack(null);
 	        	transaction.commit();
@@ -1305,7 +1302,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 	public static class ChooseLocationFragment extends Fragment implements OnQueryTextListener{
 
 		private static ListView lv;
-		static FragmentActivity context;
+		static Activity context;
 		
 
 		public ChooseLocationFragment() {
@@ -1396,7 +1393,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 						e.printStackTrace();
 					}
 					if (mAfterFinalEdit)
-						context.getSupportFragmentManager().popBackStack();
+						context.getFragmentManager().popBackStack();
 					else
 						startSetDeadlineFragment();
 				}
@@ -1406,7 +1403,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 
 		public static void startSetDeadlineFragment()
 		{
-			FragmentTransaction transaction = context.getSupportFragmentManager().beginTransaction();
+			FragmentTransaction transaction = context.getFragmentManager().beginTransaction();
 			transaction.replace(R.id.container, new SetDeadlineFragment());
 			transaction.addToBackStack(null);
 			transaction.commit();
@@ -1525,7 +1522,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				@Override
 				public void onClick(View arg0) {
 					mAfterFinalEdit = true;
-					FragmentTransaction transaction = getActivity().getSupportFragmentManager()
+					FragmentTransaction transaction = getActivity().getFragmentManager()
 							.beginTransaction();
 					transaction.replace(R.id.container, new SelectListFragment());
 					transaction.addToBackStack(null);
@@ -1537,7 +1534,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				@Override
 				public void onClick(View arg0) {
 					mAfterFinalEdit = true;
-					FragmentTransaction transaction = getActivity().getSupportFragmentManager()
+					FragmentTransaction transaction = getActivity().getFragmentManager()
 							.beginTransaction();
 					transaction.replace(R.id.container, new EditAgendaFragment());
 					transaction.addToBackStack(null);
@@ -1550,7 +1547,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				@Override
 				public void onClick(View arg0) {
 					mAfterFinalEdit = true;
-					FragmentTransaction transaction = getActivity().getSupportFragmentManager()
+					FragmentTransaction transaction = getActivity().getFragmentManager()
 							.beginTransaction();
 					transaction.replace(R.id.container, new ChooseLocationFragment());
 					transaction.addToBackStack(null);
@@ -1563,7 +1560,7 @@ public class NewInvitationActivity extends ActionBarActivity implements OnMember
 				@Override
 				public void onClick(View arg0) {
 					mAfterFinalEdit = true;
-					FragmentTransaction transaction = getActivity().getSupportFragmentManager()
+					FragmentTransaction transaction = getActivity().getFragmentManager()
 							.beginTransaction();
 					transaction.replace(R.id.container, new SetDeadlineFragment());
 					transaction.addToBackStack(null);

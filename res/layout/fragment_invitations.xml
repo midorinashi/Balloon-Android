@@ -1,18 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView  xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/scrollView1"
+<ViewAnimator xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/animator"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/lightBlue" >
+    android:background="@color/lightBlue"
+    android:inAnimation="@android:anim/fade_out"
+    android:outAnimation="@android:anim/fade_out" >
 
-	<LinearLayout
-	    android:id="@+id/invitations"
+    <RelativeLayout
+        android:id="@+id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center" >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <com.example.balloon.TextBox
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/fa_calendar"
+                android:textSize="30sp"
+				custom:fontName="fontawesome-webfont.ttf" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="15dp"
+                android:text="@string/no_invites"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="15dp"
+                android:layout_marginTop="15dp"
+                android:gravity="center"
+                android:text="@string/check_your_plans"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:clickable="true"
+                android:onClick="upcoming"
+                android:text="@string/go_to_plans"
+                android:textColor="@color/blue"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+	<FrameLayout
+	    android:id="@+id/progressScreen"
 	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-		android:paddingTop="20dp"
-		android:paddingBottom="20dp"
-	    android:orientation="vertical" >
+	    android:layout_height="match_parent"
+	    android:orientation="horizontal" >
+
+		<ProgressBar
+		    android:id="@+id/progress"
+		    style="?android:attr/progressBarStyleLargeInverse"
+		    android:layout_width="wrap_content"
+		    android:layout_height="match_parent"
+		    android:layout_gravity="center" />
+
+	</FrameLayout>
+
+	<ScrollView
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent" >
 	
+		    <LinearLayout
+		    android:id="@+id/invitations"
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+			android:paddingTop="20dp"
+			android:paddingBottom="20dp"
+		    android:orientation="vertical" >
+		
+		</LinearLayout>
 	
-	</LinearLayout>
-</ScrollView>
+	</ScrollView>
+
+</ViewAnimator>

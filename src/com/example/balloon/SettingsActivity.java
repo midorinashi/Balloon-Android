@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import android.app.Activity;
+import android.app.Fragment;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -13,8 +15,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBarActivity;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -37,7 +37,7 @@ import com.parse.SaveCallback;
 import com.squareup.picasso.Picasso;
 
 
-public class SettingsActivity extends ActionBarActivity {
+public class SettingsActivity extends Activity {
 	protected static Bitmap bm;
 	private File lastSavedFile;
 
@@ -47,7 +47,7 @@ public class SettingsActivity extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_contact_lists);
 		if (savedInstanceState == null) {
-			getSupportFragmentManager().beginTransaction()
+			getFragmentManager().beginTransaction()
 					.add(R.id.container, new SettingsFragment()).commit();
 		}
 	}

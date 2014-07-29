@@ -6,11 +6,11 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,7 +18,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.parse.FindCallback;
@@ -28,7 +27,7 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-public class ContactListsActivity extends ActionBarActivity implements OnMemberListSelectedListener{
+public class ContactListsActivity extends Activity implements OnMemberListSelectedListener{
 	
 	private static String mCurrentFragment;
 	private static String mListName;
@@ -40,7 +39,7 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 		setContentView(R.layout.activity_contact_lists);
 
 		if (savedInstanceState == null) {
-			getSupportFragmentManager().beginTransaction()
+			getFragmentManager().beginTransaction()
 					.add(R.id.container, new ContactListsFragment()).commit();
 		}
 	}
@@ -92,7 +91,7 @@ public class ContactListsActivity extends ActionBarActivity implements OnMemberL
 
 	@Override
 	public void onMemberListSelected() {
-		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
 		transaction.replace(R.id.container, new ShowListFragment());
 		transaction.addToBackStack(null);
 		transaction.commit();

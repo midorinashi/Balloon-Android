@@ -122,16 +122,17 @@
 	    	custom:fontName="Roboto-Light.ttf" />
 	    
 	    <com.example.balloon.TextBox
+	        android:id="@+id/leftToRSVP"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:text="left to RSVP"
+	        android:text="@string/leftToRSVP"
 	        android:textColor="@color/red"
 	    	custom:fontName="Roboto-Light.ttf" />
 	    
     </LinearLayout>
 
     <com.example.balloon.TextBox
-        android:id="@+id/leftToRSVP"
+        android:id="@+id/empty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/no"
@@ -149,7 +150,7 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="5dp"
         android:layout_marginTop="10dp"
-        android:layout_toLeftOf="@+id/leftToRSVP"
+        android:layout_toLeftOf="@+id/empty"
         android:background="@color/buttonBlue"
         android:text="@string/fa_times"
         android:textColor="@color/white" />
@@ -164,7 +165,7 @@
         android:layout_marginLeft="5dp"
         android:layout_marginRight="10dp"
         android:layout_marginTop="10dp"
-        android:layout_toRightOf="@+id/leftToRSVP"
+        android:layout_toRightOf="@+id/empty"
         android:background="@color/buttonBlue"
         android:text="@string/fa_check"
         android:textColor="@color/white" />

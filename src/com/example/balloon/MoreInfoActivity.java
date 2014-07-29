@@ -439,30 +439,45 @@ public class MoreInfoActivity extends ActionBarActivity
 		{
 			View rootView = inflater.inflate(R.layout.fragment_more_info,
 					container, false);
-			//Handles changing the RSVP time every second with the timer
-			mHandler = new Handler() {
-				public void handleMessage(Message message)
-				{
-					Date now = new Date();
-					long timeToRSVP = mExpiresAt.getTime() - now.getTime();
-					mTimeToRSVP = "" + (int)timeToRSVP/(60*60*1000) + ":";
-					int minutes = (int)(timeToRSVP/(60*1000))%60;
-					if (minutes < 10)
-						mTimeToRSVP = mTimeToRSVP + "0";
-					mTimeToRSVP = mTimeToRSVP + minutes + ":";
-					int seconds = (int)(timeToRSVP/1000)%60;
-					if (seconds < 10)
-						mTimeToRSVP = mTimeToRSVP+ "0";
-					mTimeToRSVP = mTimeToRSVP + seconds;
-					TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
-					tv.setText(mTimeToRSVP);
-					tv.invalidate();
-					tv.requestLayout();
-				}
-			};
-			
-			mTimer = new Timer();
-			mTimer.schedule(new RSVPTimerTask(), 0, 1000);
+
+			if (mExpiresAt.getTime() - new Date().getTime() > 0)
+			{
+				mTimer = new Timer();
+				mTimer.schedule(new RSVPTimerTask(), 0, 1000);
+				//Handles changing the RSVP time every second with the timer
+				mHandler = new Handler() {
+					public void handleMessage(Message message)
+					{
+						Date now = new Date();
+						long timeToRSVP = mExpiresAt.getTime() - now.getTime();
+						if (timeToRSVP < 0)
+						{
+							((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText("");
+							((TextView) getActivity().findViewById(R.id.leftToRSVP)).setText("");
+							mTimer.cancel();
+							mTimer.purge();
+						}
+						else
+						{
+							mTimeToRSVP = "" + (int)timeToRSVP/(60*60*1000) + ":";
+							int minutes = (int)(timeToRSVP/(60*1000))%60;
+							if (minutes < 10)
+								mTimeToRSVP = mTimeToRSVP + "0";
+							mTimeToRSVP = mTimeToRSVP + minutes + ":";
+							int seconds = (int)(timeToRSVP/1000)%60;
+							if (seconds < 10)
+								mTimeToRSVP = mTimeToRSVP+ "0";
+							mTimeToRSVP = mTimeToRSVP + seconds;
+							TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
+							tv.setText(mTimeToRSVP);
+							tv.invalidate();
+							tv.requestLayout();
+						}
+					}
+				};
+			}
+			else
+				((TextView) getActivity().findViewById(R.id.leftToRSVP)).setText("");
 			return rootView;
 		}
 		
@@ -523,32 +538,44 @@ public class MoreInfoActivity extends ActionBarActivity
 			View rootView = inflater.inflate(R.layout.fragment_info,
 					container, false);
 			//Handles changing the RSVP time every second with the timer
-			mHandler = new Handler() {
-				public void handleMessage(Message message)
-				{
-					Date now = new Date();
-					long timeToRSVP = mExpiresAt.getTime() - now.getTime();
-					mTimeToRSVP = "" + (int)timeToRSVP/(60*60*1000) + ":";
-					int minutes = (int)(timeToRSVP/(60*1000))%60;
-					if (minutes < 10)
-						mTimeToRSVP = mTimeToRSVP + "0";
-					mTimeToRSVP = mTimeToRSVP + minutes + ":";
-					int seconds = (int)(timeToRSVP/1000)%60;
-					if (seconds < 10)
-						mTimeToRSVP = mTimeToRSVP+ "0";
-					mTimeToRSVP = mTimeToRSVP + seconds;
-					TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
-					if (tv != null)
+			if (mExpiresAt.getTime() - new Date().getTime() > 0)
+			{
+				//Handles changing the RSVP time every second with the timer
+				mHandler = new Handler() {
+					public void handleMessage(Message message)
 					{
-						tv.setText(mTimeToRSVP);
-						tv.invalidate();
-						tv.requestLayout();
+						Date now = new Date();
+						long timeToRSVP = mExpiresAt.getTime() - now.getTime();
+						if (timeToRSVP < 0)
+						{
+							((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText("");
+							((TextView) getActivity().findViewById(R.id.leftToRSVP)).setText("");
+							mTimer.cancel();
+							mTimer.purge();
+						}
+						else
+						{
+							mTimeToRSVP = "" + (int)timeToRSVP/(60*60*1000) + ":";
+							int minutes = (int)(timeToRSVP/(60*1000))%60;
+							if (minutes < 10)
+								mTimeToRSVP = mTimeToRSVP + "0";
+							mTimeToRSVP = mTimeToRSVP + minutes + ":";
+							int seconds = (int)(timeToRSVP/1000)%60;
+							if (seconds < 10)
+								mTimeToRSVP = mTimeToRSVP+ "0";
+							mTimeToRSVP = mTimeToRSVP + seconds;
+							TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
+							tv.setText(mTimeToRSVP);
+							tv.invalidate();
+							tv.requestLayout();
+						}
 					}
-				}
-			};
-			
-			mTimer = new Timer();
-			mTimer.schedule(new RSVPTimerTask(), 0, 1000);
+				};
+				mTimer = new Timer();
+				mTimer.schedule(new RSVPTimerTask(), 0, 1000);
+			}
+			else
+				((TextView) getActivity().findViewById(R.id.leftToRSVP)).setText("");
 			return rootView;
 		}
 		

@@ -4,15 +4,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -23,9 +21,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBarActivity;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -55,7 +50,7 @@ import com.parse.SignUpCallback;
 import com.squareup.picasso.Picasso;
 
 //I'm extending settings so that i can do all the pictures
-public class FirstPageActivity extends ActionBarActivity {
+public class FirstPageActivity extends Activity {
 
 	protected static Bitmap bm;
 	private File lastSavedFile;
@@ -68,7 +63,7 @@ public class FirstPageActivity extends ActionBarActivity {
 		setTitle(getResources().getString(R.string.title_first_page));
 		bm = null;
 		if (savedInstanceState == null) {
-			getSupportFragmentManager().beginTransaction()
+			getFragmentManager().beginTransaction()
 					.add(R.id.container, new FirstPageFragment()).commit();
 		}
 	}
@@ -184,7 +179,7 @@ public class FirstPageActivity extends ActionBarActivity {
 	//opens up the signup fragment
 	public void openSignup(View view)
 	{
-		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
 		transaction.replace(R.id.container, new SignupFragment());
 		transaction.addToBackStack(null);
 		transaction.commit();
@@ -193,7 +188,7 @@ public class FirstPageActivity extends ActionBarActivity {
 	//opens up the login fragment
 	public void openLogin(View view)
 	{
-		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
 		transaction.replace(R.id.container, new LoginFragment());
 		transaction.addToBackStack(null);
 		transaction.commit();
@@ -352,7 +347,7 @@ public class FirstPageActivity extends ActionBarActivity {
         builder.setMessage(R.string.verification_code_sent)
                .setPositiveButton(R.string.enter_code, new DialogInterface.OnClickListener() {
                    public void onClick(DialogInterface dialog, int id) {
-                	   FragmentTransaction transaction = context.getSupportFragmentManager()
+                	   FragmentTransaction transaction = context.getFragmentManager()
                        		.beginTransaction();
                 	   transaction.replace(R.id.container, new VerificationFragment());
                 	   transaction.addToBackStack(null);
@@ -372,7 +367,7 @@ public class FirstPageActivity extends ActionBarActivity {
 	{
 		final String verifyCode = (((EditText) findViewById(R.id.password)).getText().toString());
 		//first, close the page
-		getSupportFragmentManager().popBackStackImmediate();
+		getFragmentManager().popBackStackImmediate();
 		if (user.containsKey("verificationCode"))
 			verifyUser(verifyCode);
 		else

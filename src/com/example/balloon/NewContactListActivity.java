@@ -11,6 +11,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
+import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -22,33 +26,27 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.ContactsContract;
-import android.provider.MediaStore;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.Contacts.Data;
 import android.provider.ContactsContract.RawContacts;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v7.app.ActionBarActivity;
+import android.provider.MediaStore;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.balloon.NewInvitationActivity.ImageListFragment;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
@@ -58,7 +56,7 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.squareup.picasso.Picasso;
 
-public class NewContactListActivity extends ActionBarActivity {
+public class NewContactListActivity extends Activity {
 
 	public static String mListName;
 	public static boolean mPublicList;
@@ -81,7 +79,7 @@ public class NewContactListActivity extends ActionBarActivity {
 		nextTitle = "Next";
 		
 		if (savedInstanceState == null) {
-			getSupportFragmentManager().beginTransaction()
+			getFragmentManager().beginTransaction()
 					.add(R.id.container, new NewContactListFragment()).commit();
 		}
 	}
@@ -244,7 +242,7 @@ public class NewContactListActivity extends ActionBarActivity {
 			if (item.getTitle().toString().compareTo("Next") == 0)
 			{
 				//go to the select members fragment
-				FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+				FragmentTransaction transaction = getFragmentManager().beginTransaction();
 				transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
 				transaction.addToBackStack(null);
 				transaction.commit();

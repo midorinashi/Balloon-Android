@@ -2,9 +2,9 @@ package com.example.balloon;
 
 import org.json.JSONArray;
 
+import android.app.Activity;
+import android.app.Fragment;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +16,7 @@ public abstract class AbstractImageListFragment extends Fragment {
 	private static ListView list;
 	private static String[] urls;
 	private static LazyAdapter adapter;
-	private static FragmentActivity context;
+	private static Activity context;
 	private static boolean toSave;
 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,

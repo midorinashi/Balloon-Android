@@ -10,6 +10,8 @@ import java.util.TimerTask;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -19,8 +21,6 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,8 +31,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.RelativeLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.ViewAnimator;
 
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
@@ -42,10 +43,9 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
-import com.parse.SaveCallback;
 import com.squareup.picasso.Picasso;
 
-public class MainActivity extends ActionBarActivity
+public class MainActivity extends Activity
 {
 	//TODO only find location during location steps
 	private static double latitude;
@@ -96,7 +96,7 @@ public class MainActivity extends ActionBarActivity
 		/*getSupportFragmentManager().beginTransaction()
 			.add(R.id.container, new InvitationsFragment()).commit();*/
 		
-		getSupportFragmentManager().beginTransaction()
+		getFragmentManager().beginTransaction()
 			.add(R.id.container, new PracticeFragment()).commit();
 	}
 
@@ -126,7 +126,7 @@ public class MainActivity extends ActionBarActivity
 		}
 		if (id == R.id.action_rsvp)
 		{
-			upcoming();
+			upcoming(null);
 			return true;
 		}
 		if (id == R.id.action_settings)
@@ -151,7 +151,7 @@ public class MainActivity extends ActionBarActivity
 		startActivity(intent);
 	}
 	
-	public void upcoming()
+	public void upcoming(View view)
 	{
 		Intent intent = new Intent(this, RSVPEventsActivity.class);
 		startActivity(intent);
@@ -365,6 +365,9 @@ public class MainActivity extends ActionBarActivity
 	{
 		private ArrayList<Handler> handlers;
 		protected ArrayList<Timer> timers;
+		private ViewAnimator switcher;
+		private LinearLayout lin;
+		private int numViews;
 		
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -407,6 +410,18 @@ public class MainActivity extends ActionBarActivity
 		public void onResume()
 		{
 			super.onResume();
+			if (switcher == null)
+			{
+				switcher = (ViewAnimator) getActivity().findViewById(R.id.animator);
+				lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
+			}
+			if (switcher.getCurrentView() == getActivity().findViewById(R.id.empty))
+				switcher.showNext();
+			else if (switcher.getCurrentView() == lin)
+				switcher.showPrevious();
+			((ProgressBar) getActivity().findViewById(R.id.progress)).getIndeterminateDrawable()
+				.setColorFilter(getResources().getColor(R.color.buttonBlue), 
+				android.graphics.PorterDuff.Mode.MULTIPLY);
 			getUpcoming();
 		}
 		
@@ -427,7 +442,7 @@ public class MainActivity extends ActionBarActivity
 					if (e == null)
 						refreshScreen(upcoming);
 					else
-						e.printStackTrace();
+						switcher.showPrevious();
 				}
 			});
 		}
@@ -466,8 +481,8 @@ public class MainActivity extends ActionBarActivity
 			fixQuery(query, ids);
 			query.findInBackground(new FindCallback<ParseObject>(){
 				public void done(List<ParseObject> eventList, ParseException e) {
-					if (e != null)
-						System.out.println(e);
+					if (e != null || eventList.size() == 0)
+						switcher.showPrevious();
 					else
 					{
 						List<ParseObject> list = new ArrayList<ParseObject>();
@@ -493,15 +508,15 @@ public class MainActivity extends ActionBarActivity
 		// TODO I need to make a list of events to avoid memory leaks, also stop all timers
 		public void makeList(List<ParseObject> list)
 		{
-			LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
 			//removes all the views for now because EFFICIENCY WHAT
 			lin.removeAllViews();
 			ParseUser creator = new ParseUser();
+			setViewCount(list.size());
 			
 			//THIS IS ACTUALLY SO STUPID CUSTOM VIEW WHY YOU SO TSUN
 			for (int i = 0; i < list.size(); i++)
 			{
-				final ParseObject meetup = list.get(i);
+				final ParseObject meetup = list.get(i); 
 				
 				View event = View.inflate(getActivity(), R.layout.invite_card, null);
 				TextView tv;
@@ -533,29 +548,45 @@ public class MainActivity extends ActionBarActivity
 				timers.add(timer);
 				final Date expiresAt = meetup.getDate("expiresAt");
 				final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
+				final TextView mLeftToRSVP = (TextView) event.findViewById(R.id.leftToRSVP);
 				//Handles changing the RSVP time every second with the timer
 				Handler handler = new Handler() {
 					public void handleMessage(Message message)
 					{
 						Date now = new Date();
 						long timeToRSVP = expiresAt.getTime() - now.getTime();
-						String time = "" + (int)timeToRSVP/(60*60*1000) + ":";
-						int minutes = (int)(timeToRSVP/(60*1000))%60;
-						if (minutes < 10)
-							time = time + "0";
-						time = time + minutes + ":";
-						int seconds = (int)(timeToRSVP/1000)%60;
-						if (seconds < 10)
-							time = time+ "0";
-						time = time + seconds;
-						//System.out.println(time);
-						mTimeToRSVPView.setText(time);
-						mTimeToRSVPView.invalidate();
-						mTimeToRSVPView.requestLayout();
-						//invalidate();
-						//requestLayout();
+						if (timeToRSVP < 0)
+						{
+							mTimeToRSVPView.setText("");
+							mLeftToRSVP.setText("");
+							// I want to cancel the handler, timer, and view
+							int index = handlers.indexOf(this);
+							timers.get(index).cancel();
+							handlers.remove(index);
+							if (subtractViewCount() <= 0)
+								switcher.setDisplayedChild(0);
+						}
+						else
+						{
+							String time = "" + (int)timeToRSVP/(60*60*1000) + ":";
+							int minutes = (int)(timeToRSVP/(60*1000))%60;
+							if (minutes < 10)
+								time = time + "0";
+							time = time + minutes + ":";
+							int seconds = (int)(timeToRSVP/1000)%60;
+							if (seconds < 10)
+								time = time+ "0";
+							time = time + seconds;
+							//System.out.println(time);
+							mTimeToRSVPView.setText(time);
+							mTimeToRSVPView.invalidate();
+							mTimeToRSVPView.requestLayout();
+							//invalidate();
+							//requestLayout();
+						}
 					}
 				};
+				final int index = handlers.size();
 				handlers.add(handler);
 				timer.schedule(new RSVPTimerTask(handlers.size() - 1), 10, 1000);
 				
@@ -591,8 +622,14 @@ public class MainActivity extends ActionBarActivity
 							@Override
 							public void done(Object o, ParseException e) {
 								if (e == null)
+								{
 									((LinearLayout) v.getParent().getParent())
 										.removeView((View) v.getParent());
+									timers.get(index).cancel();
+									handlers.remove(index);
+									if (subtractViewCount() <= 0)
+										switcher.setDisplayedChild(0);
+								}
 								else
 									e.printStackTrace();
 							}
@@ -615,8 +652,13 @@ public class MainActivity extends ActionBarActivity
 							@Override
 							public void done(Object o, ParseException e) {
 								if (e == null)
+								{
+									timers.get(index).cancel();
 									((LinearLayout) v.getParent().getParent())
 										.removeView((View) v.getParent());
+									if (subtractViewCount() <= 0)
+										switcher.setDisplayedChild(0);
+								}
 								else
 									e.printStackTrace();
 							}
@@ -635,7 +677,19 @@ public class MainActivity extends ActionBarActivity
 
 			lin.invalidate();
 			lin.requestLayout();
-			
+			System.out.println("DONE");
+			switcher.showNext();
+		}
+		
+		public void setViewCount(int i)
+		{
+			numViews = i;
+		}
+		
+		public int subtractViewCount()
+		{
+			numViews--;
+			return numViews;
 		}
 
 		public class RSVPTimerTask extends TimerTask
