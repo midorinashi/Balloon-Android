@@ -33,6 +33,7 @@ import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseImageView;
 import com.parse.ParseUser;
+import com.parse.PushService;
 import com.parse.SaveCallback;
 import com.squareup.picasso.Picasso;
 
@@ -261,6 +262,8 @@ public class SettingsActivity extends Activity {
 	//this will log out the user
 	public void onClick(View view)
 	{
+		PushService.unsubscribe(this, "");
+		PushService.unsubscribe(this, "u" + ParseUser.getCurrentUser().getObjectId());
 		ParseUser.logOut();
 		Intent intent = new Intent(this, FirstPageActivity.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

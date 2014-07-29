@@ -43,6 +43,7 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.PushService;
 import com.squareup.picasso.Picasso;
 
 public class MainActivity extends Activity
@@ -58,6 +59,9 @@ public class MainActivity extends Activity
 		//initialize parse
 		Parse.initialize(this, "iXEPNEZfJXoEOIayxLgBBgpShMZBTj7ReVoi1eqn",
 				"GHtE0svPk0epFG4olYnFTnnDtmARHtENXxXuHoXp");
+		PushService.setDefaultPushCallback(this, MainActivity.class);
+		PushService.subscribe(this, "", this.getClass());
+		PushService.subscribe(this, "u" + ParseUser.getCurrentUser().getObjectId(), this.getClass());
 		
 		String Tracey = "+19739002782";
 		String Mao = "+18007580051";
@@ -414,14 +418,12 @@ public class MainActivity extends Activity
 			{
 				switcher = (ViewAnimator) getActivity().findViewById(R.id.animator);
 				lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
+				((ProgressBar) getActivity().findViewById(R.id.progress))
+					.getIndeterminateDrawable().setColorFilter(getResources()
+					.getColor(R.color.buttonBlue), android.graphics.PorterDuff.Mode.MULTIPLY);
 			}
-			if (switcher.getCurrentView() == getActivity().findViewById(R.id.empty))
-				switcher.showNext();
-			else if (switcher.getCurrentView() == lin)
-				switcher.showPrevious();
-			((ProgressBar) getActivity().findViewById(R.id.progress)).getIndeterminateDrawable()
-				.setColorFilter(getResources().getColor(R.color.buttonBlue), 
-				android.graphics.PorterDuff.Mode.MULTIPLY);
+			if (switcher.getCurrentView() != getActivity().findViewById(R.id.progressScreen))
+				switcher.setDisplayedChild(1);
 			getUpcoming();
 		}
 		
@@ -562,7 +564,6 @@ public class MainActivity extends Activity
 							// I want to cancel the handler, timer, and view
 							int index = handlers.indexOf(this);
 							timers.get(index).cancel();
-							handlers.remove(index);
 							if (subtractViewCount() <= 0)
 								switcher.setDisplayedChild(0);
 						}
@@ -626,7 +627,6 @@ public class MainActivity extends Activity
 									((LinearLayout) v.getParent().getParent())
 										.removeView((View) v.getParent());
 									timers.get(index).cancel();
-									handlers.remove(index);
 									if (subtractViewCount() <= 0)
 										switcher.setDisplayedChild(0);
 								}
