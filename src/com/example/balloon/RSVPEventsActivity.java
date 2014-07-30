@@ -88,19 +88,17 @@ public class RSVPEventsActivity extends Activity {
 	/**
 	 * A placeholder fragment containing a simple view.
 	 */
-	public static class PlaceholderFragment extends MainActivity.InvitationsFragment {
+	public static class PlaceholderFragment extends ProgressFragment {
 
 		private ArrayList<Handler> handlers;
 		protected ArrayList<Timer> timers;
-
-		public PlaceholderFragment() {
-		}
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_rsvpevents,
 					container, false);
+			showSpinner();
 			handlers = new ArrayList<Handler>();
 			timers = new ArrayList<Timer>();
 			return rootView;
@@ -123,7 +121,7 @@ public class RSVPEventsActivity extends Activity {
 					if (e == null)
 						makeList(upcoming);
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 			});
 		}
@@ -189,7 +187,7 @@ public class RSVPEventsActivity extends Activity {
 									}
 									else
 									{
-										String time = "" + (int)timeToRSVP/(60*60*1000) + ":";
+										String time = "" + timeToRSVP/(60*60*1000) + ":";
 										int minutes = (int)(timeToRSVP/(60*1000))%60;
 										if (minutes < 10)
 											time = time + "0";
@@ -212,7 +210,7 @@ public class RSVPEventsActivity extends Activity {
 							
 						}
 						else
-							((TextView) getActivity().findViewById(R.id.leftToRSVP)).setText("");
+							((TextView) event.findViewById(R.id.leftToRSVP)).setText("");
 						
 						//to set the onclick listener
 						final String objectId = meetup.getObjectId();
@@ -242,6 +240,7 @@ public class RSVPEventsActivity extends Activity {
 					lin.addView(event);
 				}
 			}
+			removeSpinner();
 		}
 		
 		public void onStop()

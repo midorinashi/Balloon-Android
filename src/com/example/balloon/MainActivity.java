@@ -18,6 +18,7 @@ import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -31,10 +32,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewAnimator;
 
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
+import com.handmark.pulltorefresh.library.PullToRefreshScrollView;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.Parse;
@@ -46,7 +51,7 @@ import com.parse.ParseUser;
 import com.parse.PushService;
 import com.squareup.picasso.Picasso;
 
-public class MainActivity extends Activity
+public class MainActivity extends ProgressActivity
 {
 	//TODO only find location during location steps
 	private static double latitude;
@@ -120,7 +125,7 @@ public class MainActivity extends Activity
 		int id = item.getItemId();
 		if (id == R.id.action_plus || id == R.id.action_create)
 		{
-			newInvitation();
+			newInvitation(null);
 			return true;
 		}
 		if (id == R.id.action_lists)
@@ -142,7 +147,7 @@ public class MainActivity extends Activity
 		return super.onOptionsItemSelected(item);
 	}
 	
-	public void newInvitation()
+	public void newInvitation(View view)
 	{
 		Intent intent = new Intent(this, NewInvitationActivity.class);
 		System.out.println("PANIC");
@@ -171,206 +176,13 @@ public class MainActivity extends Activity
 		return longitude;
 	}
 	
-	/**
-	 * This is the invitations screen. I think it makes sense for this to be the main activity.
-	 */
-	public static class InvitationsFragment extends Fragment
-	{	
-		public InvitationsFragment()
-		{
-			
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_invitations, container,
-					false);
-			
-			//get location 
-			LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-	    	Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-	    	latitude = -1;
-	    	if (location != null)
-	    	{
-		    	longitude = location.getLongitude();
-		        latitude = location.getLatitude();
-	    	}
-	    	// Define a listener that responds to location updates
-	    	LocationListener ll = new LocationListener() {
-	    	    public void onLocationChanged(Location location) {
-	    	    	// Called when a new location is found by the network location provider.
-	    	    	longitude = location.getLongitude();
-	    	        latitude = location.getLatitude();
-	    	    }
-	    	    
-	    	    public void onStatusChanged(String provider, int status, Bundle extras) {}
-
-	    	    public void onProviderEnabled(String provider) {}
-
-	    	    public void onProviderDisabled(String provider) {}
-	    	};
-
-	    	// Register the listener with the Location Manager to receive location updates
-	    	
-	    		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll);
-	    	
-	    	  
-			//CRAPPY HARDCODED EVENTS 8D
-			/*
-			for (int i = 0; i < 7; i++)
-			{
-				LinearLayout lin = (LinearLayout) rootView.findViewById(R.id.invitations);
-				Event invite = new Event(getActivity());
-				invite.setCreator("Kevin");
-				invite.setAgenda("Test 1, test 2");
-				invite.setVenueInfo(""+i);
-				invite.setVenuePhoto("http://i.stack.imgur.com/c5SvX.png");
-				invite.setExpiresAt((long) 2000000000);
-				if (i%2==1)
-					invite.setBackgroundColor(getResources().getColor(R.color.lightBlue));
-				invite.setId(i);
-				invite.setMoreInfoObserver(new MoreInfoObserver(){
-					public void moreInfo(Event event) {
-						
-					}
-				});
-				lin.addView(invite);
-			}
-			*/
-			return rootView;
-		}
-		
-		public void onResume()
-		{
-			super.onResume();
-			getUpcoming();
-		}
-		
-		public void onStop()
-		{
-			super.onStop();
-		}
-		
-		public void getUpcoming()
-		{
-			HashMap<String, Object> params = new HashMap<String, Object>();
-			params.put("user", ParseUser.getCurrentUser().toString());
-			ParseCloud.callFunctionInBackground("loadUpcomingMeetups", params,
-					new FunctionCallback<ArrayList<Object>>(){
-				public void done(ArrayList<Object> upcoming, ParseException e) {
-					if (e == null)
-						refreshScreen(upcoming);
-					else
-						e.printStackTrace();
-				}
-			});
-		}
-		
-		/*
-		 * This refreshes the invitations. We need to get the invitations that have been updated since the last
-		 * refresh, that the user has not RSVPed to, and that have not expired.
-		 * We need to order them by expiration date. So, we just have to keep track of the expiration time of the
-		 * invitation at the top. Binary Search and insert 
-		 * We also need a string list of IDs. Probably should keep a list of 100. Who even gets 100 invites 
-		 * in a day...
-		 * 
-		 * Right now it just gets all the invites cause EFFICIENCY
-		 */
-		@SuppressWarnings("unchecked")
-		public void refreshScreen(ArrayList<Object> upcoming)
-		{
-			ParseQuery<ParseObject> query = ParseQuery.getQuery("Meetup"); 
-			query.orderByAscending("expiresAt");
-			
-			//get only ones that haven't expired
-			query.whereGreaterThan("expiresAt", new Date());
-			
-			//get only ones that i am invited to
-			ArrayList<ParseUser> currentUser = new ArrayList<ParseUser>();
-			currentUser.add(ParseUser.getCurrentUser());
-			query.whereContainsAll("invitedUsers", currentUser);
-			ArrayList<String> ids = new ArrayList<String>();
-			//each object is a hashmap
-			for (Object o : upcoming)
-			{
-				//ugly shit
-				ids.add(((ParseObject)((HashMap<String, Object>) o).get("meetup")).getObjectId());
-				System.out.println(ids.get(ids.size()-1));
-			}
-			fixQuery(query, ids);
-			query.findInBackground(new FindCallback<ParseObject>(){
-				public void done(List<ParseObject> eventList, ParseException e) {
-					if (e != null)
-						System.out.println(e);
-					else
-					{
-						List<ParseObject> list = new ArrayList<ParseObject>();
-						System.out.println("eventList size is "+eventList.size());
-						for (ParseObject event : eventList)
-						{
-							list.add(event);
-							System.out.println("event added");
-						}
-						makeList(list);
-					}
-				}
-			});
-		}
-		
-		//removes all the upcoming invites in the main
-		public void fixQuery(ParseQuery<ParseObject> query, ArrayList<String> ids)
-		{
-			query.whereNotContainedIn("objectId", ids);
-		}
-		
-		//Takes the list of meetups from parse query and, well, lists them.
-		// TODO I need to make a list of events to avoid memory leaks, also stop all timers
-		public void makeList(List<ParseObject> list)
-		{
-			LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
-			//removes all the views for now because EFFICIENCY WHAT
-			lin.removeAllViews();
-			ParseUser creator = new ParseUser();
-			
-			for (int i = 0; i < list.size(); i++)
-			{
-				ParseObject meetup = list.get(i);
-				Event event = new Event(getActivity());
-				event.setObjectId(meetup.getObjectId());
-				try {
-					creator = meetup.getParseUser("creator").fetchIfNeeded();
-					event.setCreator(creator.getString("firstName")+" "+creator.getString("lastName"));
-				} catch (ParseException e) {
-					// Auto-generated catch block
-					e.printStackTrace();
-				}
-				event.setAgenda(meetup.getString("agenda"));
-				try {
-					event.setVenueInfo(meetup.getJSONObject("venueInfo").getString("name"));
-					JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
-					if (urls != null && urls.length() > 0)
-						event.setVenuePhoto(getActivity(), urls.getString(0));
-				} catch (JSONException e) {
-					// Auto-generated catch block
-					e.printStackTrace();
-				}
-				//invite.setVenuePhoto(event.getParseFile(key));
-				event.setExpiresAt(meetup.getDate("expiresAt"));
-				
-				if (i % 2 == 0)
-					event.setBackgroundColor(getResources().getColor(R.color.lightBlue));
-				lin.addView(event);
-			}
-		}
-	}
-	
-	public static class PracticeFragment extends Fragment
+	public static class PracticeFragment extends ProgressFragment
 	{
 		private ArrayList<Handler> handlers;
 		protected ArrayList<Timer> timers;
 		private ViewAnimator switcher;
 		private LinearLayout lin;
+		public PullToRefreshBase<ScrollView> pullToRefreshView;
 		private int numViews;
 		
 		@Override
@@ -418,15 +230,21 @@ public class MainActivity extends Activity
 			{
 				switcher = (ViewAnimator) getActivity().findViewById(R.id.animator);
 				lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
-				((ProgressBar) getActivity().findViewById(R.id.progress))
-					.getIndeterminateDrawable().setColorFilter(getResources()
-					.getColor(R.color.buttonBlue), android.graphics.PorterDuff.Mode.MULTIPLY);
+				pullToRefreshView = (PullToRefreshScrollView)
+						getActivity().findViewById(R.id.scrollToRefresh);
+				pullToRefreshView.setOnRefreshListener(new OnRefreshListener<ScrollView>() {
+				    @Override
+				    public void onRefresh(PullToRefreshBase<ScrollView> refreshView) {
+				        getUpcoming();
+				        new GetDataTask().execute();
+				    }
+				});
 			}
-			if (switcher.getCurrentView() != getActivity().findViewById(R.id.progressScreen))
-				switcher.setDisplayedChild(1);
+			
 			getUpcoming();
 		}
 		
+		// to prevent memory leaks and shit
 		public void onStop()
 		{
 			super.onStop();
@@ -436,15 +254,21 @@ public class MainActivity extends Activity
 		
 		public void getUpcoming()
 		{
+			showSpinner();
 			HashMap<String, Object> params = new HashMap<String, Object>();
 			params.put("user", ParseUser.getCurrentUser().toString());
 			ParseCloud.callFunctionInBackground("loadUpcomingMeetups", params,
 					new FunctionCallback<ArrayList<Object>>(){
 				public void done(ArrayList<Object> upcoming, ParseException e) {
 					if (e == null)
-						refreshScreen(upcoming);
+					{
+						if (upcoming.size() == 0)
+							noPlans();
+						else
+							refreshScreen(upcoming);
+					}
 					else
-						switcher.showPrevious();
+						showParseException(e);
 				}
 			});
 		}
@@ -480,11 +304,13 @@ public class MainActivity extends Activity
 				ids.add(((ParseObject)((HashMap<String, Object>) o).get("meetup")).getObjectId());
 				System.out.println(ids.get(ids.size()-1));
 			}
-			fixQuery(query, ids);
+			query.whereNotContainedIn("objectId", ids);
+			query.include("creator");
+			
 			query.findInBackground(new FindCallback<ParseObject>(){
 				public void done(List<ParseObject> eventList, ParseException e) {
-					if (e != null || eventList.size() == 0)
-						switcher.showPrevious();
+					if (e != null)
+						showParseException(e);
 					else
 					{
 						List<ParseObject> list = new ArrayList<ParseObject>();
@@ -494,16 +320,13 @@ public class MainActivity extends Activity
 							list.add(event);
 							System.out.println("event added");
 						}
-						makeList(list);
+						if (list.size() == 0)
+							noPlans();
+						else
+							makeList(list);
 					}
 				}
 			});
-		}
-		
-		//removes all the upcoming invites in the main
-		public void fixQuery(ParseQuery<ParseObject> query, ArrayList<String> ids)
-		{
-			query.whereNotContainedIn("objectId", ids);
 		}
 		
 		//Takes the list of meetups from parse query and, well, lists them.
@@ -523,14 +346,10 @@ public class MainActivity extends Activity
 				View event = View.inflate(getActivity(), R.layout.invite_card, null);
 				TextView tv;
 				//event.setObjectId(meetup.getObjectId());
-				try {
-					creator = meetup.getParseUser("creator").fetchIfNeeded();
-					tv = (TextView) event.findViewById(R.id.creator);
-					tv.setText(creator.getString("firstName")+" "+creator.getString("lastName"));
-				} catch (ParseException e) {
-					// Auto-generated catch block
-					e.printStackTrace();
-				}
+				creator = meetup.getParseUser("creator");
+				tv = (TextView) event.findViewById(R.id.creator);
+				tv.setText(creator.getString("firstName")+" "+creator.getString("lastName"));
+				
 				tv = (TextView) event.findViewById(R.id.agenda);
 				tv.setText(ParseUser.getCurrentUser().getString("firstName") + ", " + 
 						meetup.getString("agenda"));
@@ -565,7 +384,7 @@ public class MainActivity extends Activity
 							int index = handlers.indexOf(this);
 							timers.get(index).cancel();
 							if (subtractViewCount() <= 0)
-								switcher.setDisplayedChild(0);
+								noPlans();
 						}
 						else
 						{
@@ -615,6 +434,7 @@ public class MainActivity extends Activity
 					public void onClick(final View v) {
 						System.out.println("no");
 						v.setBackgroundColor(getResources().getColor(R.color.red));
+						showSpinner();
 						HashMap<String, Object> params = new HashMap<String, Object>();
 						params.put("meetupId", objectId);
 						params.put("willAttend", false);
@@ -627,11 +447,12 @@ public class MainActivity extends Activity
 									((LinearLayout) v.getParent().getParent())
 										.removeView((View) v.getParent());
 									timers.get(index).cancel();
+									removeSpinner();
 									if (subtractViewCount() <= 0)
-										switcher.setDisplayedChild(0);
+										noPlans();
 								}
 								else
-									e.printStackTrace();
+									showParseException(e);
 							}
 						});
 					}
@@ -644,6 +465,7 @@ public class MainActivity extends Activity
 					public void onClick(final View v) {
 						System.out.println("no");
 						v.setBackgroundColor(getResources().getColor(R.color.green));
+						showSpinner();
 						HashMap<String, Object> params = new HashMap<String, Object>();
 						params.put("meetupId", objectId);
 						params.put("willAttend", false);
@@ -656,11 +478,12 @@ public class MainActivity extends Activity
 									timers.get(index).cancel();
 									((LinearLayout) v.getParent().getParent())
 										.removeView((View) v.getParent());
+									removeSpinner();
 									if (subtractViewCount() <= 0)
-										switcher.setDisplayedChild(0);
+										noPlans();
 								}
 								else
-									e.printStackTrace();
+									showParseException(e);
 							}
 						});
 					}
@@ -674,11 +497,10 @@ public class MainActivity extends Activity
 			}
 			
 			//lin.addView(View.inflate(getActivity(), R.layout.invite_card, null));
-
 			lin.invalidate();
 			lin.requestLayout();
 			System.out.println("DONE");
-			switcher.showNext();
+			showScreen(0);
 		}
 		
 		public void setViewCount(int i)
@@ -690,6 +512,32 @@ public class MainActivity extends Activity
 		{
 			numViews--;
 			return numViews;
+		}
+		
+		public void noPlans()
+		{
+			ParseCloud.callFunctionInBackground("hasPlans", new HashMap<String, Object>(), 
+					new FunctionCallback<HashMap<String, Boolean>>() {
+				@Override
+				public void done(HashMap<String, Boolean> hasPlans, ParseException e) {
+					if (e != null)
+						showParseException(e);
+					else if (hasPlans.get("hasPlans"))
+						showScreen(1);
+					else
+						showScreen(2);
+				}
+			});
+		}
+		
+		public void showScreen(int viewIndex)
+		{
+			removeSpinner();
+			//we want to go to the right view now - we add three to avoid negative mods
+			if ((switcher.getDisplayedChild() - viewIndex + 3) % 3 == 1)
+				switcher.showPrevious();
+			else if ((switcher.getDisplayedChild() - viewIndex + 3) % 3 == 2)
+				switcher.showNext();
 		}
 
 		public class RSVPTimerTask extends TimerTask
@@ -706,6 +554,21 @@ public class MainActivity extends Activity
 			public void run() {
 				//System.out.println(pos);
 				handlers.get(pos).obtainMessage(1).sendToTarget();
+			}
+		}
+		
+		private class GetDataTask extends AsyncTask<Void, Void, String[]> {
+		    @Override
+		    protected void onPostExecute(String[] result) {
+		        // Call onRefreshComplete when the list has been refreshed.
+		        pullToRefreshView.onRefreshComplete();
+		        super.onPostExecute(result);
+		    }
+
+			@Override
+			protected String[] doInBackground(Void... arg0) {
+				// TODO Auto-generated method stub
+				return null;
 			}
 		}
 	}

@@ -11,7 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-public abstract class AbstractImageListFragment extends Fragment {
+public abstract class AbstractImageListFragment extends ProgressFragment {
 	
 	private static ListView list;
 	private static String[] urls;
@@ -33,7 +33,7 @@ public abstract class AbstractImageListFragment extends Fragment {
 		list = (ListView) getActivity().findViewById(R.id.imageList);
         list.setItemsCanFocus(false);
         list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-		new AccessFoursquarePhotos().execute(getVenueId());
+		new AccessFoursquarePhotos(this).execute(getVenueId());
 	}
 	
 	public abstract String getVenueId();

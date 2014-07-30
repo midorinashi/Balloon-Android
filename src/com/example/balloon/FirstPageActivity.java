@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -50,7 +49,7 @@ import com.parse.SignUpCallback;
 import com.squareup.picasso.Picasso;
 
 //I'm extending settings so that i can do all the pictures
-public class FirstPageActivity extends Activity {
+public class FirstPageActivity extends ProgressActivity {
 
 	protected static Bitmap bm;
 	private File lastSavedFile;
@@ -95,6 +94,7 @@ public class FirstPageActivity extends Activity {
 	public boolean onContextItemSelected(MenuItem item) {
 	    switch (item.getItemId()) {
 	        case R.id.action_photo_last:// Find the last picture
+	        	showSpinner();
 	        	String[] projection = new String[]{
 	        		    MediaStore.Images.ImageColumns._ID,
 	        		    MediaStore.Images.ImageColumns.DATA,
@@ -117,6 +117,7 @@ public class FirstPageActivity extends Activity {
 	        	            view.setVisibility(ImageView.VISIBLE);
 	        		    }
 	        		} 
+	        	removeSpinner();
 	            return true;
 	        case R.id.action_photo_take:
 	        	Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -144,6 +145,7 @@ public class FirstPageActivity extends Activity {
 	//this is how we get the picture
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
+        	showSpinner();
         	System.out.println("hi");
         	// if it came from the camera
 			Uri uri;
@@ -161,6 +163,7 @@ public class FirstPageActivity extends Activity {
 				e.printStackTrace();
 			}
             Picasso.with(this).load(uri).into((ImageView) findViewById(R.id.photo));
+            removeSpinner();
         } else if (resultCode == RESULT_CANCELED) {
         	System.out.println("canceled");
             // User cancelled the image capture
@@ -229,6 +232,7 @@ public class FirstPageActivity extends Activity {
 	//finds user with same phone number first
 	public void saveUser()
 	{
+		showSpinner();
 		final String mobile = "+" + (((EditText) findViewById(R.id.mobile)).getText().toString()
 				.replaceAll("[^0-9]", ""));
 		ParseQuery<ParseUser> query = ParseUser.getQuery();
@@ -250,17 +254,17 @@ public class FirstPageActivity extends Activity {
 								if (e == null)
 									saveUser(user);
 								else
-									signupFailure();
+									signupFailure(e);
 							}
 						});
 					}
 					else if (list.get(0).getBoolean("isProxy"))
 						saveUser(list.get(0));
 					else
-						signupFailure();
+						signupFailure(e);
 				}
 				else
-					signupFailure();
+					signupFailure(e);
 			}
 		});
 	}
@@ -277,7 +281,7 @@ public class FirstPageActivity extends Activity {
 				if (e == null)
 					alertToVerify();
 				else
-					e.printStackTrace();
+					signupFailure(e);
 			}
 		});
 	}
@@ -310,17 +314,17 @@ public class FirstPageActivity extends Activity {
 											//saves the profile picture now if it exists
 											startMainActivity();
 										else
-											e.printStackTrace();
+											showParseException(e);
 									}
 								});
 							}
 							else
-								e.printStackTrace();
+								showParseException(e);
 							}
 						});
 					}
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 			});
 		}
@@ -342,6 +346,7 @@ public class FirstPageActivity extends Activity {
 	
 	public void alertToVerify()
 	{
+		removeSpinner();
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		final FirstPageActivity context = this;
         builder.setMessage(R.string.verification_code_sent)
@@ -368,6 +373,7 @@ public class FirstPageActivity extends Activity {
 		final String verifyCode = (((EditText) findViewById(R.id.password)).getText().toString());
 		//first, close the page
 		getFragmentManager().popBackStackImmediate();
+		showSpinner();
 		if (user.containsKey("verificationCode"))
 			verifyUser(verifyCode);
 		else
@@ -406,12 +412,13 @@ public class FirstPageActivity extends Activity {
 						saveImage(password);
 					}
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 			});
 		}
 		else
 		{
+			removeSpinner();
 			Toast.makeText(this, "You fucked up", Toast.LENGTH_SHORT).show();
 		}
 	}
@@ -428,19 +435,21 @@ public class FirstPageActivity extends Activity {
 				if (user != null)
 					startMainActivity();
 				else
-					loginFailure();
+					loginFailure(e);
 			}
 			
 		});
 	}
 
-	public void signupFailure()
+	public void signupFailure(ParseException e)
 	{
+		showParseException(e);
 		Toast.makeText(this, "What a terrible failure.", Toast.LENGTH_SHORT).show();
 	}
 	
-	public void loginFailure()
+	public void loginFailure(ParseException e)
 	{
+		showParseException(e);
 		Toast.makeText(this, "Invalid username or password.", Toast.LENGTH_SHORT).show();
 	}
 	
@@ -448,6 +457,7 @@ public class FirstPageActivity extends Activity {
 	{
 		Intent intent = new Intent(this, MainActivity.class);
 		startActivity(intent);
+		removeSpinner();
 		finish();
 	}
 	

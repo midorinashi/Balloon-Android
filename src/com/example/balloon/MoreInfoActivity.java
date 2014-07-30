@@ -11,6 +11,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Typeface;
@@ -18,20 +20,15 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,7 +44,7 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.squareup.picasso.Picasso;
 
-public class MoreInfoActivity extends ActionBarActivity
+public class MoreInfoActivity extends ProgressActivity
 {
 	private static String mObjectId;
 	private static boolean mIsCreator;
@@ -61,6 +58,8 @@ public class MoreInfoActivity extends ActionBarActivity
 	private static boolean mWillAttend;
 	protected static ParseObject mMeetup;
 	protected JSONObject mVenueLocation;
+	public static boolean loadedComments;
+	public static boolean loadedComing;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +70,7 @@ public class MoreInfoActivity extends ActionBarActivity
 		
 		if (savedInstanceState == null)
 		{
-
+			showSpinner();
 			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
 			query.whereEqualTo("objectId", mObjectId);
 			query.getFirstInBackground(new GetCallback<ParseObject>(){
@@ -87,7 +86,7 @@ public class MoreInfoActivity extends ActionBarActivity
 							if (creator == ParseUser.getCurrentUser())
 								mIsCreator = true;
 						} catch (ParseException e1) {
-							e1.printStackTrace();
+							showParseException(e1);
 						}
 						
 						mAgenda = meetup.getString("agenda");
@@ -124,7 +123,7 @@ public class MoreInfoActivity extends ActionBarActivity
 						makeMoreInfoFragment();
 					}
 					else
-						System.out.println(e);
+						showParseException(e);
 				}
 			});
 		}
@@ -145,12 +144,9 @@ public class MoreInfoActivity extends ActionBarActivity
 			@Override
 			public void done(List<ParseObject> comments, ParseException e) {
 				if (e == null)
-				{
-					if (comments.size() > 0)
-						makeCommentList(comments);
-				}
+					makeCommentList(comments);
 				else
-					e.printStackTrace();
+					showParseException(e);
 			}
 		});
 	}
@@ -176,6 +172,9 @@ public class MoreInfoActivity extends ActionBarActivity
 				lin.addView(comment, lp);
 			}
 		}
+		loadedComments = true;
+		if (loadedComing)
+			removeSpinner();
 	}
 	
 	public void fetchComing()
@@ -191,14 +190,9 @@ public class MoreInfoActivity extends ActionBarActivity
 			@Override
 			public void done(List<ParseObject> responses, ParseException e) {
 				if (e == null)
-				{
-					if (responses.size() > 0)
-						makeComingList(responses);
-					else
-						makeComingList(new ArrayList<ParseObject>());
-				}
+					makeComingList(responses);
 				else
-					e.printStackTrace();
+					showParseException(e);
 			}
 		});
 	}
@@ -224,12 +218,15 @@ public class MoreInfoActivity extends ActionBarActivity
 				lin.addView(response, lp);
 		    }
 	    }
+		loadedComing = true;
+		if (loadedComments)
+			removeSpinner();
 	}
 	
 	private void makeMoreInfoFragment()
 	{
-		getSupportFragmentManager().beginTransaction()
-				.add(R.id.moreinfocontainer, new InfoFragment()).commit();
+		getFragmentManager().beginTransaction()
+				.add(R.id.container, new InfoFragment()).commit();
 	}
 
 	@Override
@@ -257,8 +254,8 @@ public class MoreInfoActivity extends ActionBarActivity
 		if (id == R.id.action_agenda) {
 			if (mIsCreator)
 			{
-				FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-				transaction.replace(R.id.moreinfocontainer, new EditAgendaFragment());
+				FragmentTransaction transaction = getFragmentManager().beginTransaction();
+				transaction.replace(R.id.container, new EditAgendaFragment());
 				transaction.addToBackStack(null);
 				transaction.commit();
 			}
@@ -267,8 +264,8 @@ public class MoreInfoActivity extends ActionBarActivity
 			return true;
 		}
 		else if (id == R.id.action_comment) {
-			FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-			transaction.replace(R.id.moreinfocontainer, new AddCommentFragment(), "AddCommentFragment");
+			FragmentTransaction transaction = getFragmentManager().beginTransaction();
+			transaction.replace(R.id.container, new AddCommentFragment(), "AddCommentFragment");
 			transaction.addToBackStack(null);
 			transaction.commit();
 			return true;
@@ -282,14 +279,15 @@ public class MoreInfoActivity extends ActionBarActivity
 	
 	public void showAgenda(View view)
 	{
-		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-		transaction.replace(R.id.moreinfocontainer, new AgendaFragment());
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
+		transaction.replace(R.id.container, new AgendaFragment());
 		transaction.addToBackStack(null);
 		transaction.commit();
 	}
 	
 	public void respondNo(View view)
 	{
+		showSpinner();
 		HashMap<String, Object> params = new HashMap<String, Object>();
 		params.put("meetupId", mObjectId);
 		params.put("willAttend", false);
@@ -298,7 +296,7 @@ public class MoreInfoActivity extends ActionBarActivity
 				if (e == null)
 					fetchComing();
 				else
-					e.printStackTrace();
+					showParseException(e);
 			}
 		});
 		view.setBackgroundColor(getResources().getColor(R.color.red));
@@ -307,6 +305,7 @@ public class MoreInfoActivity extends ActionBarActivity
 	
 	public void respondYes(View view)
 	{
+		showSpinner();
 		HashMap<String, Object> params = new HashMap<String, Object>();
 		params.put("meetupId", mObjectId);
 		params.put("willAttend", true);
@@ -315,7 +314,7 @@ public class MoreInfoActivity extends ActionBarActivity
 				if (e == null)
 					fetchComing();
 				else
-					e.printStackTrace();
+					showParseException(e);
 			}
 		});
 		view.setBackgroundColor(getResources().getColor(R.color.green));
@@ -324,6 +323,7 @@ public class MoreInfoActivity extends ActionBarActivity
 
 	public void addComment(View view)
 	{
+		showSpinner();
 		EditText et = (EditText) findViewById(R.id.comment);
 		String comment = et.getText().toString();
 		
@@ -340,13 +340,14 @@ public class MoreInfoActivity extends ActionBarActivity
 					fetchComments();
 				}
 				else
-					e.printStackTrace();
+					showParseException(e);
 			}
 		});
 	}
 	
 	public void changeAgenda(View view)
 	{
+		showSpinner();
 		EditText et = (EditText) findViewById(R.id.editAgenda);
 		String agenda = et.getText().toString();
 		
@@ -354,10 +355,11 @@ public class MoreInfoActivity extends ActionBarActivity
 		mMeetup.saveInBackground(new SaveCallback() {
 			@Override
 			public void done(ParseException e) {
+				removeSpinner();
 				if (e == null)
 					outputToast("Agenda changed!");
 				else
-					e.printStackTrace();
+					showParseException(e);
 			}
 		});
 	}
@@ -422,7 +424,7 @@ public class MoreInfoActivity extends ActionBarActivity
 	
 	public void cancel(View view)
 	{
-		getSupportFragmentManager().popBackStack();
+		getFragmentManager().popBackStack();
 	}
 	
 	public static class MoreInfoFragment extends Fragment
@@ -538,6 +540,16 @@ public class MoreInfoActivity extends ActionBarActivity
 			View rootView = inflater.inflate(R.layout.fragment_info,
 					container, false);
 			//Handles changing the RSVP time every second with the timer
+			
+			return rootView;
+		}
+		
+		//make sure all the info is current
+		public void onResume()
+		{
+			super.onResume();
+			
+			Resources res = getResources();
 			if (mExpiresAt.getTime() - new Date().getTime() > 0)
 			{
 				//Handles changing the RSVP time every second with the timer
@@ -576,15 +588,6 @@ public class MoreInfoActivity extends ActionBarActivity
 			}
 			else
 				((TextView) getActivity().findViewById(R.id.leftToRSVP)).setText("");
-			return rootView;
-		}
-		
-		//make sure all the info is current
-		public void onResume()
-		{
-			super.onResume();
-			
-			Resources res = getResources();
 			
 			Button button = (Button) getActivity().findViewById(R.id.no);
 			button.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),
@@ -616,13 +619,17 @@ public class MoreInfoActivity extends ActionBarActivity
 				else
 					getActivity().findViewById(R.id.no)
 						.setBackgroundColor(getResources().getColor(R.color.red));
+			
 		}
 		
 		public void onStop()
 		{
 			super.onStop();
-			mTimer.cancel();
-			mTimer.purge();
+			if (mTimer != null)
+			{
+				mTimer.cancel();
+				mTimer.purge();
+			}
 		}
 		
 		public class RSVPTimerTask extends TimerTask

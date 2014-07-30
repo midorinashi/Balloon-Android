@@ -42,8 +42,8 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Contacts.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.MediaStore;
-import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
+import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -85,7 +85,7 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.squareup.picasso.Picasso;
 
-public class NewInvitationActivity extends Activity implements OnMemberListSelectedListener {
+public class NewInvitationActivity extends ProgressActivity implements OnMemberListSelectedListener {
 
 	private static String mListName;
 	private static boolean mPublicList;
@@ -210,6 +210,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 	//basically manages entire flow
 	public void next()
 	{
+		removeSpinner();
 		FragmentTransaction transaction = getFragmentManager().beginTransaction();
 		if (mCurrentFragment.equals("SelectListFragment"))
 			transaction.replace(R.id.container, new CreateListFragment());
@@ -442,7 +443,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 	public static void membersListClicked(View view)
 	{
 		int items = mListView.getCount();
-		int checked = mListView.getCheckedItemIds().length;
+		int checked = mListView.getCheckedItemCount();
 		if (checked == items)
 			mCheckbox.setChecked(true);
 		else
@@ -461,6 +462,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 	
 	public void makeMeetup(final View view)
 	{
+		showSpinner();
 		//make the contact list if we need to
 		if (mMakeContactList)
 		{
@@ -489,7 +491,8 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 						ParseObject contactList = new ParseObject("ContactList");
 						contactList.put("owner", ParseUser.getCurrentUser());
 						contactList.put("name", mListName);
-						contactList.put("photo", mContactListImage);
+						if (mContactListImage != null)
+							contactList.put("photo", mContactListImage);
 						contactList.put("isVisibleToMembers", mPublicList);
 						JSONArray mContacts = new JSONArray();
 						//two different json arrays because send invites need json objects, not parse objects
@@ -498,7 +501,11 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 						{
 							mContacts.put(list.get(i));
 							try {
-								mMembers.put(new JSONObject(mContacts.get(i).toString()));
+								JSONObject person = new JSONObject();
+								person.put("__type", "Pointer");
+								person.put("className", "_User");
+								person.put("objectId", list.get(i).getObjectId());
+								mMembers.put(person);
 							} catch (JSONException e1) {
 								e1.printStackTrace();
 							}
@@ -513,12 +520,12 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 									makeMeetup(view);
 								}
 								else
-									e.printStackTrace();
+									showParseException(e);
 							}
 						});
 					}
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 				
 			});
@@ -550,7 +557,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 					sendInvite(meetup);
 				}
 				else
-					e.printStackTrace();
+					showParseException(e);
 			}
 			
 		});
@@ -566,16 +573,10 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 		ParseCloud.callFunctionInBackground("sendInvites", params, new FunctionCallback<Object>(){
 
 			@Override
-			public void done(Object arg0, ParseException arg1) {
-				if (arg1 != null)
-					arg1.printStackTrace();
-				else
-				{
-					System.out.println("Success");
-					
-					//Next, end the activity
-					end();
-				}
+			public void done(Object arg0, ParseException e) {
+				if (e != null)
+					showParseException(e);
+				end();
 			}
 			
 		});
@@ -652,6 +653,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 	        		.setText(getResources().getString(R.string.final_edit_no_photos));
 	            return true;
 	        case R.id.action_photo_last:// Find the last picture
+	        	showSpinner();
 	        	String[] projection = new String[]{
 	        		    MediaStore.Images.ImageColumns._ID,
 	        		    MediaStore.Images.ImageColumns.DATA,
@@ -700,6 +702,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 	//this is how we get the picture
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
+        	showSpinner();
         	System.out.println("hi");
         	// if it came from the camera
 			Uri uri;
@@ -753,10 +756,11 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 				public void done(ParseException e) {
 					if (e == null)
 					{
+						removeSpinner();
 						addImage(image.getUrl());
 					}
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 			});
 		}
@@ -784,7 +788,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 						setContactListImage();
 					}
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 			});
 		}
@@ -794,6 +798,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 	{
 		if (mCurrentFragment == "CreateListFragment")
 		{
+			removeSpinner();
 			ImageView view = (ImageView) findViewById(R.id.image);
 			Picasso.with(this).load(mContactListImage.getUrl()).into(view);
 			findViewById(R.id.addPhoto).setVisibility(View.GONE);
@@ -814,7 +819,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 			tv.setText("1 photo");
 	}
 	
-	public static class SelectListFragment extends Fragment {
+	public static class SelectListFragment extends ProgressFragment {
 
 		protected String[] lists;
 		protected String[] photoURLs;
@@ -842,6 +847,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 		public void onResume()
 		{
 			super.onResume();
+			showSpinner();
 			getActivity().setTitle(getResources().getString(R.string.title_select_list));
 			mCurrentFragment = "SelectListFragment";
 			
@@ -881,9 +887,10 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 							ids[i] = memberLists.get(i).getObjectId();
 						}
 						addListsToView();
+						removeSpinner();
 					}
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 			});
 		}
@@ -1079,7 +1086,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 	    }
 	}
 	
-	public static class SelectMembersFromListFragment extends Fragment {
+	public static class SelectMembersFromListFragment extends ProgressFragment {
 		
 		// and name should be displayed in the text1 textview in item layout
 		private String[] names;
@@ -1106,6 +1113,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 		public void onResume()
 		{
 			super.onResume();
+			showSpinner();
 			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_list));
 			mCurrentFragment = "SelectMembersFromListFragment";
 			
@@ -1151,7 +1159,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 						fetchNames();
 					}
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 		    });
 		}
@@ -1203,7 +1211,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 						finishResume();
 					}
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 			});
 		}
@@ -1213,6 +1221,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 			//so that it won't crash if i move between pages too fast
 		    if (mCurrentFragment == "SelectMembersFromListFragment")
 		    {
+		    	removeSpinner();
 			    if (mArrayAdapter == null)
 				    mArrayAdapter = new GroupAdapter(getActivity(), R.layout.list_item_select_members,
 							names, photoURLs);
@@ -1241,28 +1250,37 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 		public void onPause()
 		{
 			super.onPause();
-			long[] viewIds = ((ListView) getActivity().findViewById(R.id.memberList)).getCheckedItemIds();
-			mMemberIds = new String[viewIds.length];
+			
+			SparseBooleanArray checked = ((ListView) getActivity().findViewById(R.id.memberList))
+					.getCheckedItemPositions();
+			int count = ((ListView) getActivity().findViewById(R.id.memberList)).getCount();
+			mMemberIds = new String[count];
 			mMembers = new JSONArray();
 			mMemberObjectIds = new JSONArray();
-			if (viewIds.length > 0)
+			mPreviewName = null;
+			
+			for (int i = 0; i < count; i++)
 			{
-				mPreviewName = names[(int) viewIds[0]];
-				if (names[0].indexOf(' ') > -1)
-	        		mPreviewName = names[0].substring(0, names[0].indexOf(' '));
-	        	else
-	        		mPreviewName = names[0];
-			}
-			for (int i = 0; i < viewIds.length; i++)
-			{
-				mMemberIds[i] = ids.get((int) viewIds[i]);
-				try {
-					mMembers.put(users.get((int) viewIds[i]));
-					mMemberObjectIds.put(ids.get((int) viewIds[i]));
-				} catch (JSONException e) {
-					e.printStackTrace();
+				int index = checked.indexOfKey(i);
+				if (checked.get(index))
+				{
+					if (mPreviewName == null)
+					{
+						mPreviewName = names[index];
+						if (names[0].indexOf(' ') > -1)
+			        		mPreviewName = names[0].substring(0, names[0].indexOf(' '));
+			        	else
+			        		mPreviewName = names[0];
+					}
+					mMemberIds[i] = ids.get(index);
+					try {
+						mMembers.put(users.get(index));
+						mMemberObjectIds.put(ids.get(index));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					System.out.println(mMemberIds[i]);
 				}
-				System.out.println(mMemberIds[i]);
 			}
 		}
 	}
@@ -1299,7 +1317,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 		}
 	}
 	
-	public static class ChooseLocationFragment extends Fragment implements OnQueryTextListener{
+	public static class ChooseLocationFragment extends ProgressFragment implements OnQueryTextListener{
 
 		private static ListView lv;
 		static Activity context;
@@ -1325,7 +1343,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 			mCurrentFragment = "ChooseLocationFragment";
 			System.out.println("Executing query sushi");
 			
-			new AccessFoursquareVenues().execute("");
+			new AccessFoursquareVenues(this).execute("");
 			SearchView sv = (SearchView) context.findViewById(R.id.searchLocation);
 			sv.setOnQueryTextListener(this);
 			sv.setSubmitButtonEnabled(true);
@@ -1408,6 +1426,12 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 			transaction.addToBackStack(null);
 			transaction.commit();
 		}
+		
+		public void onStop()
+		{
+			removeSpinner();
+			super.onStop();
+		}
 
 		@Override
 		public boolean onQueryTextChange(String newText) {
@@ -1418,7 +1442,7 @@ public class NewInvitationActivity extends Activity implements OnMemberListSelec
 		@Override
 		public boolean onQueryTextSubmit(String query) {
 
-			new AccessFoursquareVenues().execute(query);
+			new AccessFoursquareVenues(this).execute(query);
 			return true;
 		}
 	}

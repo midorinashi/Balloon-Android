@@ -23,6 +23,7 @@
     <string name="balloon">Balloon</string>
     <string name="cancel">Cancel</string>
     <string name="check_your_plans">Check your plans for\nupcoming events</string>
+    <string name="choose_group">Choose a group to set\nsomething up</string>
     <string name="comments_header">UPDATES</string>
     <string name="comments_hint">Your update here</string>
     <string name="coming_header">COMING</string>
@@ -61,8 +62,9 @@
     <string name="more_info">More info</string>
     <string name="new_contact_list">Name The Contact List</string>
     <string name="next">Next</string>
+    <string name="no_internet">Oops! No internet.</string>
     <string name="no_invites"><b>No Invites</b></string>
-    <string name="no_time">000:00:00 </string>
+    <string name="no_time">         </string>
     <string name="password">Password</string>
     <string name="photo_foursquare">Add Location Photos</string>
     <string name="photo_last">Use Last Photo Taken</string>
@@ -74,6 +76,7 @@
     <string name="search_location">Search</string>
     <string name="send">Send</string>
     <string name="select_all">Select All:</string>
+    <string name="select_group">Select a Group</string>
     <string name="settings_name_first">First Name</string>
     <string name="settings_name_last">Last Name</string>
     <string name="settings_number">Mobile Number</string>

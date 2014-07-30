@@ -12,6 +12,15 @@ import org.json.JSONObject;
 
 public class AccessFoursquarePhotos extends AccessFoursquare {
 
+	private ProgressFragment fragment;
+	
+	public AccessFoursquarePhotos(ProgressFragment f)
+	{
+		super();
+		fragment = f;
+		f.showSpinner();
+	}
+	
 	@Override
 	//string 0 is the location id
 	protected JSONArray doInBackground(String... id) {
@@ -75,6 +84,7 @@ public class AccessFoursquarePhotos extends AccessFoursquare {
 				e.printStackTrace();
 			}
     	}
+    	fragment.removeSpinner();
     	AbstractImageListFragment.setURLs(urls);
     }
 

@@ -32,8 +32,9 @@
 	            android:id="@+id/finalEditToText"
 	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
-	            android:layout_marginBottom="10dp"
+	            android:ellipsize="end"
 	            android:gravity="right"
+	            android:lines="1"
 	            android:text="@string/dummy_name"
 	            android:textColor="@color/blue" />
 	
@@ -45,7 +46,6 @@
 	        android:id="@+id/finalEditAgenda"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
-	        android:orientation="vertical"
 	        android:layout_margin="10dp"
 	        android:padding="10dp" >
 	
@@ -59,7 +59,9 @@
 	            android:id="@+id/finalEditAgendaText"
 	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
+	            android:ellipsize="end"
 	            android:gravity="right"
+	            android:lines="1"
 	            android:text="@string/dummy_agenda"
 	            android:textColor="@color/blue" />
 	        
@@ -84,9 +86,12 @@
 	            android:id="@+id/finalEditLocationText"
 	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
+	            android:ellipsize="end"
 	            android:gravity="right"
+	            android:lines="1"
 	            android:text="@string/dummy_location"
 	            android:textColor="@color/blue" />
+
 	    </LinearLayout>
 	
 	    <LinearLayout

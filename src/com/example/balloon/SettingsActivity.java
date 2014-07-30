@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
 import android.database.Cursor;
@@ -38,7 +37,7 @@ import com.parse.SaveCallback;
 import com.squareup.picasso.Picasso;
 
 
-public class SettingsActivity extends Activity {
+public class SettingsActivity extends ProgressActivity {
 	protected static Bitmap bm;
 	private File lastSavedFile;
 
@@ -120,6 +119,7 @@ public class SettingsActivity extends Activity {
 	
 	public void saveUser()
 	{
+		showSpinner();
 		ParseUser user = ParseUser.getCurrentUser();
 		user.put("firstName", ((EditText) findViewById(R.id.firstName)).getText().toString());
 		user.put("lastName", ((EditText) findViewById(R.id.lastName)).getText().toString());
@@ -139,7 +139,7 @@ public class SettingsActivity extends Activity {
 					if (e == null)
 						saveUser(image);
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 			});
 		}
@@ -160,9 +160,12 @@ public class SettingsActivity extends Activity {
 		ParseUser.getCurrentUser().saveInBackground(new SaveCallback() {
 			public void done(ParseException e) {
 				if (e == null)
+				{
+					removeSpinner();
 					Toast.makeText(context, "Profile saved!", Toast.LENGTH_SHORT).show();
+				}
 				else
-					e.printStackTrace();
+					showParseException(e);
 			}
 		}); 
 	}
@@ -178,6 +181,7 @@ public class SettingsActivity extends Activity {
 	public boolean onContextItemSelected(MenuItem item) {
 	    switch (item.getItemId()) {
 	        case R.id.action_photo_last:// Find the last picture
+	        	showSpinner();
 	        	String[] projection = new String[]{
 	        		    MediaStore.Images.ImageColumns._ID,
 	        		    MediaStore.Images.ImageColumns.DATA,
@@ -200,6 +204,7 @@ public class SettingsActivity extends Activity {
 	        	            view.setVisibility(ImageView.VISIBLE);
 	        		    }
 	        		} 
+        		removeSpinner();
 	            return true;
 	        case R.id.action_photo_take:
 	        	Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -227,6 +232,7 @@ public class SettingsActivity extends Activity {
 	//this is how we get the picture
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
+        	showSpinner();
         	System.out.println("hi");
         	// if it came from the camera
 			Uri uri;
@@ -244,6 +250,7 @@ public class SettingsActivity extends Activity {
 				e.printStackTrace();
 			}
             Picasso.with(this).load(uri).into((ImageView) findViewById(R.id.photo));
+            removeSpinner();
         } else if (resultCode == RESULT_CANCELED) {
         	System.out.println("canceled");
             // User cancelled the image capture

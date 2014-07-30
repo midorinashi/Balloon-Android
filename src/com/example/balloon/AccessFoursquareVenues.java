@@ -13,11 +13,20 @@ import android.os.AsyncTask;
 
 public class AccessFoursquareVenues extends AccessFoursquare {
 
+	private ProgressFragment fragment;
+	
+	public AccessFoursquareVenues(ProgressFragment f)
+	{
+		super();
+		fragment = f;
+		f.showSpinner();
+	}
+	
 	//string 0 is query
     protected JSONArray doInBackground(String... strings) {
     	String str = "";
     	String urlString = URL + SEARCH + CLIENT_ID + CLIENT_SECRET +
-    			DEFAULT_VERSION + "%20&limit=100" + "%20&radius=50000";
+    			DEFAULT_VERSION ;
     	
     	// get the location
     	// Acquire a reference to the system Location Manager
@@ -30,7 +39,10 @@ public class AccessFoursquareVenues extends AccessFoursquare {
     	
     	//make sure we have a query
     	if (strings[0].compareTo("") != 0)
-    		urlString += "%20&query=" + strings[0].replaceAll(" ", "%20");
+    		urlString += "%20&query=" + strings[0].replaceAll(" ", "%20") + "%20&limit=100" + "%20&radius=50000";
+    	//we want to make query-less queries fast
+    	else
+    		urlString+= "%20&limit=10" + "%20&radius=500";
     	System.out.println(urlString);
     	// for explore, we can add "%20&time=any%20&day=any"
     	
@@ -78,6 +90,7 @@ public class AccessFoursquareVenues extends AccessFoursquare {
     
     protected void onPostExecute(JSONArray array) {
     	System.out.println("giving back array to fragment");
+    	fragment.removeSpinner();
         NewInvitationActivity.ChooseLocationFragment.makeList(array);
     }
 }

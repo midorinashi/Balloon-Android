@@ -56,7 +56,7 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.squareup.picasso.Picasso;
 
-public class NewContactListActivity extends Activity {
+public class NewContactListActivity extends ProgressActivity {
 
 	public static String mListName;
 	public static boolean mPublicList;
@@ -99,6 +99,7 @@ public class NewContactListActivity extends Activity {
 	        case R.id.action_photo_phone:
 	            return true;
 	        case R.id.action_photo_last:// Find the last picture
+        		showSpinner();
 	        	String[] projection = new String[]{
 	        		    MediaStore.Images.ImageColumns._ID,
 	        		    MediaStore.Images.ImageColumns.DATA,
@@ -147,6 +148,7 @@ public class NewContactListActivity extends Activity {
 	//this is how we get the picture
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
+    		showSpinner();
         	System.out.println("hi");
         	// if it came from the camera
 			Uri uri;
@@ -200,9 +202,10 @@ public class NewContactListActivity extends Activity {
 				{
 					mContactListImage = image;
 					setContactListImage();
+					removeSpinner();
 				}
 				else
-					e.printStackTrace();
+					showParseException(e);
 			}
 		});
 	}
@@ -292,7 +295,10 @@ public class NewContactListActivity extends Activity {
         {
         	mContacts.put(getPhoneNumber(id[i]));
         }
-        findOrCreateContacts();
+		if (mContacts.length() == 0)
+			Toast.makeText(this, "No friends?", Toast.LENGTH_SHORT).show();
+		else
+			findOrCreateContacts();
 	}
 	
 	/* References
@@ -395,6 +401,7 @@ public class NewContactListActivity extends Activity {
 	
 	public void findOrCreateContacts()
 	{
+		showSpinner();
 		HashMap<String, Object> request = new HashMap<String, Object>();
 		request.put("contacts", mContacts);
 		System.out.println("starting to find or create users");
@@ -405,7 +412,7 @@ public class NewContactListActivity extends Activity {
 					@Override
 					public void done(Object members, ParseException e) {
 						if (e != null)
-							e.printStackTrace();
+							showParseException(e);
 						else
 						{
 							System.out.println("Find or create users complete.");
@@ -422,13 +429,14 @@ public class NewContactListActivity extends Activity {
 		list.put("name", mListName);
 		list.put("owner", ParseUser.getCurrentUser());
 		list.put("isVisibleToMembers", mPublicList);
-		list.put("photo", mContactListImage);
+		if (mContactListImage != null)
+			list.put("photo", mContactListImage);
 		list.addAll("members", members);
 		System.out.println("Saving...");
 		list.saveInBackground(new SaveCallback() {
 			public void done(ParseException e) {
 				if (e != null)
-					e.printStackTrace();
+					showParseException(e);
 				else
 					finishActivity();
 				
@@ -438,6 +446,7 @@ public class NewContactListActivity extends Activity {
 	
 	public void finishActivity()
 	{
+		removeSpinner();
 		//Show message
 		Context context = getApplicationContext();
 		CharSequence text = "New Contact List Made!";

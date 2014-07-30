@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 
@@ -142,7 +143,7 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 		}
 	}
 	
-	public static class ShowListFragment extends Fragment {
+	public static class ShowListFragment extends ProgressFragment {
 		protected String[] names;
 		protected ArrayList<String> ids;
 		protected String[] photoURLs;
@@ -160,6 +161,7 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 			getActivity().setTitle(mListName);
 			mCurrentFragment = "SelectMembersFromListFragment";
 			
+			showSpinner();
 			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("ContactList");
 		    query.whereEqualTo("objectId", mListId);
 		    query.include("owner");
@@ -193,13 +195,19 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 						fetchNames();
 					}
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 		    });
 		}
 		
 		public void fetchNames()
 		{
+			if (ids.size() == 0)
+			{
+				Toast.makeText(getActivity(), "Oops!", Toast.LENGTH_SHORT).show();
+				removeSpinner();
+				return;
+			}
 			//this is to get the members 
 			ArrayList<ParseQuery<ParseUser>> queries = new ArrayList<ParseQuery<ParseUser>>();
 			for (int i = 0; i < ids.size(); i++)
@@ -227,7 +235,7 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 						finishResume();
 					}
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 			});
 		}
@@ -240,6 +248,7 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 			    GroupAdapter adapter = new GroupAdapter(getActivity(),
 			    		R.layout.list_members, names, photoURLs);
 			    
+			    removeSpinner();
 			    // each time we are started use our listadapter
 			    ListView lv = (ListView) getActivity().findViewById(R.id.showMembers);
 			    lv.setAdapter(adapter);
