@@ -38,7 +38,7 @@ import com.squareup.picasso.Picasso;
 
 
 public class SettingsActivity extends ProgressActivity {
-	protected static Bitmap bm;
+	protected static ParseFile image;
 	private File lastSavedFile;
 
 
@@ -127,31 +127,6 @@ public class SettingsActivity extends ProgressActivity {
 		if (!password.equals(""))
 			user.setPassword(password);
 		
-		if (bm != null)
-		{
-			System.out.println("bitmap exists");
-			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
-			byte[] byteArray = stream.toByteArray();
-			final ParseFile image = new ParseFile("profile.png", byteArray);
-			image.saveInBackground(new SaveCallback(){
-				public void done(ParseException e) {
-					if (e == null)
-						saveUser(image);
-					else
-						showParseException(e);
-				}
-			});
-		}
-		else
-		{
-			System.out.println("bitmap does not exist");
-			saveUser(null);
-		}
-	}
-	
-	public void saveUser(ParseFile image)
-	{
 		if (image != null)
 		{
 			ParseUser.getCurrentUser().put("profilePhoto", image);
@@ -182,6 +157,7 @@ public class SettingsActivity extends ProgressActivity {
 	    switch (item.getItemId()) {
 	        case R.id.action_photo_last:// Find the last picture
 	        	showSpinner();
+	        	Bitmap bm = null;
 	        	String[] projection = new String[]{
 	        		    MediaStore.Images.ImageColumns._ID,
 	        		    MediaStore.Images.ImageColumns.DATA,
@@ -198,13 +174,10 @@ public class SettingsActivity extends ProgressActivity {
 	        		    String imageLocation = cursor.getString(1);
 	        		    File imageFile = new File(imageLocation);
 	        		    if (imageFile.exists()) {   // TODO: is there a better way to do this?
-	        	            ParseImageView view = (ParseImageView) findViewById(R.id.photo);
 	        	            bm = BitmapFactory.decodeFile(imageLocation);
-	        	            view.setImageBitmap(bm);
-	        	            view.setVisibility(ImageView.VISIBLE);
 	        		    }
 	        		} 
-        		removeSpinner();
+	        		saveImage(bm);
 	            return true;
 	        case R.id.action_photo_take:
 	        	Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -236,6 +209,7 @@ public class SettingsActivity extends ProgressActivity {
         	System.out.println("hi");
         	// if it came from the camera
 			Uri uri;
+			Bitmap bm = null;
 			if (requestCode == 0)
         		uri = android.net.Uri.fromFile(lastSavedFile);
         	//if it came from the library
@@ -248,9 +222,9 @@ public class SettingsActivity extends ProgressActivity {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
+			} finally {
+				saveImage(bm);
 			}
-            Picasso.with(this).load(uri).into((ImageView) findViewById(R.id.photo));
-            removeSpinner();
         } else if (resultCode == RESULT_CANCELED) {
         	System.out.println("canceled");
             // User cancelled the image capture
@@ -264,6 +238,40 @@ public class SettingsActivity extends ProgressActivity {
 			toast.show();
             // Image capture failed, advise user
         }
+	}
+	
+	public void saveImage(Bitmap original)
+	{
+		if (original != null)
+		{
+			//first crop it
+			int width = original.getWidth();
+			int height = original.getHeight();
+			Bitmap crop;
+			if (width > height)
+				crop = Bitmap.createBitmap(original, width/2 - height/2, 0, height, height);
+			else
+				crop = Bitmap.createBitmap(original, 0, height/2 - width/2, width, width);
+			//then resize
+			Bitmap bm = Bitmap.createScaledBitmap(crop, 320, 320, true);
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
+			byte[] byteArray = stream.toByteArray();
+			image = new ParseFile("profile.png", byteArray);
+			image.saveInBackground(new SaveCallback(){
+				public void done(ParseException e) {
+					if (e == null)
+					{
+						removeSpinner();
+						findViewById(R.id.photo).setVisibility(View.VISIBLE);
+						Picasso.with(getApplicationContext()).load(image.getUrl()).resize(160, 160).into
+							(((ImageView) findViewById(R.id.photo)));
+					}
+					else
+						showParseException(e);
+				}
+			});
+		}
 	}
 	
 	//this will log out the user
@@ -286,7 +294,7 @@ public class SettingsActivity extends ProgressActivity {
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_settings,
 					container, false);
-			bm = null;
+			image = null;
 			toRefresh = true;
 			return rootView;
 		}
@@ -317,6 +325,7 @@ public class SettingsActivity extends ProgressActivity {
 			et.setText(user.getString("lastName"));
 			if (user.containsKey("profilePhoto"))
 			{
+				getActivity().findViewById(R.id.photo).setVisibility(View.VISIBLE);
 				Picasso.with(getActivity()).load(user.getParseFile("profilePhoto").getUrl())
 					.resize(160, 160).into((ImageView) getActivity().findViewById(R.id.photo));
 			}

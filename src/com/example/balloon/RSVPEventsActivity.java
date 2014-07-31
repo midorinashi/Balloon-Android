@@ -11,6 +11,7 @@ import org.json.JSONException;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -21,8 +22,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.ViewAnimator;
 
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshScrollView;
+import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
@@ -48,7 +54,7 @@ public class RSVPEventsActivity extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
+		getMenuInflater().inflate(R.menu.main_no_plus, menu);
 		return true;
 	}
 
@@ -84,6 +90,12 @@ public class RSVPEventsActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+	
+	public void newInvitation(View view)
+	{
+		Intent intent = new Intent(this, NewInvitationActivity.class);
+		startActivity(intent);
+	}
 
 	/**
 	 * A placeholder fragment containing a simple view.
@@ -92,6 +104,8 @@ public class RSVPEventsActivity extends Activity {
 
 		private ArrayList<Handler> handlers;
 		protected ArrayList<Timer> timers;
+		private ViewAnimator switcher;
+		public PullToRefreshBase<ScrollView> pullToRefreshView;
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -107,6 +121,19 @@ public class RSVPEventsActivity extends Activity {
 		public void onResume()
 		{
 			super.onResume();
+			if (switcher == null)
+			{
+				switcher = (ViewAnimator) getActivity().findViewById(R.id.animator);
+				pullToRefreshView = (PullToRefreshScrollView)
+						getActivity().findViewById(R.id.scrollToRefresh);
+				pullToRefreshView.setOnRefreshListener(new OnRefreshListener<ScrollView>() {
+				    @Override
+				    public void onRefresh(PullToRefreshBase<ScrollView> refreshView) {
+				        getUpcoming();
+				        new GetDataTask().execute();
+				    }
+				});
+			}
 			getUpcoming();
 		}
 		
@@ -132,112 +159,129 @@ public class RSVPEventsActivity extends Activity {
 		{
 			if (getActivity() instanceof RSVPEventsActivity)
 			{
-				LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
-				//removes all the views for now because EFFICIENCY WHAT
-				lin.removeAllViews();
-				
-				for (int i = 0; i < upcoming.size(); i++)
+				if (upcoming.size() == 0)
 				{
-					View event = View.inflate(getActivity(), R.layout.list_item_plans, null);
-					ParseObject meetup = (ParseObject) upcoming.get(i).get("meetup");
-					//invite.setVenuePhoto(event.getParseFile(key));
-					try {
-						((TextView) event.findViewById(R.id.creator)).setText(meetup
-								.getParseUser("creator").getString("firstName") + " " + 
-								meetup.getParseUser("creator").getString("lastName"));
-						((TextView) event.findViewById(R.id.agenda)).setText(meetup.getString("agenda"));
-						
-						JSONArray formattedAddress = meetup.getJSONObject("venueInfo").getJSONObject("location")
-								.getJSONArray("formattedAddress");
-						String address = "";
-						for (int j = 0; j < formattedAddress.length(); j++)
-						{
-							address += formattedAddress.getString(j);
-							if (j != formattedAddress.length() - 1)
-								address += ", ";
-						}
-						((TextView) event.findViewById(R.id.venueInfo)).setText(address);
-	 
-						JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
-						if (urls != null && urls.length() > 0)
-							Picasso.with(getActivity()).load(urls.getString(0)).resize(150, 150).centerCrop()
-								.into((ImageView) event.findViewById(R.id.eventImage));
-						
-						final Date mExpiresAt = meetup.getDate("expiresAt");
-						if (mExpiresAt.getTime() - new Date().getTime() > 0)
-						{
-							Timer timer = new Timer("RSVPTimer");
-							timers.add(timer);
-							final Date expiresAt = meetup.getDate("expiresAt");
-							final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
-							final TextView mLeftToRSVP = (TextView) event.findViewById(R.id.leftToRSVP);
-							//Handles changing the RSVP time every second with the timer
-							Handler handler = new Handler() {
-								public void handleMessage(Message message)
-								{
-									Date now = new Date();
-									long timeToRSVP = expiresAt.getTime() - now.getTime();
-									if (timeToRSVP < 0)
-									{
-										mTimeToRSVPView.setText("");
-										mLeftToRSVP.setText("");
-										// I want to cancel the handler, timer, and view
-										int index = handlers.indexOf(this);
-										timers.get(index).cancel();
-									}
-									else
-									{
-										String time = "" + timeToRSVP/(60*60*1000) + ":";
-										int minutes = (int)(timeToRSVP/(60*1000))%60;
-										if (minutes < 10)
-											time = time + "0";
-										time = time + minutes + ":";
-										int seconds = (int)(timeToRSVP/1000)%60;
-										if (seconds < 10)
-											time = time+ "0";
-										time = time + seconds;
-										//System.out.println(time);
-										mTimeToRSVPView.setText(time);
-										mTimeToRSVPView.invalidate();
-										mTimeToRSVPView.requestLayout();
-										//invalidate();
-										//requestLayout();
-									}
-								}
-							};
-							handlers.add(handler);
-							timer.schedule(new RSVPTimerTask(handlers.size() - 1), 10, 1000);
+					if (switcher.getDisplayedChild() == 0)
+						switcher.showNext();
+				}
+				else
+				{
+					System.out.println("size is " + upcoming.size());
+					LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
+					System.out.println(lin);
+					//removes all the views for now because EFFICIENCY WHAT
+					lin.removeAllViews();
+					
+					for (int i = 0; i < upcoming.size(); i++)
+					{
+						View event = View.inflate(getActivity(), R.layout.list_item_plans, null);
+						ParseObject meetup = (ParseObject) upcoming.get(i).get("meetup");
+						//invite.setVenuePhoto(event.getParseFile(key));
+						try {
+							((TextView) event.findViewById(R.id.creator)).setText(meetup
+									.getParseUser("creator").getString("firstName") + " " + 
+									meetup.getParseUser("creator").getString("lastName"));
+							((TextView) event.findViewById(R.id.agenda)).setText(meetup.getString("agenda"));
 							
-						}
-						else
-							((TextView) event.findViewById(R.id.leftToRSVP)).setText("");
-						
-						//to set the onclick listener
-						final String objectId = meetup.getObjectId();
-						final boolean hasResponded = true;
-						final boolean isCreator = ParseUser.getCurrentUser().getObjectId()
-								.equals(meetup.getParseUser("creator").getObjectId());
-						final boolean willAttend = isCreator || ((ParseObject) upcoming.get(i)
-								.get("response")).getBoolean("isAttending");
-
-						event.setOnClickListener(new View.OnClickListener() {
-							public void onClick(View v) {
-								Intent intent = new Intent(getActivity(), MoreInfoActivity.class);
-								Bundle bundle = new Bundle();
-								bundle.putString("objectId", objectId);
-								bundle.putBoolean("hasResponded", hasResponded);
-								bundle.putBoolean("willAttend", willAttend);
-								bundle.putBoolean("isCreator", isCreator);
-								intent.putExtras(bundle);
-								(getActivity()).startActivity(intent);
+							JSONArray formattedAddress = meetup.getJSONObject("venueInfo").getJSONObject("location")
+									.getJSONArray("formattedAddress");
+							String address = "";
+							for (int j = 0; j < formattedAddress.length(); j++)
+							{
+								address += formattedAddress.getString(j);
+								if (j != formattedAddress.length() - 1)
+									address += ", ";
+							}
+							((TextView) event.findViewById(R.id.venueInfo)).setText(address);
+		 
+							JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
+							if (urls != null && urls.length() > 0)
+								Picasso.with(getActivity()).load(urls.getString(0)).resize(150, 150).centerCrop()
+									.into((ImageView) event.findViewById(R.id.eventImage));
+							else
+								Picasso.with(getActivity()).load(R.drawable.logo).resize(150, 150).centerCrop()
+									.into((ImageView) event.findViewById(R.id.eventImage));
+							
+							final Date mExpiresAt = meetup.getDate("expiresAt");
+							if (mExpiresAt.getTime() - new Date().getTime() > 0)
+							{
+								Timer timer = new Timer("RSVPTimer");
+								timers.add(timer);
+								final Date expiresAt = meetup.getDate("expiresAt");
+								final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
+								final TextView mLeftToRSVP = (TextView) event.findViewById(R.id.leftToRSVP);
+								//Handles changing the RSVP time every second with the timer
+								Handler handler = new Handler() {
+									public void handleMessage(Message message)
+									{
+										Date now = new Date();
+										long timeToRSVP = expiresAt.getTime() - now.getTime();
+										if (timeToRSVP < 0)
+										{
+											mTimeToRSVPView.setText("");
+											mLeftToRSVP.setText("");
+											// I want to cancel the handler, timer, and view
+											int index = handlers.indexOf(this);
+											timers.get(index).cancel();
+										}
+										else
+										{
+											String time = "" + timeToRSVP/(60*60*1000) + ":";
+											int minutes = (int)(timeToRSVP/(60*1000))%60;
+											if (minutes < 10)
+												time = time + "0";
+											time = time + minutes + ":";
+											int seconds = (int)(timeToRSVP/1000)%60;
+											if (seconds < 10)
+												time = time+ "0";
+											time = time + seconds;
+											//System.out.println(time);
+											mTimeToRSVPView.setText(time);
+											mTimeToRSVPView.invalidate();
+											mTimeToRSVPView.requestLayout();
+											//invalidate();
+											//requestLayout();
+										}
+									}
+								};
+								handlers.add(handler);
+								timer.schedule(new RSVPTimerTask(handlers.size() - 1), 10, 1000);
 								
 							}
-						});
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+							else
+								((TextView) event.findViewById(R.id.leftToRSVP)).setText("");
+							
+							//to set the onclick listener
+							final String objectId = meetup.getObjectId();
+							final boolean hasResponded = true;
+							final boolean isCreator = ParseUser.getCurrentUser().getObjectId()
+									.equals(meetup.getParseUser("creator").getObjectId());
+							final boolean willAttend = isCreator || ((ParseObject) upcoming.get(i)
+									.get("response")).getBoolean("isAttending");
+	
+							event.setOnClickListener(new View.OnClickListener() {
+								public void onClick(View v) {
+									Intent intent = new Intent(getActivity(), MoreInfoActivity.class);
+									Bundle bundle = new Bundle();
+									bundle.putString("objectId", objectId);
+									bundle.putBoolean("hasResponded", hasResponded);
+									bundle.putBoolean("willAttend", willAttend);
+									bundle.putBoolean("isCreator", isCreator);
+									intent.putExtras(bundle);
+									(getActivity()).startActivity(intent);
+									
+								}
+							});
+						} catch (JSONException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						lin.addView(event);
 					}
-					lin.addView(event);
+					lin.invalidate();
+					lin.requestLayout();
+					if (switcher.getDisplayedChild() == 1)
+						switcher.showPrevious();
 				}
 			}
 			removeSpinner();
@@ -245,6 +289,7 @@ public class RSVPEventsActivity extends Activity {
 		
 		public void onStop()
 		{
+			removeSpinner();
 			super.onStop();
 			for (int i = 0; i < timers.size(); i++)
 				timers.get(i).cancel();
@@ -264,6 +309,21 @@ public class RSVPEventsActivity extends Activity {
 			public void run() {
 				//System.out.println(pos);
 				handlers.get(pos).obtainMessage(1).sendToTarget();
+			}
+		}
+		
+		private class GetDataTask extends AsyncTask<Void, Void, String[]> {
+		    @Override
+		    protected void onPostExecute(String[] result) {
+		        // Call onRefreshComplete when the list has been refreshed.
+		        pullToRefreshView.onRefreshComplete();
+		        super.onPostExecute(result);
+		    }
+
+			@Override
+			protected String[] doInBackground(Void... arg0) {
+				// TODO Auto-generated method stub
+				return null;
 			}
 		}
 	}

@@ -18,9 +18,10 @@ public abstract class ProgressFragment extends Fragment {
 	
 	public void showSpinner()
 	{
-		getActivity().getFragmentManager().beginTransaction()
-			.add(R.id.progress, new ProgressCircleFragment(), "Progress").setTransition(FragmentTransaction
-					.TRANSIT_FRAGMENT_OPEN).commit();
+		if (getFragmentManager().findFragmentByTag("Progress") == null)
+			getActivity().getFragmentManager().beginTransaction().add(R.id.progress, 
+				new ProgressCircleFragment(), "Progress").setTransition(FragmentTransaction
+				.TRANSIT_FRAGMENT_OPEN).commit();
 	}
 	
 	public void removeSpinner()
@@ -34,5 +35,4 @@ public abstract class ProgressFragment extends Fragment {
 						.TRANSIT_FRAGMENT_CLOSE).commitAllowingStateLoss();
 		}
 	}
-	
 }

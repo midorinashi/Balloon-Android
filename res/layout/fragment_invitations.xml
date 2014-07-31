@@ -5,25 +5,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/lightBlue"
-    android:inAnimation="@android:anim/fade_out"
-    android:outAnimation="@android:anim/fade_out" >
-    
-	<com.handmark.pulltorefresh.library.PullToRefreshScrollView
-	    android:id="@+id/scrollToRefresh"
-	    android:layout_width="match_parent"
-	    android:layout_height="match_parent" >
-	
-		    <LinearLayout
+    android:inAnimation="@android:anim/fade_in"
+    android:outAnimation="@android:anim/fade_in" >
+
+    <com.handmark.pulltorefresh.library.PullToRefreshScrollView
+        android:id="@+id/scrollToRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+        
+        <LinearLayout
 		    android:id="@+id/invitations"
 		    android:layout_width="match_parent"
 		    android:layout_height="wrap_content"
-			android:paddingTop="20dp"
-			android:paddingBottom="20dp"
-		    android:orientation="vertical" >
-		
-		</LinearLayout>
-	
-	</com.handmark.pulltorefresh.library.PullToRefreshScrollView>
+		    android:orientation="vertical" />
+		    
+    </com.handmark.pulltorefresh.library.PullToRefreshScrollView>
 
     <RelativeLayout
         android:id="@+id/goToPlans"
@@ -36,21 +32,19 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-            <com.example.balloon.TextBox
-                android:id="@+id/textView1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <ImageView
+                android:id="@+id/imageView1"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:layout_gravity="center"
-                android:text="@string/fa_calendar"
-                android:textSize="30sp"
-				custom:fontName="fontawesome-webfont.ttf" />
+                android:src="@drawable/calendar_outline" />
 
             <TextView
                 android:id="@+id/textView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="15dp"
+                android:layout_marginTop="25dp"
                 android:text="@string/no_invites"
                 android:textSize="16sp" />
 
@@ -79,8 +73,6 @@
         </LinearLayout>
 
     </RelativeLayout>
-    
-    
 
     <RelativeLayout
         android:id="@+id/goToGroups"
@@ -93,21 +85,19 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-            <com.example.balloon.TextBox
-                android:id="@+id/textView1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <ImageView
+                android:id="@+id/imageView2"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:layout_gravity="center"
-                android:text="@string/fa_calendar"
-                android:textSize="30sp"
-				custom:fontName="fontawesome-webfont.ttf" />
+                android:src="@drawable/balloon_outline" />
 
             <TextView
                 android:id="@+id/textView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="15dp"
+                android:layout_marginTop="25dp"
                 android:text="@string/no_invites"
                 android:textSize="16sp" />
 

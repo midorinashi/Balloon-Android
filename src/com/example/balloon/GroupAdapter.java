@@ -51,8 +51,13 @@ public class GroupAdapter extends BaseAdapter {
         if(convertView == null)
             vi = inflater.inflate(viewType, null);
         ((TextView) vi.findViewById(R.id.name)).setText(names[position]);
-        Picasso.with(activity).load(photoURLs[position]).resize(140, 140)
-        	.into((ImageView) vi.findViewById(R.id.imageView1));
+        //if we give it a resource id, then make it an int resource, not a string url
+        if (photoURLs[position] != null && photoURLs[position].indexOf('.') == -1)
+	        Picasso.with(activity).load(Integer.parseInt(photoURLs[position])).resize(140, 140)
+	        	.into((ImageView) vi.findViewById(R.id.imageView1));
+        else
+	        Picasso.with(activity).load(photoURLs[position]).resize(140, 140)
+	        	.into((ImageView) vi.findViewById(R.id.imageView1));
         return vi;
     }
 }

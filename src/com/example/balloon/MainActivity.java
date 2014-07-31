@@ -34,7 +34,6 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ViewAnimator;
 
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
@@ -65,8 +64,6 @@ public class MainActivity extends ProgressActivity
 		Parse.initialize(this, "iXEPNEZfJXoEOIayxLgBBgpShMZBTj7ReVoi1eqn",
 				"GHtE0svPk0epFG4olYnFTnnDtmARHtENXxXuHoXp");
 		PushService.setDefaultPushCallback(this, MainActivity.class);
-		PushService.subscribe(this, "", this.getClass());
-		PushService.subscribe(this, "u" + ParseUser.getCurrentUser().getObjectId(), this.getClass());
 		
 		String Tracey = "+19739002782";
 		String Mao = "+18007580051";
@@ -90,6 +87,8 @@ public class MainActivity extends ProgressActivity
 		//check to see if person is logged in
 		if (ParseUser.getCurrentUser() != null)
 		{
+			PushService.subscribe(this, "", this.getClass());
+			PushService.subscribe(this, "u" + ParseUser.getCurrentUser().getObjectId(), this.getClass());
 			onCreateInvitationsFragment();
 		}
 		else
@@ -360,6 +359,8 @@ public class MainActivity extends ProgressActivity
 					ImageView v = ((ImageView) event.findViewById(R.id.image));
 					if (urls != null && urls.length() > 0)
 						Picasso.with(getActivity()).load(urls.getString(0)).into(v);
+					else
+						Picasso.with(getActivity()).load(R.drawable.logo).into(v);
 				} catch (JSONException e) {
 					// Auto-generated catch block
 					e.printStackTrace();

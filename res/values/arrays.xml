@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="contact_list_images">
+	    <item>@drawable/color_balloon_0</item>
+	    <item>@drawable/color_balloon_1</item>
+	    <item>@drawable/color_balloon_2</item>
+	    <item>@drawable/color_balloon_3</item>
+	    <item>@drawable/color_balloon_4</item>
+	    <item>@drawable/color_balloon_5</item>
+	    <item>@drawable/color_balloon_6</item>
+	    <item>@drawable/color_balloon_7</item>
+	    <item>@drawable/color_balloon_8</item>
+	    <item>@drawable/color_balloon_9</item>
+	</array>
+</resources>

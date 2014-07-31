@@ -51,7 +51,7 @@ import com.squareup.picasso.Picasso;
 //I'm extending settings so that i can do all the pictures
 public class FirstPageActivity extends ProgressActivity {
 
-	protected static Bitmap bm;
+	protected static ParseFile image;
 	private File lastSavedFile;
 	private ParseUser user;
 	
@@ -60,7 +60,7 @@ public class FirstPageActivity extends ProgressActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_first_page);
 		setTitle(getResources().getString(R.string.title_first_page));
-		bm = null;
+		image = null;
 		if (savedInstanceState == null) {
 			getFragmentManager().beginTransaction()
 					.add(R.id.container, new FirstPageFragment()).commit();
@@ -95,6 +95,7 @@ public class FirstPageActivity extends ProgressActivity {
 	    switch (item.getItemId()) {
 	        case R.id.action_photo_last:// Find the last picture
 	        	showSpinner();
+	        	Bitmap bm = null;
 	        	String[] projection = new String[]{
 	        		    MediaStore.Images.ImageColumns._ID,
 	        		    MediaStore.Images.ImageColumns.DATA,
@@ -111,13 +112,10 @@ public class FirstPageActivity extends ProgressActivity {
 	        		    String imageLocation = cursor.getString(1);
 	        		    File imageFile = new File(imageLocation);
 	        		    if (imageFile.exists()) {   // TODO: is there a better way to do this?
-	        	            ParseImageView view = (ParseImageView) findViewById(R.id.photo);
 	        	            bm = BitmapFactory.decodeFile(imageLocation);
-	        	            view.setImageBitmap(bm);
-	        	            view.setVisibility(ImageView.VISIBLE);
 	        		    }
 	        		} 
-	        	removeSpinner();
+	        	saveImage(bm);
 	            return true;
 	        case R.id.action_photo_take:
 	        	Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -149,6 +147,7 @@ public class FirstPageActivity extends ProgressActivity {
         	System.out.println("hi");
         	// if it came from the camera
 			Uri uri;
+			Bitmap bm = null;
 			if (requestCode == 0)
         		uri = android.net.Uri.fromFile(lastSavedFile);
         	//if it came from the library
@@ -162,8 +161,8 @@ public class FirstPageActivity extends ProgressActivity {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-            Picasso.with(this).load(uri).into((ImageView) findViewById(R.id.photo));
-            removeSpinner();
+            saveImage(bm);
+
         } else if (resultCode == RESULT_CANCELED) {
         	System.out.println("canceled");
             // User cancelled the image capture
@@ -177,6 +176,41 @@ public class FirstPageActivity extends ProgressActivity {
 			toast.show();
             // Image capture failed, advise user
         }
+        removeSpinner();
+	}
+	
+	public void saveImage(Bitmap original)
+	{
+		if (original != null)
+		{
+			//first crop it
+			int width = original.getWidth();
+			int height = original.getHeight();
+			Bitmap crop;
+			if (width > height)
+				crop = Bitmap.createBitmap(original, width/2 - height/2, 0, height, height);
+			else
+				crop = Bitmap.createBitmap(original, 0, height/2 - width/2, width, width);
+			//then resize
+			Bitmap bm = Bitmap.createScaledBitmap(crop, 320, 320, true);
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
+			byte[] byteArray = stream.toByteArray();
+			image = new ParseFile("profile.png", byteArray);
+			image.saveInBackground(new SaveCallback(){
+				public void done(ParseException e) {
+					if (e == null)
+					{
+						removeSpinner();
+						findViewById(R.id.photo).setVisibility(View.VISIBLE);
+						Picasso.with(getApplicationContext()).load(image.getUrl()).resize(160, 160)
+							.into(((ImageView) findViewById(R.id.photo)));
+					}
+					else
+						showParseException(e);
+				}
+			});
+		}
 	}
 	
 	//opens up the signup fragment
@@ -248,6 +282,8 @@ public class FirstPageActivity extends ProgressActivity {
 						user.setUsername(mobile);
 						user.setPassword("lol");
 						user.put("isProxy", true);
+						if (image != null)
+							user.put("profilePhoto", image);
 						user.signUpInBackground(new SignUpCallback() {
 							@Override
 							public void done(ParseException e) {
@@ -284,64 +320,6 @@ public class FirstPageActivity extends ProgressActivity {
 					signupFailure(e);
 			}
 		});
-	}
-	
-	public void saveImage(final String password)
-	{
-		System.out.println(bm);
-		if (bm != null)
-		{
-			System.out.println("bitmap exists");
-			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
-			byte[] byteArray = stream.toByteArray();
-			final ParseFile image = new ParseFile("profile.png", byteArray);
-			image.saveInBackground(new SaveCallback(){
-				public void done(ParseException e) {
-					if (e == null)
-					{
-						user.put("profilePhoto", image);
-						user.saveInBackground(new SaveCallback() {
-						@Override
-						public void done(ParseException e) {
-							if (e == null)
-							{
-								ParseUser.logInInBackground(user.getUsername(), 
-										password, new LogInCallback() {
-									@Override
-									public void done(ParseUser user, ParseException e) {
-										if (user != null)
-											//saves the profile picture now if it exists
-											startMainActivity();
-										else
-											showParseException(e);
-									}
-								});
-							}
-							else
-								showParseException(e);
-							}
-						});
-					}
-					else
-						showParseException(e);
-				}
-			});
-		}
-		//if no image exists, just continue
-		else
-		{
-			ParseUser.logInInBackground(user.getUsername(), password, new LogInCallback() {
-				@Override
-				public void done(ParseUser user, ParseException e) {
-					if (user != null)
-						//saves the profile picture now if it exists
-						startMainActivity();
-					else
-						e.printStackTrace();
-				}
-			});
-		}
 	}
 	
 	public void alertToVerify()
@@ -409,7 +387,16 @@ public class FirstPageActivity extends ProgressActivity {
 				public void done(Object o, ParseException e) {
 					if (e == null)
 					{
-						saveImage(password);
+						ParseUser.logInInBackground(user.getUsername(), password, new LogInCallback() {
+							@Override
+							public void done(ParseUser user, ParseException e) {
+								if (user != null)
+									//saves the profile picture now if it exists
+									startMainActivity();
+								else
+									showParseException(e);
+							}
+						});
 					}
 					else
 						showParseException(e);
@@ -493,11 +480,10 @@ public class FirstPageActivity extends ProgressActivity {
 				    getActivity().unregisterForContextMenu(v);
 				}
 			});
-			if (bm != null)
+			if (image != null)
 			{
-				ParseImageView view = (ParseImageView) getActivity().findViewById(R.id.photo);
-	            view.setImageBitmap(bm);
-	            view.setVisibility(ImageView.VISIBLE);
+				Picasso.with(getActivity()).load(image.getUrl()).resize(160, 160).into((ImageView) 
+						getActivity().findViewById(R.id.photo));
 			}
 		}
 	}

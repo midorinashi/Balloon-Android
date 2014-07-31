@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -460,6 +461,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		transaction.commit();
 	}
 	
+	public void cancel(View view)
+	{
+		finish();
+	}
+	
 	public void makeMeetup(final View view)
 	{
 		showSpinner();
@@ -543,7 +549,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		meetup.put("expiresAt", changeToDate());
 		meetup.put("invitedUsers", mMembers);
 		meetup.put("venueInfo", mVenue);
-		if (mVenuePhotoUrls != null)
+		if (mVenuePhotoUrls != null && mVenuePhotoUrls.length() != 0)
 			meetup.put("venuePhotoURLs", mVenuePhotoUrls);
 		//TODO learn where invite more happens
 		meetup.put("allowInviteMore", true);
@@ -876,6 +882,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				public void done(List<ParseObject> memberLists, ParseException e) {
 					if (e == null)
 					{
+						TypedArray images = getResources().obtainTypedArray(R.array.contact_list_images);
 						lists = new String[memberLists.size()];
 						photoURLs = new String[memberLists.size()];
 						ids = new String[memberLists.size()];
@@ -884,10 +891,15 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 							lists[i] = memberLists.get(i).getString("name");
 							if (memberLists.get(i).containsKey("photo"))
 								photoURLs[i] = memberLists.get(i).getParseFile("photo").getUrl();
+							else
+								photoURLs[i] = "" + images.getResourceId(
+										Math.abs(lists[i].hashCode()) % 12,
+										R.drawable.color_balloon_8);
 							ids[i] = memberLists.get(i).getObjectId();
 						}
 						addListsToView();
 						removeSpinner();
+						images.recycle();
 					}
 					else
 						showParseException(e);
@@ -1691,9 +1703,9 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
-				v.invalidate();
-				v.requestLayout();
 			}
+			else
+				Picasso.with(getActivity()).load(R.drawable.logo).into(v);
 			
 			timer = new Timer("RSVPTimer");
 			final Date expiresAt = changeToDate();

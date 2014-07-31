@@ -39,8 +39,8 @@
 
     </LinearLayout>
 
-    <ScrollView
-        android:id="@+id/scrollView1"
+    <com.handmark.pulltorefresh.library.PullToRefreshScrollView
+        android:id="@+id/scrollToRefresh"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/buttons"
@@ -94,6 +94,7 @@
                     android:text="TextView"
                     android:textColor="@color/gray"
                     android:textSize="14sp"
+	   				custom:fontName="Roboto-Light.ttf" 
                      />
 
                 <com.example.balloon.TextBox
@@ -177,6 +178,6 @@
 
         </LinearLayout>
         
-    </ScrollView>
+    </com.handmark.pulltorefresh.library.PullToRefreshScrollView>
 
 </RelativeLayout>

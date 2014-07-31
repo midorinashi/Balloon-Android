@@ -1,6 +1,5 @@
 package com.example.balloon;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +16,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -30,9 +30,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshScrollView;
+import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.GetCallback;
@@ -57,7 +61,7 @@ public class MoreInfoActivity extends ProgressActivity
 	private static boolean mHasResponded;
 	private static boolean mWillAttend;
 	protected static ParseObject mMeetup;
-	protected JSONObject mVenueLocation;
+	protected static JSONObject mVenueLocation;
 	public static boolean loadedComments;
 	public static boolean loadedComing;
 	
@@ -66,11 +70,17 @@ public class MoreInfoActivity extends ProgressActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_more_info);
 		mObjectId = getIntent().getExtras().getString("objectId");
+		mHasResponded = getIntent().getExtras().getBoolean("hasResponded");
+		mWillAttend = getIntent().getExtras().getBoolean("willAttend");
+		mIsCreator = getIntent().getExtras().getBoolean("isCreator");
 		System.out.println(mObjectId);
 		
 		if (savedInstanceState == null)
 		{
 			showSpinner();
+			loadedComments = false;
+			loadedComing = false;
+			
 			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
 			query.whereEqualTo("objectId", mObjectId);
 			query.getFirstInBackground(new GetCallback<ParseObject>(){
@@ -116,114 +126,17 @@ public class MoreInfoActivity extends ProgressActivity
 						
 						mExpiresAt = meetup.getDate("expiresAt");
 						
-						fetchComments();
 						
-						fetchComing();
-						
-						makeMoreInfoFragment();
+						openInfoFragment();
 					}
 					else
 						showParseException(e);
 				}
 			});
 		}
-		mHasResponded = getIntent().getExtras().getBoolean("hasResponded");
-		mWillAttend = getIntent().getExtras().getBoolean("willAttend");
-		mIsCreator = getIntent().getExtras().getBoolean("isCreator");
 	}
 	
-	public void fetchComments()
-	{
-		//this will get all the comments
-		ParseQuery<ParseObject> commentQuery = new ParseQuery<ParseObject>("Comment");
-		commentQuery.whereEqualTo("meetup", mMeetup);
-		commentQuery.include("commenter");
-		commentQuery.orderByDescending("createdAt");
-		commentQuery.findInBackground(new FindCallback<ParseObject>() {
-
-			@Override
-			public void done(List<ParseObject> comments, ParseException e) {
-				if (e == null)
-					makeCommentList(comments);
-				else
-					showParseException(e);
-			}
-		});
-	}
-	
-	public void makeCommentList(final List<ParseObject> comments)
-	{
-		LinearLayout lin = (LinearLayout) findViewById(R.id.updates);
-		if (lin != null)
-		{
-			lin.removeAllViews();
-			RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
-					.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-			for (int i = 0; i < comments.size(); i++)
-			{
-				View comment = View.inflate(this, R.layout.list_item_comment, null);
-				((TextView) comment.findViewById(R.id.comment)).setText(comments.get(i)
-						.getString("comment"));
-				ParseUser commenter = comments.get(i).getParseUser("commenter");
-				((TextView) comment.findViewById(R.id.commenter)).setText(commenter
-						.getString("firstName") + " " + commenter.getString("lastName"));
-				Picasso.with(this).load(commenter.getParseFile("profilePhoto").getUrl()).resize(100, 100)
-					.into((ImageView) comment.findViewById(R.id.imageView1));
-				lin.addView(comment, lp);
-			}
-		}
-		loadedComments = true;
-		if (loadedComing)
-			removeSpinner();
-	}
-	
-	public void fetchComing()
-	{
-		//this will get who's coming, starting with all the responses
-		//TODO Look into using include?? I can't seem to get first names tho
-		ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
-		comingQuery.whereEqualTo("meetup", mMeetup);
-		comingQuery.whereEqualTo("isAttending", true);
-		comingQuery.include("responder");
-		comingQuery.findInBackground(new FindCallback<ParseObject>() {
-
-			@Override
-			public void done(List<ParseObject> responses, ParseException e) {
-				if (e == null)
-					makeComingList(responses);
-				else
-					showParseException(e);
-			}
-		});
-	}
-	
-	public void makeComingList(List<ParseObject> responses)
-	{
-		System.out.println("makeComingList activated");
-	    LinearLayout lin = (LinearLayout) findViewById(R.id.coming);
-	    if (lin != null)
-	    {
-	    	System.out.println(responses.size());
-		    lin.removeAllViews();
-		    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
-					.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-		    for (int i = 0; i < responses.size(); i++)
-		    {
-				View response = View.inflate(this, R.layout.list_item_coming, null);
-				ParseUser user = responses.get(i).getParseUser("responder");
-				((TextView) response.findViewById(R.id.responder)).setText(user
-						.getString("firstName") + " " + user.getString("lastName"));
-				Picasso.with(this).load(user.getParseFile("profilePhoto").getUrl()).resize(100, 100)
-					.into((ImageView) response.findViewById(R.id.profilePhoto));
-				lin.addView(response, lp);
-		    }
-	    }
-		loadedComing = true;
-		if (loadedComments)
-			removeSpinner();
-	}
-	
-	private void makeMoreInfoFragment()
+	public void openInfoFragment()
 	{
 		getFragmentManager().beginTransaction()
 				.add(R.id.container, new InfoFragment()).commit();
@@ -319,6 +232,48 @@ public class MoreInfoActivity extends ProgressActivity
 		});
 		view.setBackgroundColor(getResources().getColor(R.color.green));
 		findViewById(R.id.no).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+	}public void fetchComing()
+	{
+		//this will get who's coming, starting with all the responses
+		//TODO Look into using include?? I can't seem to get first names tho
+		ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
+		comingQuery.whereEqualTo("meetup", mMeetup);
+		comingQuery.whereEqualTo("isAttending", true);
+		comingQuery.include("responder");
+		comingQuery.findInBackground(new FindCallback<ParseObject>() {
+
+			@Override
+			public void done(List<ParseObject> responses, ParseException e) {
+				if (e == null)
+					makeComingList(responses);
+				else
+					showParseException(e);
+			}
+		});
+	}
+	
+	public void makeComingList(List<ParseObject> responses)
+	{
+		System.out.println("makeComingList activated");
+	    LinearLayout lin = (LinearLayout) findViewById(R.id.coming);
+	    if (lin != null)
+	    {
+	    	System.out.println(responses.size());
+		    lin.removeAllViews();
+		    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
+					.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+		    for (int i = 0; i < responses.size(); i++)
+		    {
+				View response = View.inflate(this, R.layout.list_item_coming, null);
+				ParseUser user = responses.get(i).getParseUser("responder");
+				((TextView) response.findViewById(R.id.responder)).setText(user
+						.getString("firstName") + " " + user.getString("lastName"));
+				Picasso.with(this).load(user.getParseFile("profilePhoto").getUrl()).resize(100, 100)
+					.into((ImageView) response.findViewById(R.id.profilePhoto));
+				lin.addView(response, lp);
+		    }
+	    }
+		removeSpinner();
 	}
 
 	public void addComment(View view)
@@ -337,7 +292,6 @@ public class MoreInfoActivity extends ProgressActivity
 				if (e == null)
 				{
 					outputToast("Update added!");
-					fetchComments();
 				}
 				else
 					showParseException(e);
@@ -400,7 +354,7 @@ public class MoreInfoActivity extends ProgressActivity
 					e.printStackTrace();
 				}
 				//need to get rid of first space
-				String url = ("https://www.maps.google.com/maps?q="+(address).substring(1))
+				String url = ("http://www.maps.google.com/maps?q="+(address).substring(1))
 						.replaceAll(" ", "+");
 				uri = Uri.parse(url);
 				intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
@@ -427,111 +381,11 @@ public class MoreInfoActivity extends ProgressActivity
 		getFragmentManager().popBackStack();
 	}
 	
-	public static class MoreInfoFragment extends Fragment
+	public static class InfoFragment extends ProgressFragment
 	{
 		private Handler mHandler;
 		private Timer mTimer;
-
-		public MoreInfoFragment() {
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-				Bundle savedInstanceState)
-		{
-			View rootView = inflater.inflate(R.layout.fragment_more_info,
-					container, false);
-
-			if (mExpiresAt.getTime() - new Date().getTime() > 0)
-			{
-				mTimer = new Timer();
-				mTimer.schedule(new RSVPTimerTask(), 0, 1000);
-				//Handles changing the RSVP time every second with the timer
-				mHandler = new Handler() {
-					public void handleMessage(Message message)
-					{
-						Date now = new Date();
-						long timeToRSVP = mExpiresAt.getTime() - now.getTime();
-						if (timeToRSVP < 0)
-						{
-							((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText("");
-							((TextView) getActivity().findViewById(R.id.leftToRSVP)).setText("");
-							mTimer.cancel();
-							mTimer.purge();
-						}
-						else
-						{
-							mTimeToRSVP = "" + (int)timeToRSVP/(60*60*1000) + ":";
-							int minutes = (int)(timeToRSVP/(60*1000))%60;
-							if (minutes < 10)
-								mTimeToRSVP = mTimeToRSVP + "0";
-							mTimeToRSVP = mTimeToRSVP + minutes + ":";
-							int seconds = (int)(timeToRSVP/1000)%60;
-							if (seconds < 10)
-								mTimeToRSVP = mTimeToRSVP+ "0";
-							mTimeToRSVP = mTimeToRSVP + seconds;
-							TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
-							tv.setText(mTimeToRSVP);
-							tv.invalidate();
-							tv.requestLayout();
-						}
-					}
-				};
-			}
-			else
-				((TextView) getActivity().findViewById(R.id.leftToRSVP)).setText("");
-			return rootView;
-		}
-		
-		//make sure all the info is current
-		public void onResume()
-		{
-			super.onResume();
-			
-			Resources res = getResources();
-			
-			if (mCreator == null)
-			{
-				mCreator = String.format(res.getString(R.string.dummy_name));
-				mAgenda = String.format(res.getString(R.string.dummy_agenda));
-				mVenueInfo = String.format(res.getString(R.string.dummy_location));
-			}
-			
-			TextView tv = (TextView) getActivity().findViewById(R.id.creator);
-			System.out.println("RAWR");
-			tv.setText(mCreator);
-			tv = (TextView) getActivity().findViewById(R.id.agenda);
-			tv.setText(mAgenda);
-			tv = (TextView) getActivity().findViewById(R.id.venueInfo);
-			tv.setText(mVenueInfo);
-			if (mHasResponded)
-				if (mWillAttend)
-					getActivity().findViewById(R.id.yes)
-						.setBackgroundColor(getResources().getColor(R.color.green));
-				else
-					getActivity().findViewById(R.id.no)
-						.setBackgroundColor(getResources().getColor(R.color.red));
-		}
-		
-		public void onStop()
-		{
-			super.onStop();
-			mTimer.cancel();
-			mTimer.purge();
-		}
-		
-		public class RSVPTimerTask extends TimerTask
-		{
-			public void run() {
-				mHandler.obtainMessage(1).sendToTarget();
-			}
-		}
-	}	
-	
-	public static class InfoFragment extends Fragment
-	{
-		private Handler mHandler;
-		private Timer mTimer;
+		public PullToRefreshBase<ScrollView> pullToRefreshView;
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -540,7 +394,7 @@ public class MoreInfoActivity extends ProgressActivity
 			View rootView = inflater.inflate(R.layout.fragment_info,
 					container, false);
 			//Handles changing the RSVP time every second with the timer
-			
+			pullToRefreshView = null;
 			return rootView;
 		}
 		
@@ -548,7 +402,83 @@ public class MoreInfoActivity extends ProgressActivity
 		public void onResume()
 		{
 			super.onResume();
+			if (pullToRefreshView == null)
+			{
+				pullToRefreshView = (PullToRefreshScrollView)
+						getActivity().findViewById(R.id.scrollToRefresh);
+				pullToRefreshView.setOnRefreshListener(new OnRefreshListener<ScrollView>() {
+				    @Override
+				    public void onRefresh(PullToRefreshBase<ScrollView> refreshView) {
+				    	showSpinner();
+				        reload();
+				        new GetDataTask().execute();
+				    }
+				});
+			}
+			fetchMeetup();
+		}
+		
+		public void reload()
+		{
+			showSpinner();
+			loadedComments = false;
+			loadedComing = false;
 			
+			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
+			query.whereEqualTo("objectId", mObjectId);
+			query.getFirstInBackground(new GetCallback<ParseObject>(){
+				public void done(ParseObject meetup, ParseException e) {
+					if (e == null)
+					{
+						mMeetup = meetup;
+						ParseUser creator = meetup.getParseUser("creator");
+						try {
+							//should be a fetch in background
+							creator.fetchIfNeeded();
+							mCreator = creator.getString("firstName") + " " + creator.getString("lastName");
+							if (creator == ParseUser.getCurrentUser())
+								mIsCreator = true;
+						} catch (ParseException e1) {
+							showParseException(e1);
+						}
+						
+						mAgenda = meetup.getString("agenda");
+						
+						try {
+							mVenueInfo = meetup.getJSONObject("venueInfo").getString("name");
+						} catch (JSONException e1) {
+							// Auto-generated catch block
+							e1.printStackTrace();
+						}
+						
+						try {
+							mVenueLocation = meetup.getJSONObject("venueInfo")
+									.getJSONObject("location");
+						} catch (JSONException e1) {
+							//it's a custom venue
+							mVenueLocation = null;
+						}
+						
+						try {
+							if (meetup.containsKey("venuePhotoURLs") && 
+									meetup.getJSONArray("venuePhotoURLs").length() > 0)
+								mVenuePhotoURL = meetup.getJSONArray("venuePhotoURLs").getString(0);
+						} catch (JSONException e1) {
+							mVenuePhotoURL = null;
+						}
+						
+						mExpiresAt = meetup.getDate("expiresAt");
+						
+						
+						fetchMeetup();
+					}
+					else
+						showParseException(e);
+				}
+			});
+		}
+		public void fetchMeetup()
+		{
 			Resources res = getResources();
 			if (mExpiresAt.getTime() - new Date().getTime() > 0)
 			{
@@ -576,10 +506,13 @@ public class MoreInfoActivity extends ProgressActivity
 							if (seconds < 10)
 								mTimeToRSVP = mTimeToRSVP+ "0";
 							mTimeToRSVP = mTimeToRSVP + seconds;
-							TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
-							tv.setText(mTimeToRSVP);
-							tv.invalidate();
-							tv.requestLayout();
+							if (getActivity() != null && getActivity().findViewById(R.id.timeToRSVP) != null)
+							{
+								TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
+								tv.setText(mTimeToRSVP);
+								tv.invalidate();
+								tv.requestLayout();
+							}
 						}
 					}
 				};
@@ -612,6 +545,9 @@ public class MoreInfoActivity extends ProgressActivity
 			if (mVenuePhotoURL != null)
 				Picasso.with(getActivity()).load(mVenuePhotoURL).resize(160, 160).centerCrop().into
 					((ImageView) getActivity().findViewById(R.id.eventImage));
+			else
+				Picasso.with(getActivity()).load(R.drawable.logo).resize(160, 160).centerCrop().into
+					((ImageView) getActivity().findViewById(R.id.eventImage));
 			if (mHasResponded)
 				if (mWillAttend)
 					getActivity().findViewById(R.id.yes)
@@ -619,23 +555,134 @@ public class MoreInfoActivity extends ProgressActivity
 				else
 					getActivity().findViewById(R.id.no)
 						.setBackgroundColor(getResources().getColor(R.color.red));
-			
+
+			fetchComments();
+			fetchComing();
+		}
+
+		public void fetchComments()
+		{
+			//this will get all the comments
+			ParseQuery<ParseObject> commentQuery = new ParseQuery<ParseObject>("Comment");
+			commentQuery.whereEqualTo("meetup", mMeetup);
+			commentQuery.include("commenter");
+			commentQuery.orderByDescending("createdAt");
+			commentQuery.findInBackground(new FindCallback<ParseObject>() {
+
+				@Override
+				public void done(List<ParseObject> comments, ParseException e) {
+					if (e == null)
+						makeCommentList(comments);
+					else
+						showParseException(e);
+				}
+			});
+		}
+		
+		public void makeCommentList(final List<ParseObject> comments)
+		{
+			LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.updates);
+			if (lin != null)
+			{
+				lin.removeAllViews();
+				RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
+						.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+				for (int i = 0; i < comments.size(); i++)
+				{
+					View comment = View.inflate(getActivity(), R.layout.list_item_comment, null);
+					((TextView) comment.findViewById(R.id.comment)).setText(comments.get(i)
+							.getString("comment"));
+					ParseUser commenter = comments.get(i).getParseUser("commenter");
+					((TextView) comment.findViewById(R.id.commenter)).setText(commenter
+							.getString("firstName") + " " + commenter.getString("lastName"));
+					Picasso.with(getActivity()).load(commenter.getParseFile("profilePhoto")
+							.getUrl()).resize(100, 100).into((ImageView) comment
+							.findViewById(R.id.imageView1));
+					lin.addView(comment, lp);
+				}
+				lin.invalidate();
+				lin.requestLayout();
+			}
+			loadedComments = true;
+			if (loadedComing)
+				removeSpinner();
+		}
+		
+		public void fetchComing()
+		{
+			//this will get who's coming, starting with all the responses
+			//TODO Look into using include?? I can't seem to get first names tho
+			ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
+			comingQuery.whereEqualTo("meetup", mMeetup);
+			comingQuery.whereEqualTo("isAttending", true);
+			comingQuery.include("responder");
+			comingQuery.findInBackground(new FindCallback<ParseObject>() {
+
+				@Override
+				public void done(List<ParseObject> responses, ParseException e) {
+					if (e == null)
+						makeComingList(responses);
+					else
+						showParseException(e);
+				}
+			});
+		}
+		
+		public void makeComingList(List<ParseObject> responses)
+		{
+			System.out.println("makeComingList activated");
+		    LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.coming);
+		    if (lin != null)
+		    {
+		    	System.out.println(responses.size());
+			    lin.removeAllViews();
+			    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
+						.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+			    for (int i = 0; i < responses.size(); i++)
+			    {
+					View response = View.inflate(getActivity(), R.layout.list_item_coming, null);
+					ParseUser user = responses.get(i).getParseUser("responder");
+					((TextView) response.findViewById(R.id.responder)).setText(user
+							.getString("firstName") + " " + user.getString("lastName"));
+					Picasso.with(getActivity()).load(user.getParseFile("profilePhoto").getUrl()).resize(100, 100)
+						.into((ImageView) response.findViewById(R.id.profilePhoto));
+					lin.addView(response, lp);
+			    }
+		    }
+			loadedComing = true;
+			if (loadedComments)
+				removeSpinner();
 		}
 		
 		public void onStop()
 		{
-			super.onStop();
 			if (mTimer != null)
 			{
 				mTimer.cancel();
 				mTimer.purge();
 			}
+			super.onStop();
 		}
 		
 		public class RSVPTimerTask extends TimerTask
 		{
 			public void run() {
 				mHandler.obtainMessage(1).sendToTarget();
+			}
+		}
+		
+		private class GetDataTask extends AsyncTask<Void, Void, String[]> {
+		    @Override
+		    protected void onPostExecute(String[] result) {
+		        // Call onRefreshComplete when the list has been refreshed.
+		        pullToRefreshView.onRefreshComplete();
+		        super.onPostExecute(result);
+		    }
+
+			@Override
+			protected String[] doInBackground(Void... arg0) {
+				// TODO Auto-generated method stub
+				return null;
 			}
 		}
 	}
