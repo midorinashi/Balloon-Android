@@ -62,8 +62,6 @@ public class MoreInfoActivity extends ProgressActivity
 	private static boolean mWillAttend;
 	protected static ParseObject mMeetup;
 	protected static JSONObject mVenueLocation;
-	public static boolean loadedComments;
-	public static boolean loadedComing;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -78,8 +76,6 @@ public class MoreInfoActivity extends ProgressActivity
 		if (savedInstanceState == null)
 		{
 			showSpinner();
-			loadedComments = false;
-			loadedComing = false;
 			
 			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
 			query.whereEqualTo("objectId", mObjectId);
@@ -421,8 +417,6 @@ public class MoreInfoActivity extends ProgressActivity
 		public void reload()
 		{
 			showSpinner();
-			loadedComments = false;
-			loadedComing = false;
 			
 			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
 			query.whereEqualTo("objectId", mObjectId);
@@ -557,7 +551,6 @@ public class MoreInfoActivity extends ProgressActivity
 						.setBackgroundColor(getResources().getColor(R.color.red));
 
 			fetchComments();
-			fetchComing();
 		}
 
 		public void fetchComments()
@@ -574,7 +567,10 @@ public class MoreInfoActivity extends ProgressActivity
 					if (e == null)
 						makeCommentList(comments);
 					else
-						showParseException(e);
+					{
+						e.printStackTrace();
+						fetchComing();
+					}
 				}
 			});
 		}
@@ -603,9 +599,7 @@ public class MoreInfoActivity extends ProgressActivity
 				lin.invalidate();
 				lin.requestLayout();
 			}
-			loadedComments = true;
-			if (loadedComing)
-				removeSpinner();
+			fetchComing();
 		}
 		
 		public void fetchComing()
@@ -649,9 +643,7 @@ public class MoreInfoActivity extends ProgressActivity
 					lin.addView(response, lp);
 			    }
 		    }
-			loadedComing = true;
-			if (loadedComments)
-				removeSpinner();
+		    removeSpinner();
 		}
 		
 		public void onStop()

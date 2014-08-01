@@ -43,7 +43,9 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Contacts.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.MediaStore;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -55,6 +57,7 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -65,7 +68,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
@@ -999,6 +1001,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			mListName = et.getText().toString();
 			CheckBox checkbox = (CheckBox) getActivity().findViewById(R.id.publicListCheckBox);
 			mPublicList = checkbox.isChecked();
+
+			InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(
+			      Context.INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(et.getWindowToken(), 0);
 		}
 	}
 	
@@ -1017,6 +1023,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	        Contacts._ID, // _ID is always required
 	        Contacts.DISPLAY_NAME // that's what we want to display
 	    };
+
+	    protected String cursorFilter;
 
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
@@ -1041,22 +1049,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    public void onActivityCreated(Bundle savedInstanceState)
 	    {
 	        super.onActivityCreated(savedInstanceState);
-
-	        mCheckbox = (CheckBox) getActivity().findViewById(R.id.contactsSelectAll);
 	        
 	        // each time we are started use our listadapter
 	        mListView = (ListView) getActivity().findViewById(R.id.contactsList);
 	        mListView.setAdapter(mAdapter);
 	        mListView.setItemsCanFocus(false);
-	        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-	        //just for managing the checkbox
-	        mListView.setOnItemClickListener(new OnItemClickListener(){
-				public void onItemClick(AdapterView<?> arg0, View arg1,
-						int arg2, long arg3) {
-					membersListClicked(arg1);
-				}
-	        });
-	        
+	        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE); 
 	        // and tell loader manager to start loading
 	        getLoaderManager().initLoader(0, null, this);
 	    }
@@ -1071,9 +1069,14 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    
 	    @Override
 	    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-
+	    	
+	    	Uri contentUri;
+			if (cursorFilter != null)
+	            contentUri = Uri.withAppendedPath(Contacts.CONTENT_FILTER_URI,
+	                     Uri.encode(cursorFilter));
 	        // load from the "Contacts table"
-	        Uri contentUri = Contacts.CONTENT_URI;
+	        else
+	        	contentUri = Contacts.CONTENT_URI;
 
 	        // no sub-selection, no sort order, simply every row
 	        // projection says we want just the _id and the name column
@@ -1082,7 +1085,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	                PROJECTION,
 	                null,
 	                null,
-	                null);
+	                Phone.DISPLAY_NAME + " ASC");
 	    }
 
 	    @Override
@@ -1096,6 +1099,24 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	        // on reset take any old cursor away
 	        mAdapter.swapCursor(null);
 	    }
+	            
+	    
+	    public class ContactItem
+	    {
+	    	 public final int index;
+	         public final String value;
+
+	         public ContactItem(final int index, final String value) {
+	             super();
+	             this.index = index;
+	             this.value = value;
+	         }
+
+	         @Override
+	         public String toString() {
+	             return value;
+	         }
+	    }
 	}
 	
 	public static class SelectMembersFromListFragment extends ProgressFragment {
@@ -1105,7 +1126,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		private String[] photoURLs;
 		private ArrayList<String> ids;
 		private JSONArray users;
-		private ListAdapter mArrayAdapter;
+		private ArrayAdapter<String> mArrayAdapter;
 		
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
@@ -1126,6 +1147,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			super.onResume();
 			showSpinner();
+
 			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_list));
 			mCurrentFragment = "SelectMembersFromListFragment";
 			
@@ -1256,6 +1278,35 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				if (mMemberIds != null)
 					for (int i = 0; i < mMemberIds.length; i++)
 						mListView.setItemChecked(ids.indexOf(mMemberIds[i]), true);
+				else
+				{
+					mCheckbox.setChecked(true);
+					for ( int i = 0; i < mListView.getCount(); i++)
+						mListView.setItemChecked(i, true);
+				}
+				
+				//do the search box shit
+				((EditText) getActivity().findViewById(R.id.searchMembers))
+					.addTextChangedListener(new TextWatcher() {
+		             
+		            @Override
+		            public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
+		                // When user changed the Text
+		            	mArrayAdapter.getFilter().filter(cs);   
+		            }
+		             
+		            @Override
+		            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
+		                    int arg3) {
+		                // TODO Auto-generated method stub
+		                 
+		            }
+		             
+		            @Override
+		            public void afterTextChanged(Editable arg0) {
+		                // TODO Auto-generated method stub                          
+		            }
+		        });
 		    }
 		}
 		
@@ -1294,6 +1345,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					System.out.println(mMemberIds[i]);
 				}
 			}
+			
 		}
 	}
 	
@@ -1325,7 +1377,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			super.onPause();
 			EditText et = (EditText)(getActivity().findViewById(R.id.editAgenda));
-			mAgenda = et.getText().toString();
+			mAgenda = et.getText().toString(); 
+			InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(
+			      Context.INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(et.getWindowToken(), 0);
 		}
 	}
 	
@@ -1442,6 +1497,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		public void onStop()
 		{
 			removeSpinner();
+			InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(
+			      Context.INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(context.findViewById(R.id.searchLocation)
+					.getWindowToken(), 0);
 			super.onStop();
 		}
 

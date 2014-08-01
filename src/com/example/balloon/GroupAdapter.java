@@ -1,22 +1,21 @@
 package com.example.balloon;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import com.squareup.picasso.Picasso;
-
 import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
  
 // http://www.androidhive.info/2012/02/android-custom-listview-with-image-and-text/
 
-public class GroupAdapter extends BaseAdapter {
+public class GroupAdapter extends ArrayAdapter<String> implements Filterable {
  
     private Activity activity;
     private int viewType;
@@ -26,6 +25,7 @@ public class GroupAdapter extends BaseAdapter {
     public ImageLoader imageLoader; 
  
     public GroupAdapter(Activity a, int type, String[] n, String[] urls) {
+    	super(a, type, R.id.name, n);
         activity = a;
         viewType = type;
         names = n;
@@ -38,12 +38,13 @@ public class GroupAdapter extends BaseAdapter {
         return names.length;
     }
  
-    public Object getItem(int position) {
-        return position;
-    }
- 
     public long getItemId(int position) {
         return position;
+    }
+    
+    public Filter getFilter()
+    {
+    	return super.getFilter();
     }
  
     public View getView(int position, View convertView, ViewGroup parent) {

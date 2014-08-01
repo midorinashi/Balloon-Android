@@ -521,7 +521,6 @@ public class NewContactListActivity extends ProgressActivity {
 		{
 			super.onResume();
 			mListView = (ListView) getActivity().findViewById(R.id.contactsList);
-			mCheckbox = (CheckBox) getActivity().findViewById(R.id.contactsSelectAll);
 			nextTitle = "Done";
 			getActivity().invalidateOptionsMenu();
 		}

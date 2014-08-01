@@ -1,7 +1,5 @@
 package com.example.balloon;
 
-import java.util.Date;
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Paint;

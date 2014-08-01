@@ -9,7 +9,12 @@ import java.net.URL;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import android.content.Context;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Bundle;
 
 public class AccessFoursquareVenues extends AccessFoursquare {
 
@@ -28,14 +33,11 @@ public class AccessFoursquareVenues extends AccessFoursquare {
     	String urlString = URL + SEARCH + CLIENT_ID + CLIENT_SECRET +
     			DEFAULT_VERSION ;
     	
-    	// get the location
-    	// Acquire a reference to the system Location Manager
-    	
-    	urlString += "%20&ll=";
-    	if (MainActivity.getLatitude() != -1)
-    		urlString += MainActivity.getLatitude() + "," + MainActivity.getLongitude();
-    	else
-    		urlString += "40.7,-74.0";
+		//get location 
+		LocationManager lm = (LocationManager) fragment.getActivity().getSystemService(Context.LOCATION_SERVICE);
+    	Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+    	if (location != null)
+	    	urlString += "%20&ll=" + location.getLatitude() + "," + location.getLongitude();
     	
     	//make sure we have a query
     	if (strings[0].compareTo("") != 0)

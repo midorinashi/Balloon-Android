@@ -52,10 +52,6 @@ import com.squareup.picasso.Picasso;
 
 public class MainActivity extends ProgressActivity
 {
-	//TODO only find location during location steps
-	private static double latitude;
-	private static double longitude;
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -165,16 +161,6 @@ public class MainActivity extends ProgressActivity
 		startActivity(intent);
 	}
 	
-	public static double getLatitude()
-	{
-		return latitude;
-	}
-	
-	public static double getLongitude()
-	{
-		return longitude;
-	}
-	
 	public static class PracticeFragment extends ProgressFragment
 	{
 		private ArrayList<Handler> handlers;
@@ -189,36 +175,10 @@ public class MainActivity extends ProgressActivity
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_invitations, container,
 					false);
-			
-			//get location 
-			LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-	    	Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-	    	latitude = -1;
-	    	if (location != null)
-	    	{
-		    	longitude = location.getLongitude();
-		        latitude = location.getLatitude();
-	    	}
-	    	// Define a listener that responds to location updates
-	    	LocationListener ll = new LocationListener() {
-	    	    public void onLocationChanged(Location location) {
-	    	    	// Called when a new location is found by the network location provider.
-	    	    	longitude = location.getLongitude();
-	    	        latitude = location.getLatitude();
-	    	    }
-	    	    
-	    	    public void onStatusChanged(String provider, int status, Bundle extras) {}
-
-	    	    public void onProviderEnabled(String provider) {}
-
-	    	    public void onProviderDisabled(String provider) {}
-	    	};
 
 	    	// Register the listener with the Location Manager to receive location updates
 			handlers = new ArrayList<Handler>();
 			timers = new ArrayList<Timer>();
-			
-	    	lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll);
 			return rootView;
 		}
 		
