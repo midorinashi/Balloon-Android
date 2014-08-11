@@ -79,21 +79,16 @@ public class MoreInfoActivity extends ProgressActivity
 			
 			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
 			query.whereEqualTo("objectId", mObjectId);
+			query.include("creator");
 			query.getFirstInBackground(new GetCallback<ParseObject>(){
 				public void done(ParseObject meetup, ParseException e) {
 					if (e == null)
 					{
 						mMeetup = meetup;
 						ParseUser creator = meetup.getParseUser("creator");
-						try {
-							//should be a fetch in background
-							creator.fetchIfNeeded();
-							mCreator = creator.getString("firstName") + " " + creator.getString("lastName");
-							if (creator == ParseUser.getCurrentUser())
-								mIsCreator = true;
-						} catch (ParseException e1) {
-							showParseException(e1);
-						}
+						mCreator = creator.getString("firstName") + " " + creator.getString("lastName");
+						if (creator == ParseUser.getCurrentUser())
+							mIsCreator = true;
 						
 						mAgenda = meetup.getString("agenda");
 						
@@ -149,8 +144,7 @@ public class MoreInfoActivity extends ProgressActivity
 	public boolean onPrepareOptionsMenu(final Menu menu) {
 		//set to edit text string if necessary
 		if (mIsCreator)
-			menu.findItem(R.id.action_agenda).setTitle(getResources()
-					.getString(R.string.action_edit_agenda));
+			menu.findItem(R.id.action_edit).setVisible(true);
 	    return super.onPrepareOptionsMenu(menu);
 	}
 
@@ -160,16 +154,15 @@ public class MoreInfoActivity extends ProgressActivity
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
+		if (id == R.id.action_edit) {
+			Intent intent = new Intent(this, EditMeetupActivity.class);
+			Bundle bundle = new Bundle();
+			bundle.putString("objectId", mObjectId);
+			intent.putExtras(bundle);
+			startActivity(intent);
+		}
 		if (id == R.id.action_agenda) {
-			if (mIsCreator)
-			{
-				FragmentTransaction transaction = getFragmentManager().beginTransaction();
-				transaction.replace(R.id.container, new EditAgendaFragment());
-				transaction.addToBackStack(null);
-				transaction.commit();
-			}
-			else
-				showAgenda(null);
+			showAgenda(null);
 			return true;
 		}
 		else if (id == R.id.action_comment) {
@@ -228,7 +221,9 @@ public class MoreInfoActivity extends ProgressActivity
 		});
 		view.setBackgroundColor(getResources().getColor(R.color.green));
 		findViewById(R.id.no).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
-	}public void fetchComing()
+	}
+	
+	public void fetchComing()
 	{
 		//this will get who's coming, starting with all the responses
 		//TODO Look into using include?? I can't seem to get first names tho
@@ -289,25 +284,6 @@ public class MoreInfoActivity extends ProgressActivity
 				{
 					outputToast("Update added!");
 				}
-				else
-					showParseException(e);
-			}
-		});
-	}
-	
-	public void changeAgenda(View view)
-	{
-		showSpinner();
-		EditText et = (EditText) findViewById(R.id.editAgenda);
-		String agenda = et.getText().toString();
-		
-		mMeetup.put("agenda", agenda);
-		mMeetup.saveInBackground(new SaveCallback() {
-			@Override
-			public void done(ParseException e) {
-				removeSpinner();
-				if (e == null)
-					outputToast("Agenda changed!");
 				else
 					showParseException(e);
 			}
@@ -405,13 +381,12 @@ public class MoreInfoActivity extends ProgressActivity
 				pullToRefreshView.setOnRefreshListener(new OnRefreshListener<ScrollView>() {
 				    @Override
 				    public void onRefresh(PullToRefreshBase<ScrollView> refreshView) {
-				    	showSpinner();
 				        reload();
 				        new GetDataTask().execute();
 				    }
 				});
 			}
-			fetchMeetup();
+			reload();
 		}
 		
 		public void reload()
@@ -420,21 +395,16 @@ public class MoreInfoActivity extends ProgressActivity
 			
 			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
 			query.whereEqualTo("objectId", mObjectId);
+			query.include("creator");
 			query.getFirstInBackground(new GetCallback<ParseObject>(){
 				public void done(ParseObject meetup, ParseException e) {
 					if (e == null)
 					{
 						mMeetup = meetup;
 						ParseUser creator = meetup.getParseUser("creator");
-						try {
-							//should be a fetch in background
-							creator.fetchIfNeeded();
-							mCreator = creator.getString("firstName") + " " + creator.getString("lastName");
-							if (creator == ParseUser.getCurrentUser())
-								mIsCreator = true;
-						} catch (ParseException e1) {
-							showParseException(e1);
-						}
+						mCreator = creator.getString("firstName") + " " + creator.getString("lastName");
+						if (creator == ParseUser.getCurrentUser())
+							mIsCreator = true;
 						
 						mAgenda = meetup.getString("agenda");
 						
@@ -457,6 +427,8 @@ public class MoreInfoActivity extends ProgressActivity
 							if (meetup.containsKey("venuePhotoURLs") && 
 									meetup.getJSONArray("venuePhotoURLs").length() > 0)
 								mVenuePhotoURL = meetup.getJSONArray("venuePhotoURLs").getString(0);
+							else
+								mVenuePhotoURL = null;
 						} catch (JSONException e1) {
 							mVenuePhotoURL = null;
 						}
@@ -691,28 +663,6 @@ public class MoreInfoActivity extends ProgressActivity
 			TextView tv = (TextView) rootView.findViewById(R.id.largeAgenda);
 			tv.setText(mAgenda);
 			return rootView;
-		}
-	}
-
-	public static class EditAgendaFragment extends Fragment
-	{
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-				Bundle savedInstanceState)
-		{
-			View rootView = inflater.inflate(R.layout.fragment_edit_agenda,
-					container, false);
-			EditText et = (EditText) rootView.findViewById(R.id.editAgenda);
-			et.setText(mAgenda);
-			return rootView;
-		}
-		
-		@Override
-		public void onPause()
-		{
-			super.onPause();
-			EditText et = (EditText) getActivity().findViewById(R.id.editAgenda);
-			mAgenda = et.getText().toString();
 		}
 	}
 	

@@ -90,38 +90,38 @@ import com.squareup.picasso.Picasso;
 
 public class NewInvitationActivity extends ProgressActivity implements OnMemberListSelectedListener {
 
-	private static String mListName;
-	private static boolean mPublicList;
-	private static String mListId;
-	private static String mAgenda;
-	private static String mVenueInfo;
-	private static JSONObject mVenue;
-	private static boolean mToday;
-	private static int mExpiresAtHour;
-	private static int mExpiresAtMinute;
-	private static JSONArray mVenuePhotoUrls;
-	private static JSONArray mMemberObjectIds;
-	private static String[] mPhoneNumbers;
-	private static String[] mMemberNames;
-	private static boolean mMakeContactList;
-	private static String[] mMemberIds;
-	private static JSONArray mMembers;
-	private static String mPreviewName;
-	private static String mCurrentFragment;
+	protected static String mListName;
+	protected static boolean mPublicList;
+	protected static ParseObject mListId;
+	protected static String mAgenda;
+	protected static String mVenueInfo;
+	protected static JSONObject mVenue;
+	protected static boolean mToday;
+	protected static int mExpiresAtHour;
+	protected static int mExpiresAtMinute;
+	protected static JSONArray mVenuePhotoUrls;
+	protected static JSONArray mMemberObjectIds;
+	protected static String[] mPhoneNumbers;
+	protected static String[] mMemberNames;
+	protected static boolean mMakeContactList;
+	protected static String[] mMemberIds;
+	protected static JSONArray mMembers;
+	protected static String mPreviewName;
+	protected static String mCurrentFragment;
 	//ayyyyyy because sometimes we go outside of the flow
-	private static boolean mAfterFinalEdit;
+	protected static boolean mAfterFinalEdit;
 	
 	//views to mangae select members fragment
-	private static CheckBox mCheckbox;
-	private static ListView mListView;
-	private static ContextMenu mMenu;
-	private File lastSavedFile;
+	protected static CheckBox mCheckbox;
+	protected static ListView mListView;
+	protected static ContextMenu mMenu;
+	protected File lastSavedFile;
 	protected static ParseFile mContactListImage;
 	
 	//to manage the buttons at the top
-	private static boolean mPlus;
-	private static String mNext;
-	private static Activity context;
+	protected static boolean mPlus;
+	protected static String mNext;
+	protected static Activity context;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -129,17 +129,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		setContentView(R.layout.activity_new_invitation);
 
 		//set all the defaults
-		deleteInfo();
-		
-		if (savedInstanceState == null) {
-			mAfterFinalEdit = false;
-			getFragmentManager().beginTransaction()
-					.add(R.id.container, new SelectListFragment()).commit();
-		}
+		defaultInfo(savedInstanceState);
 	}
 	
 	//erase all static fields
-	private void deleteInfo()
+	protected void defaultInfo(Bundle savedInstanceState)
 	{
 		context = this;
 		mListName = null;
@@ -164,6 +158,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		mListView = null;
 		mPlus = true;
 		mContactListImage = null;
+		
+		if (savedInstanceState == null) {
+			mAfterFinalEdit = false;
+			getFragmentManager().beginTransaction()
+					.add(R.id.container, new SelectListFragment()).commit();
+		}
 	}
 
 	@Override
@@ -468,7 +468,13 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		finish();
 	}
 	
+	//this is here so that we can reuse the code when editing le meetup
 	public void makeMeetup(final View view)
+	{
+		saveMeetup(new ParseObject("Meetup"));
+	}
+	
+	public void saveMeetup(final ParseObject meetup)
 	{
 		showSpinner();
 		//make the contact list if we need to
@@ -519,13 +525,14 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 							}
 						}
 						contactList.put("members", mContacts);
+						mListId = contactList;
 						contactList.saveInBackground(new SaveCallback() {
 							@Override
 							public void done(ParseException e) {
 								if (e == null)
 								{
 									System.out.println("save success");
-									makeMeetup(view);
+									saveMeetup(meetup);
 								}
 								else
 									showParseException(e);
@@ -540,21 +547,20 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			mMakeContactList = false;
 			return;
 		}
-		final ParseObject meetup = new ParseObject("Meetup");
 		meetup.put("agenda", mAgenda);
 		//make the contact list if we need to
-		//contact list id???
+		//contact list id??? not sure how to deal with this right now
 		//gotta set both contactList and mMembers here
-		
-		//params.put("contactList", mListId);
+		if (mListId != null)
+			meetup.put("contactList", mListId);
 		meetup.put("creator", ParseUser.getCurrentUser());
 		meetup.put("expiresAt", changeToDate());
 		meetup.put("invitedUsers", mMembers);
 		meetup.put("venueInfo", mVenue);
-		if (mVenuePhotoUrls != null && mVenuePhotoUrls.length() != 0)
-			meetup.put("venuePhotoURLs", mVenuePhotoUrls);
+		meetup.put("venuePhotoURLs", mVenuePhotoUrls);
 		//TODO learn where invite more happens
 		meetup.put("allowInviteMore", true);
+		System.out.println("Save meetup id = " + meetup.getObjectId());
 		meetup.saveInBackground(new SaveCallback(){
 
 			@Override
@@ -571,22 +577,44 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		});
 	}
 	
-	public void sendInvite(ParseObject meetup)
+	public void sendInvite(final ParseObject meetup)
 	{
+		System.out.println("Send invite id = " + meetup.getObjectId());
 		HashMap<String, Object> params = new HashMap<String, Object>();
 		params.put("meetupId", meetup.getObjectId());
 		params.put("creator", meetup.getParseUser("creator").getObjectId());
-		params.put("invitedUsers", meetup.getJSONArray("invitedUsers"));
-	
+		//params.put("invitedUsers", meetup.getJSONArray("invitedUsers"));
+		//no fucking clue why this doesn't work
+		try {
+			params.put("invitedUsers", new JSONArray(meetup.getJSONArray("invitedUsers").toString()));
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}
 		ParseCloud.callFunctionInBackground("sendInvites", params, new FunctionCallback<Object>(){
 
 			@Override
 			public void done(Object arg0, ParseException e) {
 				if (e != null)
 					showParseException(e);
-				end();
+				respondForCreator(meetup);
 			}
 			
+		});
+	}
+	
+	public void respondForCreator(ParseObject meetup)
+	{
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("meetupId", meetup.getObjectId());
+		params.put("willAttend", true);
+		ParseCloud.callFunctionInBackground("respondToMeetup", params,
+				new FunctionCallback<Object>() {
+			@Override
+			public void done(Object o, ParseException e) {
+				if (e != null)
+					showParseException(e);
+				end();
+			}
 		});
 	}
 	
@@ -618,6 +646,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 
 		Toast toast = Toast.makeText(context, text, duration);
 		toast.show();
+		Intent intent = new Intent(this, RSVPEventsActivity.class);
+		startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 		finish();
 	}
 
@@ -831,7 +861,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 
 		protected String[] lists;
 		protected String[] photoURLs;
-		protected String[] ids;
+		protected ParseObject[] ids;
 		protected OnMemberListSelectedListener mListener;
 		
 		public void onAttach(Activity activity) {
@@ -882,12 +912,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			mainQuery.orderByAscending("name");
 			mainQuery.findInBackground(new FindCallback<ParseObject>() {
 				public void done(List<ParseObject> memberLists, ParseException e) {
-					if (e == null)
+					if (e == null && isAdded())
 					{
 						TypedArray images = getResources().obtainTypedArray(R.array.contact_list_images);
 						lists = new String[memberLists.size()];
 						photoURLs = new String[memberLists.size()];
-						ids = new String[memberLists.size()];
+						ids = new ParseObject[memberLists.size()];
 						for (int i = 0; i < memberLists.size(); i++)
 						{
 							lists[i] = memberLists.get(i).getString("name");
@@ -897,7 +927,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 								photoURLs[i] = "" + images.getResourceId(
 										Math.abs(lists[i].hashCode()) % 12,
 										R.drawable.color_balloon_8);
-							ids[i] = memberLists.get(i).getObjectId();
+							ids[i] = memberLists.get(i);
 						}
 						addListsToView();
 						removeSpinner();
@@ -1155,7 +1185,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			getActivity().invalidateOptionsMenu();
 
 		    ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("ContactList");
-		    query.whereEqualTo("objectId", mListId);
+		    query.whereEqualTo("objectId", mListId.getObjectId());
 		    query.getFirstInBackground(new GetCallback<ParseObject>() {
 				public void done(ParseObject contactList, ParseException e) {
 					if (e == null)
@@ -1330,10 +1360,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					if (mPreviewName == null)
 					{
 						mPreviewName = names[index];
-						if (names[0].indexOf(' ') > -1)
-			        		mPreviewName = names[0].substring(0, names[0].indexOf(' '));
-			        	else
-			        		mPreviewName = names[0];
+						if (mPreviewName.indexOf(' ') > -1)
+			        		mPreviewName = mPreviewName.substring(0, mPreviewName.indexOf(' '));
 					}
 					mMemberIds[i] = ids.get(index);
 					try {

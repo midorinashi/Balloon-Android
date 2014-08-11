@@ -7,7 +7,7 @@
     <string name="action_comment">Add an Update</string>
     <string name="action_create">Create Invite</string>
     <string name="action_done">Done</string>
-    <string name="action_edit_agenda">Edit Meetup Plan</string>
+    <string name="action_edit">Edit Meetup</string>
     <string name="action_invites">New Invites</string>
     <string name="action_lists">Groups</string>
     <string name="action_locate">Locate the Venue</string>
@@ -63,7 +63,7 @@
     <string name="next">Next</string>
     <string name="no_internet">Oops! No internet.</string>
     <string name="no_invites"><b>No Invites</b></string>
-    <string name="no_time">         </string>
+    <string name="no_time"></string>
     <string name="password">Password</string>
     <string name="photo_foursquare">Add Location Photos</string>
     <string name="photo_last">Use Last Photo Taken</string>
@@ -72,6 +72,7 @@
     <string name="photo_remove">Remove Added Photos</string>
     <string name="photo_take">Take Photo</string>
     <string name="preview">Preview</string>
+    <string name="save">Save</string>
     <string name="search_location">Search</string>
     <string name="send">Send</string>
     <string name="select_all">Select All:</string>
@@ -109,5 +110,7 @@
     <string name="tomorrow">Tomorrow</string>
     <string name="verification_code_sent">A verification code has been sent to you via SMS.</string>
     <string name="white_space"></string>
-    
+    <string name="title_activity_edit_meetup">EditMeetupActivity</string>
+    <string name="hello_world">Hello world!</string>
+
 </resources>

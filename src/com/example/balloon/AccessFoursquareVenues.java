@@ -10,20 +10,28 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
-public class AccessFoursquareVenues extends AccessFoursquare {
+public class AccessFoursquareVenues extends AccessFoursquare implements LocationListener {
 
 	private ProgressFragment fragment;
+	private LocationManager lm;
+	private Location location;
+	private String provider;
 	
 	public AccessFoursquareVenues(ProgressFragment f)
 	{
 		super();
 		fragment = f;
+		lm = (LocationManager) fragment.getActivity().getSystemService(Context.LOCATION_SERVICE);
+		provider = lm.getBestProvider(new Criteria(), false);
+		lm.requestLocationUpdates(provider, 20000, 1, this);
+
 		f.showSpinner();
 	}
 	
@@ -32,15 +40,16 @@ public class AccessFoursquareVenues extends AccessFoursquare {
     	String str = "";
     	String urlString = URL + SEARCH + CLIENT_ID + CLIENT_SECRET +
     			DEFAULT_VERSION ;
-    	
+
+        JSONArray array = new JSONArray();
 		//get location 
-		LocationManager lm = (LocationManager) fragment.getActivity().getSystemService(Context.LOCATION_SERVICE);
-    	Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+    	location = lm.getLastKnownLocation(provider);
+    	
     	if (location != null)
 	    	urlString += "%20&ll=" + location.getLatitude() + "," + location.getLongitude();
     	
     	//make sure we have a query
-    	if (strings[0].compareTo("") != 0)
+    	if (strings.length != 0 && strings[0].trim().compareTo("") != 0)
     		urlString += "%20&query=" + strings[0].replaceAll(" ", "%20") + "%20&limit=100" + "%20&radius=50000";
     	//we want to make query-less queries fast
     	else
@@ -51,7 +60,6 @@ public class AccessFoursquareVenues extends AccessFoursquare {
     	BufferedReader rd  = null;
         StringBuilder sb = null;
         String line = null;
-        JSONArray array = new JSONArray();
         try {
         	URL url = new URL(urlString);
         	HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -63,6 +71,7 @@ public class AccessFoursquareVenues extends AccessFoursquare {
         		sb.append(line + '\n');
         	str =  sb.toString();
 				array = (new JSONObject(str)).getJSONObject("response").getJSONArray("venues");
+				System.out.println(array.length());
 				System.out.println(array.getJSONObject(0).getString("name"));
 				System.out.println("Got array!");
 			
@@ -93,6 +102,29 @@ public class AccessFoursquareVenues extends AccessFoursquare {
     protected void onPostExecute(JSONArray array) {
     	System.out.println("giving back array to fragment");
     	fragment.removeSpinner();
+    	lm.removeUpdates(this);
         NewInvitationActivity.ChooseLocationFragment.makeList(array);
     }
+
+	@Override
+	public void onLocationChanged(Location location) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onProviderDisabled(String provider) {
+		provider = lm.getBestProvider(new Criteria(), false);
+	}
+
+	@Override
+	public void onProviderEnabled(String provider) {
+		provider = lm.getBestProvider(new Criteria(), false);
+	}
+
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+		// TODO Auto-generated method stub
+		
+	}
 }

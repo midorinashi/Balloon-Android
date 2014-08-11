@@ -136,7 +136,7 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 
 				public void onItemClick(AdapterView<?> a, View v, int position, long id) {
 					mListName = lists[position];
-					mListId = ids[position];
+					mListId = ids[position].getObjectId();
 					mListener.onMemberListSelected();
 				}
 	        });

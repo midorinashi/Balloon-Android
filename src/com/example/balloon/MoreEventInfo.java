@@ -18,9 +18,6 @@ public class MoreEventInfo extends ViewGroup
 	//Expiration date in milliseconds
 		private long mExpiresAt;
 		
-		private boolean hasReplied;
-		private boolean willAttend;
-		
 		//Views for easy access
 		private TextView mCreatorView;
 		private TextView mAgendaView;
