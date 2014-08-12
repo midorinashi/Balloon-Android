@@ -117,7 +117,6 @@ public class MoreInfoActivity extends ProgressActivity
 						
 						mExpiresAt = meetup.getDate("expiresAt");
 						
-						
 						openInfoFragment();
 					}
 					else

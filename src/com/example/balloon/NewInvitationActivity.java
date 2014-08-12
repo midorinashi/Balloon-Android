@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -111,6 +110,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	protected static String[] mMemberIds;
 	protected static JSONArray mMembers;
 	protected static String mPreviewName;
+	protected static boolean mInviteMore;
 	protected static String mCurrentFragment;
 	//ayyyyyy because sometimes we go outside of the flow
 	protected static boolean mAfterFinalEdit;
@@ -157,6 +157,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		mMembers = null;
 		mMemberNames = null;
 		mPreviewName = null;
+		mInviteMore = true;
 		mCurrentFragment = "";
 		mAfterFinalEdit = false;
 		mCheckbox = null;
@@ -561,10 +562,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		meetup.put("creator", ParseUser.getCurrentUser());
 		meetup.put("expiresAt", changeToDate());
 		meetup.put("invitedUsers", mMembers);
+		if (mStartDeadline != null)
+			meetup.put("startsAt", mStartDeadline);
 		meetup.put("venueInfo", mVenue);
 		meetup.put("venuePhotoURLs", mVenuePhotoUrls);
-		//TODO learn where invite more happens
-		meetup.put("allowInviteMore", true);
+		meetup.put("allowInviteMore", ((CheckBox) findViewById(R.id.finalEditInviteMoreBox)).isChecked());
 		System.out.println("Save meetup id = " + meetup.getObjectId());
 		meetup.saveInBackground(new SaveCallback(){
 
@@ -626,7 +628,6 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	public static Date changeToDate()
 	{
 		GregorianCalendar calendar = new GregorianCalendar();
-		//TODO Using current timeLocale see if fix is needed
 		calendar.set(GregorianCalendar.HOUR_OF_DAY, mExpiresAtHour);
 		calendar.set(GregorianCalendar.MINUTE, mExpiresAtMinute);
 		Date date = calendar.getTime();
@@ -1333,13 +1334,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		            @Override
 		            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
 		                    int arg3) {
-		                // TODO Auto-generated method stub
-		                 
 		            }
 		             
 		            @Override
-		            public void afterTextChanged(Editable arg0) {
-		                // TODO Auto-generated method stub                          
+		            public void afterTextChanged(Editable arg0) {                        
 		            }
 		        });
 		    }
@@ -1692,6 +1690,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				t.set(mStartDeadline.getTime());
 				tv.setText(t.format("%a, %b %e %I:%M %p"));
 			}
+			CheckBox box = (CheckBox) getActivity().findViewById(R.id.finalEditInviteMoreBox);
+			box.setChecked(mInviteMore);
 			
 			getActivity().findViewById(R.id.finalEditTo).setOnClickListener(new OnClickListener() {
 				@Override
@@ -1767,8 +1767,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		}
 		
 		//if we go back in the flow, we gotta readd the next button
+		//also gotta save the invite more box cause this is the only screen it saves on
 		public void onDestroyView()
 		{
+			mInviteMore = ((CheckBox) getActivity().findViewById(R.id.finalEditInviteMoreBox)).isChecked();
 			super.onDestroyView();
 			if (!mAfterFinalEdit)
 			{

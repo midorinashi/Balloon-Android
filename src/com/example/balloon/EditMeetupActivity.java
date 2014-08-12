@@ -7,9 +7,14 @@ import java.util.GregorianCalendar;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -79,6 +84,10 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		mVenuePhotoUrls = meetup.getJSONArray("venuePhotoURLs");
 		if (mVenuePhotoUrls == null)
 			mVenuePhotoUrls = new JSONArray();
+
+		mStartDeadline = null;
+		if (meetup.has("startsAt"))
+			mStartDeadline = meetup.getDate("startsAt");
 		
 		//do i need these fields??
 		mPhoneNumbers = null;
@@ -88,6 +97,7 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		
 		mMembers = meetup.getJSONArray("invitedUsers");
 		//TODO mPreviewName = mMembers.get(0);
+		mInviteMore = meetup.getBoolean("allowInviteMore");
 		mAfterFinalEdit = false;
 		mCheckbox = null;
 		mListView = null;

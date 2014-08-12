@@ -112,6 +112,14 @@
             android:name="com.example.balloon.EditMeetupActivity"
             android:label="@string/title_activity_edit_meetup" >
         </activity>
+        <activity
+            android:name="com.example.balloon.ContactListInfoActivity"
+            android:label="@string/title_activity_contact_list_info" >
+        </activity>
+        <activity
+            android:name="com.example.balloon.NewInvitationFromGroupActivity"
+            android:label="@string/title_activity_new_invitation_from_group" >
+        </activity>
     </application>
 
 </manifest>

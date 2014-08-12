@@ -1,0 +1,110 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.balloon.ContactListInfoActivity$PlaceholderFragment" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+        
+        <LinearLayout
+	        android:id="@+id/linearLayout"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:orientation="vertical" />
+
+        <RelativeLayout
+            android:id="@+id/editGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:visibility="visible" >
+
+            <TextView
+                android:id="@+id/edit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:padding="10dp"
+                android:text="Edit Group:" />
+
+            <View
+                android:id="@+id/view1"
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@id/edit"
+                android:background="@color/lightGray" />
+
+            <com.example.balloon.TextBox
+                android:id="@+id/listName"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignTop="@+id/imageView1"
+                android:layout_toRightOf="@+id/imageView1"
+                android:layout_alignBottom="@id/imageView1"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:padding="15dp"
+                android:maxLines="1"
+                android:text="TextView" />
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:layout_below="@+id/imageView1"
+                android:layout_alignParentLeft="true"
+                android:background="@color/lightGray" />
+
+            <ImageView
+                android:id="@+id/blank"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@id/imageView1" />
+
+            <CheckBox
+                android:id="@+id/checkBox1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/blank"
+                android:layout_alignParentRight="true"
+                android:layout_alignTop="@+id/blank"
+                android:paddingTop="15dp" />
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:layout_alignBottom="@id/blank"
+                android:layout_alignParentLeft="true"
+                android:background="@color/lightGray" />
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/blank"
+                android:layout_alignParentLeft="true"
+                android:layout_alignTop="@id/blank"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="@string/share_group" />
+
+            <ImageView
+                android:id="@+id/imageView1"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/view1"/>
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+</ScrollView>

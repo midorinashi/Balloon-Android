@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <string name="add_photo">Add\na\nPhoto</string>
     <string name="app_name">Balloon</string>
+    <string name="action_add_members">Add Members</string>
     <string name="action_agenda">View Meetup Plan</string>
     <string name="action_comment">Add an Update</string>
     <string name="action_create">Create Invite</string>
@@ -16,7 +16,9 @@
     <string name="action_plus">New Invitation</string>
     <string name="action_rsvped_events">Plans</string>
     <string name="action_save">Save</string>
+    <string name="action_send_invite_to_group">Send Invite to Group</string>
     <string name="action_settings">Settings</string>
+    <string name="add_photo">Add\na\nPhoto</string>
     <string name="agenda_empty">No plan :C</string>
     <string name="agenda_edit">What\'s the plan?\n\n(e.g. Let\'s go to Shake Shack at 8PM)</string>
     <string name="already_have_account">Already have an account? <u>Login</u></string>
@@ -85,6 +87,7 @@
     <string name="settings_password_confirm">Confirm Password</string>
     <string name="settings_photo">Profile Photo</string>
     <string name="share_list">Share List with Members</string>
+    <string name="share_group">Share Group</string>
     <string name="signup">Signup</string>
     <string name="start_time">Start time: </string>
     <string name="submit">Submit</string>
@@ -114,5 +117,7 @@
     <string name="white_space"></string>
     <string name="title_activity_edit_meetup">EditMeetupActivity</string>
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_contact_list_info">ContactListInfoActivity</string>
+    <string name="title_activity_new_invitation_from_group">NewInvitationFromGroupActivity</string>
 
 </resources>

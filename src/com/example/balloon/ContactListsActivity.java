@@ -104,13 +104,7 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 		startActivity(intent);
 	}
 
-	/**
-	 * A placeholder fragment containing a simple view.
-	 */
 	public static class ContactListsFragment extends NewInvitationActivity.SelectListFragment {
-		
-		public ContactListsFragment() {
-		}
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -135,9 +129,17 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 	        lv.setOnItemClickListener(new OnItemClickListener() {
 
 				public void onItemClick(AdapterView<?> a, View v, int position, long id) {
+					Intent intent = new Intent(getActivity(), ContactListInfoActivity.class);
+					Bundle bundle = new Bundle();
+					bundle.putString("listName", lists[position]);
+					bundle.putString("listId", ids[position].getObjectId());
+					intent.putExtras(bundle);
+					startActivity(intent);
+					/*
 					mListName = lists[position];
 					mListId = ids[position].getObjectId();
 					mListener.onMemberListSelected();
+					*/
 				}
 	        });
 		}
