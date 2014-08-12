@@ -23,7 +23,7 @@
         custom:fontName="Roboto-Light.ttf" />
 
     <com.example.balloon.TextBox
-        android:id="@+id/textView1"
+        android:id="@+id/optional"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_vertical|right"

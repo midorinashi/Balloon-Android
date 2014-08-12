@@ -1,5 +1,6 @@
 package com.example.balloon;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -61,13 +62,16 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		
 		//oh my god i don't want to deal with this
 		Date deadline = meetup.getDate("expiresAt");
-		mExpiresAtHour = (int) (deadline.getTime()/1000/60/60) % 24;
-		mExpiresAtMinute = (int) (deadline.getTime()/1000/60) % 60;
-		GregorianCalendar calendar = new GregorianCalendar();
-		//TODO Using current timeLocale see if fix is needed
-		calendar.set(GregorianCalendar.HOUR_OF_DAY, mExpiresAtHour);
-		calendar.set(GregorianCalendar.MINUTE, mExpiresAtMinute);
-		Date date = calendar.getTime();
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(deadline);
+		mExpiresAtHour = (int) calendar.get(Calendar.HOUR_OF_DAY);
+		mExpiresAtMinute = (int) calendar.get(Calendar.MINUTE);
+
+		//because what the fuck am i doing
+		GregorianCalendar c = new GregorianCalendar();
+		c.set(GregorianCalendar.HOUR_OF_DAY, mExpiresAtHour);
+		c.set(GregorianCalendar.MINUTE, mExpiresAtMinute);
+		Date date = c.getTime();
 		//if we're doing tomorrow, we need to incrememnt the dat
 		if (date.compareTo(new Date()) > 0)
 			mToday = true;

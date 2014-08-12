@@ -12,7 +12,8 @@ public abstract class ProgressFragment extends Fragment {
 	public void showParseException(ParseException e)
 	{
 		removeSpinner();
-		Toast.makeText(getActivity(), e.getStackTrace().toString(), Toast.LENGTH_SHORT).show();
+		if (getActivity() != null)
+			Toast.makeText(getActivity(), e.getStackTrace().toString(), Toast.LENGTH_SHORT).show();
 		e.printStackTrace();
 	}
 	

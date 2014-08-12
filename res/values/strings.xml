@@ -49,7 +49,7 @@
     <string name="final_edit_deadline">Balloon pops at:</string>
     <string name="final_edit_location">Location:</string>
     <string name="final_edit_no_photos">No photos yet</string>
-    <string name="final_edit_photo">Photo (Optional):</string>
+    <string name="final_edit_photo">Photos:</string>
     <string name="final_edit_to">To:</string>
     <string name="from">From: </string>
     <string name="image_content_description">The Image</string>
@@ -64,6 +64,7 @@
     <string name="no_internet">Oops! No internet.</string>
     <string name="no_invites"><b>No Invites</b></string>
     <string name="no_time"></string>
+    <string name="optional">Optional</string>
     <string name="password">Password</string>
     <string name="photo_foursquare">Add Location Photos</string>
     <string name="photo_last">Use Last Photo Taken</string>
@@ -85,6 +86,7 @@
     <string name="settings_photo">Profile Photo</string>
     <string name="share_list">Share List with Members</string>
     <string name="signup">Signup</string>
+    <string name="start_time">Start time: </string>
     <string name="submit">Submit</string>
     <string name="title_activity_contact_lists">ContactListsActivity</string>
     <string name="title_activity_more_info">More Info Activity</string>

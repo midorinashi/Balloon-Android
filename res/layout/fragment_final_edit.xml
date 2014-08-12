@@ -114,7 +114,7 @@
 	        android:background="@color/white"
 	        android:clickable="true"
 	        android:padding="10dp" >
-	
+
 	        <TextView
 	            android:id="@+id/finalEditDeadlineHeader"
 	            android:layout_width="wrap_content"
@@ -146,20 +146,46 @@
 	            android:id="@+id/finalEditPhotoHeader"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	        	android:layout_margin="10dp"
-	            android:text="@string/final_edit_photo"
-	            android:textColor="@color/gray" />
+	            android:layout_margin="10dp"
+	            android:text="@string/final_edit_photo" />
 	
 	        <TextView
 	            android:id="@+id/finalEditPhotoText"
 	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
-	        	android:layout_margin="10dp"
-	        	android:gravity="right"
+	            android:layout_margin="10dp"
+	            android:gravity="right"
 	            android:text="@string/final_edit_no_photos"
-	            android:textColor="@color/gray" />
+	            android:textColor="@color/blue" />
 	        
 	    </LinearLayout>
+
+	   <LinearLayout
+	       android:id="@+id/finalEditStartTime"
+	       android:layout_width="match_parent"
+	       android:layout_height="wrap_content"
+	       android:layout_marginBottom="7dp"
+	       android:layout_marginLeft="10dp"
+	       android:layout_marginRight="10dp"
+	       android:layout_marginTop="7dp"
+	       android:background="@color/white"
+	       android:clickable="true" >
+
+	       <TextView
+	           android:id="@+id/finalEditStartTimeHeader"
+	           android:layout_width="wrap_content"
+	           android:layout_height="wrap_content"
+	           android:layout_margin="10dp"
+	           android:text="@string/start_time" />
+
+	       <TextView
+	           android:id="@+id/finalEditStartTimeText"
+	           android:layout_width="match_parent"
+	           android:layout_height="wrap_content"
+	           android:layout_margin="10dp"
+	           android:gravity="right"
+	           android:textColor="@color/blue" />
+	   </LinearLayout>
 	
 	   <Button
 	       android:id="@+id/preview"

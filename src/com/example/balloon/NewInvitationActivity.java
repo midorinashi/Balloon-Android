@@ -5,10 +5,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -46,6 +48,7 @@ import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.format.Time;
 import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -64,6 +67,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CursorAdapter;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -116,6 +120,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	protected static ListView mListView;
 	protected static ContextMenu mMenu;
 	protected File lastSavedFile;
+	public static Date mStartDeadline;
 	protected static ParseFile mContactListImage;
 	
 	//to manage the buttons at the top
@@ -1602,10 +1607,50 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		}
 	}
 	
-	public static class FinalEditFragment extends Fragment {
+	public static class StartTimeFragment extends Fragment {
 		
-		public FinalEditFragment() {
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			View rootView = inflater.inflate(R.layout.fragment_start_time,
+					container, false);
+			return rootView;
 		}
+		
+		public void onResume()
+		{
+			super.onResume();
+			DatePicker datePicker = (DatePicker) getActivity().findViewById(R.id.datePicker);
+			//TODO this will make sure you can't set the date to before the rsvp deadline
+			//I think you can still set it a couple of hours ahead tho
+			//oh well
+			datePicker.setMinDate(new Date().getTime()-1000*60*60*24);
+			TimePicker timePicker = (TimePicker) getActivity().findViewById(R.id.timePicker);
+
+			Calendar c = Calendar.getInstance();
+			if (mStartDeadline != null)
+				c.setTime(mStartDeadline);
+			else
+				c.setTime(changeToDate());
+			
+			//TODO MAKE EVERYTHING USE CALENDAR IT'S BEAUTIFUL
+			datePicker.updateDate(c.get(Calendar.YEAR), c.get(Calendar.MONTH),
+					c.get(Calendar.DAY_OF_MONTH));
+			timePicker.setCurrentHour(c.get(Calendar.HOUR_OF_DAY));
+			timePicker.setCurrentMinute(c.get(Calendar.MINUTE));
+		}
+		
+		public void onStop()
+		{
+			DatePicker dp = (DatePicker) getActivity().findViewById(R.id.datePicker);
+			TimePicker tp = (TimePicker) getActivity().findViewById(R.id.timePicker);
+			GregorianCalendar gc = new GregorianCalendar(dp.getYear(), dp.getMonth(), dp.getDayOfMonth(),
+					tp.getCurrentHour(), tp.getCurrentMinute());
+			mStartDeadline = gc.getTime();
+			super.onStop();
+		}
+	}
+	
+	public static class FinalEditFragment extends Fragment {
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -1640,6 +1685,13 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				tv.setText(mVenuePhotoUrls.length() + " photos");
 			else if (photos == 1)
 				tv.setText("1 photo");
+			if (mStartDeadline != null)
+			{
+				tv = (TextView) getActivity().findViewById(R.id.finalEditStartTimeText);
+				Time t = new Time();
+				t.set(mStartDeadline.getTime());
+				tv.setText(t.format("%a, %b %e %I:%M %p"));
+			}
 			
 			getActivity().findViewById(R.id.finalEditTo).setOnClickListener(new OnClickListener() {
 				@Override
@@ -1697,6 +1749,18 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					getActivity().registerForContextMenu(v); 
 				    getActivity().openContextMenu(v);
 				    getActivity().unregisterForContextMenu(v);
+				}
+			});
+			
+			getActivity().findViewById(R.id.finalEditStartTime).setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					mAfterFinalEdit = true;
+					FragmentTransaction transaction = getActivity().getFragmentManager()
+							.beginTransaction();
+					transaction.replace(R.id.container, new StartTimeFragment());
+					transaction.addToBackStack(null);
+					transaction.commit();
 				}
 			});
 			
