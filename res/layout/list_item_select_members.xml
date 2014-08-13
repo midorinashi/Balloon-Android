@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.example.balloon.CheckableLinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
@@ -14,15 +15,47 @@
         android:scaleType="centerCrop"
         android:src="@color/white" />
 
-    <TextView
-        android:id="@+id/name"
+    <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_height="match_parent"
         android:layout_weight="1"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="TextView" />
+        android:gravity="center_vertical" >
+
+        <com.example.balloon.TextBox
+            android:id="@+id/name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/empty"
+        	custom:fontName="Roboto-Light.ttf" />
+
+        <com.example.balloon.TextBox
+            android:id="@+id/responseRateHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/name"
+            android:layout_alignLeft="@id/name"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/response_rate"
+            android:textColor="@color/gray"
+        	custom:fontName="Roboto-Light.ttf" />
+
+        <com.example.balloon.TextBox
+            android:id="@+id/responseRate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/responseRateHeader"
+            android:layout_alignTop="@id/responseRateHeader"
+            android:ellipsize="end"
+            android:paddingLeft="5dp"
+            android:maxLines="1"
+            android:text="@string/empty"
+            android:textColor="@color/gray"
+        	custom:fontName="Roboto-Light.ttf" />
+        
+    </RelativeLayout>
     
     <com.example.balloon.InertCheckBox
         android:id="@+id/itemCheckBox"

@@ -44,6 +44,7 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Contacts.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.MediaStore;
+import android.support.v4.app.NavUtils;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -132,7 +133,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_invitation);
-
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 		//set all the defaults
 		defaultInfo(savedInstanceState);
 	}
@@ -200,7 +201,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_plus)
+		if (id == android.R.id.home)
+		{
+	        NavUtils.navigateUpFromSameTask(this);
+	        return true;
+	    }
+		else if (id == R.id.action_plus)
 		{
 			FragmentTransaction transaction = getFragmentManager().beginTransaction();
 			transaction.replace(R.id.container, new CreateListFragment());
@@ -684,10 +690,15 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	public boolean onContextItemSelected(MenuItem item) {
 	    switch (item.getItemId()) {
 	        case R.id.action_photo_foursquare:
-	        	FragmentTransaction transaction = getFragmentManager().beginTransaction();
-	        	transaction.replace(R.id.container, new ImageListFragment());
-	        	transaction.addToBackStack(null);
-	        	transaction.commit();
+	        	if (mVenue.has("id"))
+	        	{
+		        	FragmentTransaction transaction = getFragmentManager().beginTransaction();
+		        	transaction.replace(R.id.container, new ImageListFragment());
+		        	transaction.addToBackStack(null);
+		        	transaction.commit();
+	        	}
+	        	else
+	        		Toast.makeText(this, "No photos available", Toast.LENGTH_SHORT).show();
 	            return true;
 	        case R.id.action_photo_phone:
 	            return true;
@@ -936,10 +947,9 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 							ids[i] = memberLists.get(i);
 						}
 						addListsToView();
-						removeSpinner();
 						images.recycle();
 					}
-					else
+					else if (e != null)
 						showParseException(e);
 				}
 			});
@@ -963,6 +973,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					}
 		        });
 			}
+			removeSpinner();
 		}
 		
 		public void onPause()
@@ -1163,6 +1174,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		private ArrayList<String> ids;
 		private JSONArray users;
 		private ArrayAdapter<String> mArrayAdapter;
+		protected String[] responseRates;
 		
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
@@ -1264,6 +1276,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					if (e == null)
 					{
 						names = new String[userList.size()];
+						responseRates = new String[userList.size()];
 						photoURLs = new String[userList.size()];
 						//we want a JSONArray of users, not just of userIds
 						users = new JSONArray();
@@ -1273,6 +1286,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 										userList.get(i).getString("lastName");
 							if (userList.get(i).containsKey("profilePhoto"))
 								photoURLs[i] = userList.get(i).getParseFile("profilePhoto").getUrl();
+							if (userList.get(i).containsKey("responseRate"))
+								responseRates[i] = "" + (Math.round(userList.get(i)
+										.getDouble("responseRate")*1000))/10.0+"%";
+							else
+								responseRates[i] = "100%";
 							//because the ids are no longer in the same order as they used to be!
 							ids.set(i, userList.get(i).getObjectId());
 							users.put(userList.get(i));
@@ -1294,7 +1312,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		    	removeSpinner();
 			    if (mArrayAdapter == null)
 				    mArrayAdapter = new GroupAdapter(getActivity(), R.layout.list_item_select_members,
-							names, photoURLs);
+							names, responseRates, photoURLs);
 			    mCheckbox = (CheckBox) getActivity().findViewById(R.id.membersSelectAll);
 			    
 			    // each time we are started use our listadapter
@@ -1419,10 +1437,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 
 		private static ListView lv;
 		static Activity context;
-		
-
-		public ChooseLocationFragment() {
-		}
+		private static String search;
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -1440,7 +1455,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			context.setTitle(getResources().getString(R.string.title_choose_location));
 			mCurrentFragment = "ChooseLocationFragment";
 			System.out.println("Executing query sushi");
-			
+			search = "";
 			new AccessFoursquareVenues(this).execute("");
 			SearchView sv = (SearchView) context.findViewById(R.id.searchLocation);
 			sv.setOnQueryTextListener(this);
@@ -1478,35 +1493,90 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			System.out.println("Got names");
 			ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context,
 					R.layout.list_item_location, R.id.text1, names) {
+				
 				  @Override
 				  public View getView(int position, View convertView, ViewGroup parent) {
-				    View view = super.getView(position, convertView, parent);
-				    TextView text1 = (TextView) view.findViewById(R.id.text1);
-				    TextView text2 = (TextView) view.findViewById(R.id.text2);
-
-				    text1.setText(names[position]);
-				    text2.setText(addresses[position]);
-				    
-				    text1.setMaxLines(1);
-				    text2.setMaxLines(1);
-				    
-				    text1.setEllipsize(TextUtils.TruncateAt.END);
-				    text2.setEllipsize(TextUtils.TruncateAt.END);
-				    
-				    System.out.println(text1.getText());
-				    System.out.println(text2.getText());
-				    System.out.println(position);
-				    return view;
+					if (search == "")
+					{
+					    View view = super.getView(position, convertView, parent);
+					    TextView text1 = (TextView) view.findViewById(R.id.text1);
+					    TextView text2 = (TextView) view.findViewById(R.id.text2);
+	
+					    text1.setText(names[position]);
+					    text2.setText(addresses[position]);
+					    
+					    text1.setMaxLines(1);
+					    text2.setMaxLines(1);
+					    
+					    text1.setEllipsize(TextUtils.TruncateAt.END);
+					    text2.setEllipsize(TextUtils.TruncateAt.END);
+					    
+					    System.out.println(text1.getText());
+					    System.out.println(text2.getText());
+					    System.out.println(position);
+					    return view;
+					}
+					//or we need to include custom locations
+					else
+					{
+						if (position == 0){
+							convertView = ((LayoutInflater) context.getSystemService
+									(Context.LAYOUT_INFLATER_SERVICE))
+									.inflate(R.layout.list_item_new_location, null);
+							return convertView;
+						}
+						else
+						{
+							View view = super.getView(position, null, parent);
+						    TextView text1 = (TextView) view.findViewById(R.id.text1);
+						    TextView text2 = (TextView) view.findViewById(R.id.text2);
+		 
+						    if (text1 != null)
+						    {
+						    	text1.setText(names[position-1]);
+							    text1.setMaxLines(1);
+							    text1.setEllipsize(TextUtils.TruncateAt.END);
+						    }
+						    if (text2 != null)
+						    {
+						    	text2.setText(addresses[position-1]);
+							    text2.setMaxLines(1);
+							    text2.setEllipsize(TextUtils.TruncateAt.END);
+						    }
+						    
+						    return view;
+						}
+					}
 				  }
 			};
 	        lv.setAdapter(arrayAdapter);
 	        lv.setOnItemClickListener(new OnItemClickListener() {
 				public void onItemClick(AdapterView<?> a, View v, int position, long id) {
-					mVenueInfo = names[position];
-					try {
-						mVenue = array.getJSONObject(position);
-					} catch (JSONException e) {
-						e.printStackTrace();
+					//custom location
+					if (position == 0 && search.compareTo("") != 0)
+					{
+						mVenueInfo = search;
+						mVenue = new JSONObject();
+						try {
+							mVenue.put("_customVenue", true);
+						mVenue.put("name", search);
+						} catch (JSONException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					//non custom location
+					else
+					{
+						//forget the custom location thing if necessary
+						if (search.compareTo("") != 0)
+							position--;
+						mVenueInfo = names[position];
+						try {
+							mVenue = array.getJSONObject(position);
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
 					}
 					if (mAfterFinalEdit)
 						context.getFragmentManager().popBackStack();
@@ -1543,7 +1613,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		//search now!
 		@Override
 		public boolean onQueryTextSubmit(String query) {
-
+			search = query;
 			new AccessFoursquareVenues(this).execute(query);
 			return true;
 		}
@@ -1622,6 +1692,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			//I think you can still set it a couple of hours ahead tho
 			//oh well
 			datePicker.setMinDate(new Date().getTime()-1000*60*60*24);
+			datePicker.setMaxDate(new Date().getTime()+1000*60*60*24*7);
 			TimePicker timePicker = (TimePicker) getActivity().findViewById(R.id.timePicker);
 
 			Calendar c = Calendar.getInstance();

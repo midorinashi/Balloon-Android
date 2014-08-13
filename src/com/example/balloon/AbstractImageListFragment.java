@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public abstract class AbstractImageListFragment extends ProgressFragment {
 	
@@ -41,9 +42,17 @@ public abstract class AbstractImageListFragment extends ProgressFragment {
 	public static void setURLs(String[] strings)
 	{
 		urls = strings;
-		System.out.println(urls.length + " urls found");
-		adapter = new LazyAdapter(context, urls);
-		list.setAdapter(adapter);
+		if (strings.length > 0)
+		{
+			System.out.println(urls.length + " urls found");
+			adapter = new LazyAdapter(context, urls);
+			list.setAdapter(adapter);
+		}
+		else
+		{
+    		Toast.makeText(context, "No photos available", Toast.LENGTH_SHORT).show();
+    		
+		}
 	}
 	
 	public void onPause()

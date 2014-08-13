@@ -15,6 +15,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.NavUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,7 +44,7 @@ public class RSVPEventsActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_rsvpevents);
 		setTitle(R.string.title_activity_rsvpevents);
-
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 		if (savedInstanceState == null) {
 			getFragmentManager().beginTransaction()
 					.add(R.id.container, new PlaceholderFragment()).commit();
@@ -64,7 +65,12 @@ public class RSVPEventsActivity extends Activity {
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_invites)
+		if (id == android.R.id.home)
+		{
+	        NavUtils.navigateUpFromSameTask(this);
+	        return true;
+	    }
+		else if (id == R.id.action_invites)
 		{
 			Intent intent = new Intent(this, MainActivity.class);
 			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
@@ -183,16 +189,9 @@ public class RSVPEventsActivity extends Activity {
 									meetup.getParseUser("creator").getString("lastName"));
 							((TextView) event.findViewById(R.id.agenda)).setText(meetup.getString("agenda"));
 							
-							JSONArray formattedAddress = meetup.getJSONObject("venueInfo").getJSONObject("location")
-									.getJSONArray("formattedAddress");
-							String address = "";
-							for (int j = 0; j < formattedAddress.length(); j++)
-							{
-								address += formattedAddress.getString(j);
-								if (j != formattedAddress.length() - 1)
-									address += ", ";
-							}
-							((TextView) event.findViewById(R.id.venueInfo)).setText(address);
+							
+							((TextView) event.findViewById(R.id.venueInfo)).setText
+								(meetup.getJSONObject("venueInfo").getString("name"));
 		 
 							JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
 							if (urls != null && urls.length() > 0)

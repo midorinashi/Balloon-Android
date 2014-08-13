@@ -30,6 +30,7 @@
     <string name="comments_hint">Your update here</string>
     <string name="coming_header">COMING</string>
     <string name="contacts_header">Contacts:</string>
+    <string name="create_custom_location">Create Custom Location</string>
     <string name="deadline_time">7:00PM</string>
     <string name="deadline_text">Your invitation wil\nbe visible from\nnow until</string>
     <string name="done">Done</string>
@@ -75,6 +76,7 @@
     <string name="photo_remove">Remove Added Photos</string>
     <string name="photo_take">Take Photo</string>
     <string name="preview">Preview</string>
+    <string name="response_rate">Response Rate: </string>
     <string name="save">Save</string>
     <string name="search_location">Search</string>
     <string name="send">Send</string>
@@ -109,7 +111,7 @@
     <string name="title_select_members_from_contacts">Select Members</string>
     <string name="title_select_members_from_list">Select Members</string>
     <string name="title_set_deadline">Set Deadline</string>
-    <string name="title_activity_first_page">FirstPageActivity</string>
+    <string name="title_activity_first_page">Welcome to Balloon!</string>
     <string name="title_verification_code">Verification Code</string>
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>

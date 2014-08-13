@@ -31,6 +31,7 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.Contacts.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.MediaStore;
+import android.support.v4.app.NavUtils;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -72,7 +73,7 @@ public class NewContactListActivity extends ProgressActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_contact_list);
-		
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 		//Set default values for first screen
 		mListName = "";
 		mPublicList = false;
@@ -240,7 +241,12 @@ public class NewContactListActivity extends ProgressActivity {
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_next)
+		if (id == android.R.id.home)
+		{
+	        NavUtils.navigateUpFromSameTask(this);
+	        return true;
+	    }
+		else if (id == R.id.action_next)
 		{
 			if (item.getTitle().toString().compareTo("Next") == 0)
 			{

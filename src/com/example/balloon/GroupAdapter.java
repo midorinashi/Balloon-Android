@@ -20,6 +20,7 @@ public class GroupAdapter extends ArrayAdapter<String> implements Filterable {
     private Activity activity;
     private int viewType;
     private String[] names;
+    private String[] responseRates;
     private String[] photoURLs;
     private static LayoutInflater inflater = null;
     public ImageLoader imageLoader; 
@@ -32,6 +33,12 @@ public class GroupAdapter extends ArrayAdapter<String> implements Filterable {
         photoURLs = urls;
         inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         imageLoader = new ImageLoader(activity.getApplicationContext());
+    }
+    
+    public GroupAdapter(Activity a, int type, String[] n, String[] rates, String[] urls)
+    {
+    	this(a, type, n, urls);
+    	responseRates = rates;
     }
  
     public int getCount() {
@@ -59,6 +66,8 @@ public class GroupAdapter extends ArrayAdapter<String> implements Filterable {
         else
 	        Picasso.with(activity).load(photoURLs[position]).resize(140, 140)
 	        	.into((ImageView) vi.findViewById(R.id.imageView1));
+        if (responseRates != null)
+        	((TextView) vi.findViewById(R.id.responseRate)).setText(responseRates[position]);
         return vi;
     }
 }

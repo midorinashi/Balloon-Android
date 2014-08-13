@@ -10,6 +10,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.widget.Toast;
+
 public class AccessFoursquarePhotos extends AccessFoursquare {
 
 	private ProgressFragment fragment;
@@ -47,12 +49,8 @@ public class AccessFoursquarePhotos extends AccessFoursquare {
 			
 		} catch (IOException e) {
 		    e.printStackTrace();
-		    try {
-		   	    Thread.sleep(1000);
-		   	    doInBackground(id);
-		   	} catch(InterruptedException ex) {
-		   	    Thread.currentThread().interrupt();
-		   	}
+    		Toast.makeText(fragment.getActivity(), "No photos available",
+    				Toast.LENGTH_SHORT).show();
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {

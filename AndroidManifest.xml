@@ -44,44 +44,78 @@
             android:windowSoftInputMode="stateHidden" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name="com.example.balloon.MoreInfoActivity"
             android:label="@string/title_activity_more_info"
-            android:windowSoftInputMode="stateHidden" >
+            android:windowSoftInputMode="stateHidden" 
+            android:parentActivityName="com.example.balloon.MainActivity" >
+	        <!-- Parent activity meta-data to support 4.0 and lower -->
+	        <meta-data
+	            android:name="android.support.PARENT_ACTIVITY"
+	            android:value="com.example.balloon.MainActivity" />
         </activity>
         <activity
             android:name="com.example.balloon.NewInvitationActivity"
             android:label="@string/title_activity_new_invitation"
-            android:windowSoftInputMode="stateHidden" >
+            android:windowSoftInputMode="stateHidden" 
+            android:parentActivityName="com.example.balloon.MainActivity" >
+	        <!-- Parent activity meta-data to support 4.0 and lower -->
+	        <meta-data
+	            android:name="android.support.PARENT_ACTIVITY"
+	            android:value="com.example.balloon.MainActivity" />
         </activity>
         <activity
             android:name="com.example.balloon.NewInvitation"
             android:label="@string/title_activity_new_invitation"
-            android:windowSoftInputMode="stateHidden" >
+            android:windowSoftInputMode="stateHidden" 
+            android:parentActivityName="com.example.balloon.MainActivity" >
+	        <!-- Parent activity meta-data to support 4.0 and lower -->
+	        <meta-data
+	            android:name="android.support.PARENT_ACTIVITY"
+	            android:value="com.example.balloon.MainActivity" />
         </activity>
         <activity
             android:name="com.example.balloon.ContactListsActivity"
             android:label="@string/title_activity_contact_lists"
-            android:windowSoftInputMode="stateHidden" >
+            android:windowSoftInputMode="stateHidden" 
+            android:parentActivityName="com.example.balloon.MainActivity" >
+	        <!-- Parent activity meta-data to support 4.0 and lower -->
+	        <meta-data
+	            android:name="android.support.PARENT_ACTIVITY"
+	            android:value="com.example.balloon.MainActivity" />
         </activity>
         <activity
             android:name="com.example.balloon.NewContactListActivity"
             android:label="@string/title_activity_new_contact_list"
-            android:windowSoftInputMode="stateHidden" >
+            android:windowSoftInputMode="stateHidden" 
+            android:parentActivityName="com.example.balloon.MainActivity" >
+	        <!-- Parent activity meta-data to support 4.0 and lower -->
+	        <meta-data
+	            android:name="android.support.PARENT_ACTIVITY"
+	            android:value="com.example.balloon.MainActivity" />
         </activity>
         <activity
             android:name="com.example.balloon.RSVPEventsActivity"
             android:label="@string/title_activity_rsvpevents"
-            android:windowSoftInputMode="stateHidden" >
+            android:windowSoftInputMode="stateHidden" 
+            android:parentActivityName="com.example.balloon.MainActivity" >
+	        <!-- Parent activity meta-data to support 4.0 and lower -->
+	        <meta-data
+	            android:name="android.support.PARENT_ACTIVITY"
+	            android:value="com.example.balloon.MainActivity" />
         </activity>
         <activity
             android:name="com.example.balloon.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:windowSoftInputMode="stateHidden" >
+            android:windowSoftInputMode="stateHidden" 
+            android:parentActivityName="com.example.balloon.MainActivity" >
+	        <!-- Parent activity meta-data to support 4.0 and lower -->
+	        <meta-data
+	            android:name="android.support.PARENT_ACTIVITY"
+	            android:value="com.example.balloon.MainActivity" />
         </activity>
         <activity
             android:name="com.example.balloon.FirstPageActivity"

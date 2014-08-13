@@ -10,6 +10,10 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.database.Cursor;
@@ -19,6 +23,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.NavUtils;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -31,6 +36,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -53,13 +59,14 @@ public class ContactListInfoActivity extends ProgressActivity {
 	protected static ParseObject list;
 	private File lastSavedFile;
 	protected ParseFile mContactListImage;
+	private static Menu mOptionMenu;
 	private static ContextMenu mMenu;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_contact_list_info);
-		
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 		mListName = getIntent().getExtras().getString("listName");
 		mListId = getIntent().getExtras().getString("listId");
 
@@ -74,6 +81,7 @@ public class ContactListInfoActivity extends ProgressActivity {
 
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.contact_list_info, menu);
+		mOptionMenu = menu;
 		return true;
 	}
 
@@ -83,7 +91,12 @@ public class ContactListInfoActivity extends ProgressActivity {
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_add)
+		if (id == android.R.id.home)
+		{
+	        NavUtils.navigateUpFromSameTask(this);
+	        return true;
+	    }
+		else if (id == R.id.action_add)
 		{
 			//TODO
 		}
@@ -95,6 +108,8 @@ public class ContactListInfoActivity extends ProgressActivity {
 			intent.putExtras(bundle);
 			startActivity(intent);
 		}
+		
+		//TODO ALL THE REMOVESSSSS
 		return super.onOptionsItemSelected(item);
 	}
 	
@@ -228,17 +243,20 @@ public class ContactListInfoActivity extends ProgressActivity {
 	{
 		ImageView view = (ImageView) findViewById(R.id.editGroup).findViewById(R.id.imageView1);
 		if (view != null)
-		{
-			//TODO ?????
 			Picasso.with(this).load(mContactListImage.getUrl()).resize(140, 140).into(view);
-			System.out.println("What");
-		}
 		list.put("photo", mContactListImage);
 		list.saveInBackground();
 	}
 	
+	public void changeName(View view)
+	{
+	    DialogFragment newFragment = new ChangeNameFragment();
+	    newFragment.show(getFragmentManager(), null);
+	}
+	
 	public static class ShowListFragment extends ProgressFragment {
 		protected String[] names;
+		protected double[] responseRates;
 		protected ArrayList<String> ids;
 		protected String[] photoURLs;
 		protected boolean mIsOwner;
@@ -269,6 +287,7 @@ public class ContactListInfoActivity extends ProgressActivity {
 						// don't forget to include the owner
 						int length = members.length();
 						names = new String[length + 1];
+						responseRates = new double[length + 1];
 						ids = new ArrayList<String>();
 						photoURLs = new String[length + 1];
 						//first add the owner
@@ -277,6 +296,11 @@ public class ContactListInfoActivity extends ProgressActivity {
 						if (contactList.getParseUser("owner").containsKey("profilePhoto"))
 							photoURLs[0] = contactList.getParseUser("owner")
 									.getParseFile("profilePhoto").getUrl();
+						if (contactList.getParseUser("owner").containsKey("responseRate"))
+							responseRates[0] = contactList.getParseUser("owner").getDouble("responseRate");
+						else
+							responseRates[0] = 1;
+						
 						//then see if the owner is the user
 						mIsOwner = contactList.getParseUser("owner").getObjectId().compareTo
 								(ParseUser.getCurrentUser().getObjectId()) == 0;
@@ -329,6 +353,10 @@ public class ContactListInfoActivity extends ProgressActivity {
 										userList.get(i).getString("lastName");
 							if (userList.get(i).containsKey("profilePhoto"))
 								photoURLs[i + 1] = userList.get(i).getParseFile("profilePhoto").getUrl();
+							if (userList.get(i).containsKey("responseRate"))
+								responseRates[i + 1] = userList.get(i).getDouble("responseRate");
+							else
+								responseRates[i + 1] = 1;
 						}
 						finishResume();
 					}
@@ -344,6 +372,7 @@ public class ContactListInfoActivity extends ProgressActivity {
 			{
 				if (mIsOwner)
 				{
+					mOptionMenu.getItem(0).setVisible(true);
 					View view = getActivity().findViewById(R.id.editGroup);
 					view.setVisibility(View.VISIBLE);
 					CheckBox cb = (CheckBox) view.findViewById(R.id.checkBox1);
@@ -377,7 +406,7 @@ public class ContactListInfoActivity extends ProgressActivity {
 								% 12,R.drawable.color_balloon_8)).resize(140, 140).into(image);
 						array.recycle();
 					}
-					//TODO
+					
 					((TextView) view.findViewById(R.id.listName)).setText(mListName);
 				}
 				LinearLayout ll = (LinearLayout) getActivity().findViewById(R.id.linearLayout);
@@ -387,6 +416,8 @@ public class ContactListInfoActivity extends ProgressActivity {
 				{
 					View member = View.inflate(getActivity(), R.layout.list_members, null);
 					((TextView) member.findViewById(R.id.name)).setText(names[i]);
+					((TextView) member.findViewById(R.id.responseRate)).setText("" + 
+							(Math.round(responseRates[i]*1000)/10.0) + "%");
 					Picasso.with(getActivity()).load(photoURLs[i]).resize(140, 140)
 		        		.into((ImageView) member.findViewById(R.id.imageView1));
 					ll.addView(member, 2*i);
@@ -397,7 +428,46 @@ public class ContactListInfoActivity extends ProgressActivity {
 				}
 				ll.invalidate();
 				ll.requestLayout();
+				removeSpinner();
 			}
 		}
+	}
+	
+	public static class ChangeNameFragment extends DialogFragment {
+		
+		Dialog dialog;
+		
+	    @Override
+	    public Dialog onCreateDialog(Bundle savedInstanceState) {
+	        // Use the Builder class for convenient dialog construction
+	        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+	        builder.setView(getActivity().getLayoutInflater().inflate
+	        			(R.layout.fragment_change_group_name, null))
+	        	   .setTitle("Change group name")
+	               .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
+	                   public void onClick(DialogInterface d, int id) {
+	                	   mListName = ((EditText) dialog.findViewById(R.id.changeName))
+	                			   .getText().toString();
+	                	   getActivity().setTitle(mListName);
+	                	   ((TextView) getActivity().findViewById(R.id.listName)).setText(mListName);
+	                	   list.put("name", mListName);
+	                	   list.saveInBackground();
+	                   }
+	               })
+	               .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+	                   public void onClick(DialogInterface dialog, int id) {
+	           	    	ChangeNameFragment.this.getDialog().cancel();
+	                   }
+	               });
+	        dialog = builder.create();
+	        // Create the AlertDialog object and return it
+	        return dialog;
+	    }
+	    
+	    public void onResume()
+	    {
+	    	super.onResume();
+	    	((EditText) dialog.findViewById(R.id.changeName)).setText(mListName);
+	    }
 	}
 }

@@ -9,15 +9,11 @@ import java.util.TimerTask;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
-import android.app.Activity;
-import android.app.Fragment;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +27,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -314,7 +311,56 @@ public class MainActivity extends ProgressActivity
 						meetup.getString("agenda"));
 				try {
 					tv = (TextView) event.findViewById(R.id.venueInfo);
-					tv.setText(meetup.getJSONObject("venueInfo").getString("name"));
+					final JSONObject venueInfo = meetup.getJSONObject("venueInfo");
+					tv.setText(venueInfo.getString("name"));
+					tv.setOnClickListener(new OnClickListener() {
+						@Override
+						public void onClick(View arg0) {
+							Intent intent;
+							try {
+								String str = "geo:0,0?q="+venueInfo.getJSONObject("location").getDouble("lat")
+										+","+venueInfo.getJSONObject("location").getDouble("lng")
+										+" (" + venueInfo.getString("name") + ")";
+								System.out.println(str);
+								intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(str));
+								if (intent.resolveActivity(getActivity().getPackageManager()) != null)
+								{
+									startActivity(intent);
+									System.out.println("Geo works!");
+								}
+								else
+								{
+									System.out.println("Geo does not work");
+									//TODO puts down a lot of markers. Don't know why
+									String address = "";
+									JSONArray formattedAddress;
+									try {
+										formattedAddress = venueInfo.getJSONObject("address")
+												.getJSONArray("formattedAddress");
+										for (int i = 0; i < formattedAddress.length(); i++)
+											address += " " + formattedAddress.getString(i);
+									} catch (JSONException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									//need to get rid of first space
+									String url = ("http://www.maps.google.com/maps?q="+(address).substring(1))
+											.replaceAll(" ", "+");
+									Uri uri = Uri.parse(url);
+									intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
+									if (intent.resolveActivity(getActivity().getPackageManager()) != null)
+										startActivity(intent);
+									else
+										Toast.makeText(getActivity(), "Oops! No location found",
+												Toast.LENGTH_SHORT).show();
+								}
+							} catch (JSONException e) {
+								Toast.makeText(getActivity(), "Oops! No location found",
+										Toast.LENGTH_SHORT).show();
+								e.printStackTrace();
+							}
+						}
+					});
 					JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
 					ImageView v = ((ImageView) event.findViewById(R.id.image));
 					if (urls != null && urls.length() > 0)

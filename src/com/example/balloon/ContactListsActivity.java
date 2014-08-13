@@ -11,6 +11,7 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -38,7 +39,7 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_contact_lists);
-
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 		if (savedInstanceState == null) {
 			getFragmentManager().beginTransaction()
 					.add(R.id.container, new ContactListsFragment()).commit();
@@ -59,7 +60,12 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_plus) {
+		if (id == android.R.id.home)
+		{
+	        NavUtils.navigateUpFromSameTask(this);
+	        return true;
+	    }
+		else if (id == R.id.action_plus) {
 			newContactList();
 			return true;
 		}
@@ -189,7 +195,6 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 							try {
 								ids.add(members.getJSONObject(i).getString("objectId"));
 							} catch (JSONException e1) {
-								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}
 								
@@ -250,12 +255,12 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 			    GroupAdapter adapter = new GroupAdapter(getActivity(),
 			    		R.layout.list_members, names, photoURLs);
 			    
-			    removeSpinner();
 			    // each time we are started use our listadapter
 			    ListView lv = (ListView) getActivity().findViewById(R.id.showMembers);
 			    lv.setAdapter(adapter);
 			    lv.setItemsCanFocus(false);
 		    }
+		    removeSpinner();
 		}
 	}
 }

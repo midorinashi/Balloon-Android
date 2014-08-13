@@ -23,7 +23,7 @@
             android:layout_marginBottom="20dp"
             android:layout_marginTop="20dp"
             android:gravity="center"
-            android:visibility="visible" >
+            android:visibility="gone" >
 
             <TextView
                 android:id="@+id/edit"
@@ -46,13 +46,15 @@
                 android:id="@+id/listName"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:layout_alignBottom="@+id/imageView1"
                 android:layout_alignTop="@+id/imageView1"
                 android:layout_toRightOf="@+id/imageView1"
-                android:layout_alignBottom="@id/imageView1"
+                android:clickable="true"
                 android:ellipsize="end"
                 android:gravity="center_vertical"
-                android:padding="15dp"
+                android:onClick="changeName"
                 android:maxLines="1"
+                android:padding="15dp"
                 android:text="TextView" />
 
             <View

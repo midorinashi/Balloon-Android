@@ -12,14 +12,46 @@
         android:layout_marginRight="20dp"
         android:src="@drawable/abc_ab_bottom_solid_dark_holo" />
 
-    <com.example.balloon.TextBox
-        android:id="@+id/name"
-        android:layout_width="match_parent"
+    <RelativeLayout
+        android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:ellipsize="end"
-        android:gravity="center_vertical"
-        android:maxLines="1"
-        android:text="TextView"
-        custom:fontName="Roboto-Light.ttf" />
+        android:layout_weight="1"
+        android:gravity="center_vertical" >
+
+        <com.example.balloon.TextBox
+            android:id="@+id/name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/empty"
+        	custom:fontName="Roboto-Light.ttf" />
+
+        <com.example.balloon.TextBox
+            android:id="@+id/responseRateHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/name"
+            android:layout_alignLeft="@id/name"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/response_rate"
+            android:textColor="@color/gray"
+        	custom:fontName="Roboto-Light.ttf" />
+
+        <com.example.balloon.TextBox
+            android:id="@+id/responseRate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/responseRateHeader"
+            android:layout_alignTop="@id/responseRateHeader"
+            android:ellipsize="end"
+            android:paddingLeft="5dp"
+            android:maxLines="1"
+            android:text="@string/empty"
+            android:textColor="@color/gray"
+        	custom:fontName="Roboto-Light.ttf" />
+        
+    </RelativeLayout>
 
 </LinearLayout>

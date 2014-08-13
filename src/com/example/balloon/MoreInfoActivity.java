@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Typeface;
@@ -20,11 +21,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.NavUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -35,8 +39,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
-import com.handmark.pulltorefresh.library.PullToRefreshScrollView;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
+import com.handmark.pulltorefresh.library.PullToRefreshScrollView;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.GetCallback;
@@ -72,7 +76,7 @@ public class MoreInfoActivity extends ProgressActivity
 		mWillAttend = getIntent().getExtras().getBoolean("willAttend");
 		mIsCreator = getIntent().getExtras().getBoolean("isCreator");
 		System.out.println(mObjectId);
-		
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 		if (savedInstanceState == null)
 		{
 			showSpinner();
@@ -153,7 +157,12 @@ public class MoreInfoActivity extends ProgressActivity
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_edit) {
+		if (id == android.R.id.home)
+		{
+	        NavUtils.navigateUpFromSameTask(this);
+	        return true;
+	    }
+		else if (id == R.id.action_edit) {
 			Intent intent = new Intent(this, EditMeetupActivity.class);
 			Bundle bundle = new Bundle();
 			bundle.putString("objectId", mObjectId);
@@ -258,8 +267,11 @@ public class MoreInfoActivity extends ProgressActivity
 				ParseUser user = responses.get(i).getParseUser("responder");
 				((TextView) response.findViewById(R.id.responder)).setText(user
 						.getString("firstName") + " " + user.getString("lastName"));
-				Picasso.with(this).load(user.getParseFile("profilePhoto").getUrl()).resize(100, 100)
-					.into((ImageView) response.findViewById(R.id.profilePhoto));
+				((TextView) response.findViewById(R.id.responseRate)).setText("" + 
+						(Math.round(user.getDouble("responseRate")*1000)/10.0) + "%");
+				if (user.containsKey("profilePhoto"))
+					Picasso.with(this).load(user.getParseFile("profilePhoto").getUrl())
+						.resize(100, 100).into((ImageView) response.findViewById(R.id.profilePhoto));
 				lin.addView(response, lp);
 		    }
 	    }
@@ -271,6 +283,13 @@ public class MoreInfoActivity extends ProgressActivity
 		showSpinner();
 		EditText et = (EditText) findViewById(R.id.comment);
 		String comment = et.getText().toString();
+		
+		//to prevent multiple comments
+		view.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+			}
+		});
 		
 		ParseObject c = new ParseObject("Comment");
 		c.put("comment", comment);
@@ -287,52 +306,59 @@ public class MoreInfoActivity extends ProgressActivity
 					showParseException(e);
 			}
 		});
+
+		InputMethodManager imm = (InputMethodManager) getSystemService(
+		      Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(et.getWindowToken(), 0);
 	}
 	
 	public void locate()
 	{
 		if (mVenueLocation != null)
 		{
-			String lat = "";
-			String lng = "";
+			System.out.println(mVenueLocation.toString());
+			String str = "";
 			try {
-				lat = mVenueLocation.getString("lat");
-				lng = mVenueLocation.getString("lng");
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			String uriBegin = Uri.encode("geo:" + lat + "," + lng);
-			String uriQuery = Uri.encode(lat + "," + lng + "(" + mVenueInfo + ")");
-			//need to deal with spaces
-			System.out.println("Begin: " + uriBegin);
-			System.out.println("Query: " + uriQuery);
-			Uri uri = Uri.parse(uriBegin + "?q=" + uriQuery);
-			Intent intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
-			if (intent.resolveActivity(getPackageManager()) != null)
-				startActivity(intent);
-			else
-			{
-				//TODO puts down a lot of markers. Don't know why
-				String address = "";
-				JSONArray formattedAddress;
-				try {
-					formattedAddress = mVenueLocation.getJSONArray("formattedAddress");
-					for (int i = 0; i < formattedAddress.length(); i++)
-						address += " " + formattedAddress.getString(i);
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				//need to get rid of first space
-				String url = ("http://www.maps.google.com/maps?q="+(address).substring(1))
-						.replaceAll(" ", "+");
-				uri = Uri.parse(url);
-				intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
+				str = "geo:0,0?q="+mVenueLocation.getJSONObject("location").getDouble("lat")
+						+","+mVenueLocation.getJSONObject("location").getDouble("lng")
+						+" (" + mVenueLocation.getString("name") + ")";
+				//need to deal with spaces
+				System.out.println("This is: " + str);
+				Uri uri = Uri.parse(str);
+				Intent intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
 				if (intent.resolveActivity(getPackageManager()) != null)
+				{
 					startActivity(intent);
+					System.out.println("Geo works!");
+				}
 				else
-					outputToast("Oops! No map application found.");
+				{
+					System.out.println("Geo does not work");
+					//TODO puts down a lot of markers. Don't know why
+					String address = "";
+					JSONArray formattedAddress;
+					try {
+						formattedAddress = mVenueLocation.getJSONObject("location").getJSONArray("formattedAddress");
+						for (int i = 0; i < formattedAddress.length(); i++)
+							address += " " + formattedAddress.getString(i);
+						//need to get rid of first space
+						address = address.substring(1);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					String url = ("http://www.maps.google.com/maps?q="+address)
+							.replaceAll(" ", "+");
+					uri = Uri.parse(url);
+					intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
+					if (intent.resolveActivity(getPackageManager()) != null)
+						startActivity(intent);
+					else
+						outputToast("Oops! No map application found.");
+				}
+			} catch (JSONException e1) {
+				Toast.makeText(this, "Oops! No location found",
+						Toast.LENGTH_SHORT).show();
 			}
 		}
 		else
@@ -350,6 +376,12 @@ public class MoreInfoActivity extends ProgressActivity
 	public void cancel(View view)
 	{
 		getFragmentManager().popBackStack();
+		if (view != null)
+		{
+			InputMethodManager imm = (InputMethodManager) getSystemService(
+			      Context.INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+		}
 	}
 	
 	public static class InfoFragment extends ProgressFragment
@@ -414,13 +446,7 @@ public class MoreInfoActivity extends ProgressActivity
 							e1.printStackTrace();
 						}
 						
-						try {
-							mVenueLocation = meetup.getJSONObject("venueInfo")
-									.getJSONObject("location");
-						} catch (JSONException e1) {
-							//it's a custom venue
-							mVenueLocation = null;
-						}
+						mVenueLocation = meetup.getJSONObject("venueInfo");
 						
 						try {
 							if (meetup.containsKey("venuePhotoURLs") && 
@@ -596,7 +622,9 @@ public class MoreInfoActivity extends ProgressActivity
 		public void makeComingList(List<ParseObject> responses)
 		{
 			System.out.println("makeComingList activated");
-		    LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.coming);
+		    LinearLayout lin = null;
+			if (getActivity() != null)
+				lin = (LinearLayout) getActivity().findViewById(R.id.coming);
 		    if (lin != null)
 		    {
 		    	System.out.println(responses.size());
@@ -609,8 +637,12 @@ public class MoreInfoActivity extends ProgressActivity
 					ParseUser user = responses.get(i).getParseUser("responder");
 					((TextView) response.findViewById(R.id.responder)).setText(user
 							.getString("firstName") + " " + user.getString("lastName"));
-					Picasso.with(getActivity()).load(user.getParseFile("profilePhoto").getUrl()).resize(100, 100)
-						.into((ImageView) response.findViewById(R.id.profilePhoto));
+					((TextView) response.findViewById(R.id.responseRate)).setText("" + 
+							(Math.round(user.getDouble("responseRate")*1000)/10.0) + "%");
+					if (user.containsKey("profilePhoto"))
+						Picasso.with(getActivity()).load(user.getParseFile("profilePhoto")
+							.getUrl()).resize(100, 100).into((ImageView) response.findViewById
+							(R.id.profilePhoto));
 					lin.addView(response, lp);
 			    }
 		    }

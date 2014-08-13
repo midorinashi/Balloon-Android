@@ -11,15 +11,47 @@
         android:id="@+id/profilePhoto"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_marginRight="10dp"
-        android:src="@drawable/abc_ab_bottom_solid_dark_holo" />
+        android:layout_marginRight="10dp" />
 
-    <com.example.balloon.TextBox
-        android:id="@+id/responder"
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:text="TextView"
-	    custom:fontName="Roboto-Light.ttf" />
+        android:gravity="center_vertical" >
+
+        <com.example.balloon.TextBox
+            android:id="@+id/responder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/empty"
+        	custom:fontName="Roboto-Light.ttf" />
+
+        <com.example.balloon.TextBox
+            android:id="@+id/responseRateHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/responder"
+            android:layout_alignLeft="@id/responder"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/response_rate"
+            android:textColor="@color/gray"
+        	custom:fontName="Roboto-Light.ttf" />
+
+        <com.example.balloon.TextBox
+            android:id="@+id/responseRate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/responseRateHeader"
+            android:layout_alignTop="@id/responseRateHeader"
+            android:ellipsize="end"
+            android:paddingLeft="5dp"
+            android:maxLines="1"
+            android:text="@string/empty"
+            android:textColor="@color/gray"
+        	custom:fontName="Roboto-Light.ttf" />
+        
+    </RelativeLayout>
 
 </LinearLayout>
