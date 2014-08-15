@@ -20,13 +20,10 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -66,16 +63,15 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CursorAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -106,7 +102,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	protected static JSONArray mVenuePhotoUrls;
 	protected static JSONArray mMemberObjectIds;
 	protected static String[] mPhoneNumbers;
-	protected static String[] mMemberNames;
+	protected static String[] mMemberFirstNames;
+	protected static String[] mMemberLastNames;
 	protected static boolean mMakeContactList;
 	protected static String[] mMemberIds;
 	protected static JSONArray mMembers;
@@ -156,7 +153,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		mMakeContactList = false;
 		mMemberIds = null;
 		mMembers = null;
-		mMemberNames = null;
+		mMemberFirstNames = null;
+		mMemberLastNames = null;
 		mPreviewName = null;
 		mInviteMore = true;
 		mCurrentFragment = "";
@@ -240,7 +238,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			if (((ListView) findViewById(R.id.contactsList)).getCheckedItemCount() != 0)
 			{
-				saveContacts();
+				SelectMembersFromContactsFragment.saveContacts();
 				mMakeContactList = true;
 				if (mAfterFinalEdit)
 				{
@@ -312,7 +310,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		transaction.addToBackStack(null);
 		transaction.commit();
 	}
-	
+	/*
 	// http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
 	public void saveContacts()
 	{
@@ -494,13 +492,14 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			HashMap<String, Object> params = new HashMap<String, Object>();
 			JSONArray contacts = new JSONArray();
-			for (int i = 0; i < mMemberNames.length; i++)
+			for (int i = 0; i < mMemberFirstNames.length; i++)
 			{
 				JSONObject contact = new JSONObject();
 				try {
-					contact.put("firstName", mMemberNames[i]);
+					contact.put("firstName", mMemberFirstNames[i]);
+					contact.put("lastName", mMemberLastNames[i]);
 					contact.put("mobileNumber", mPhoneNumbers[i]);
-					System.out.println(mMemberNames[i] +" " + mPhoneNumbers[i]);
+					System.out.println(mMemberFirstNames[i] +" " + mPhoneNumbers[i]);
 				} catch (JSONException e1) {
 					e1.printStackTrace();
 				}
@@ -1055,33 +1054,141 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		}
 	}
 	
-	public static class SelectMembersFromContactsFragment extends Fragment
-			implements LoaderCallbacks<Cursor> {
+	public static class SelectMembersFromContactsFragment extends Fragment implements OnQueryTextListener {
 
 		// Following code mostly from http://stackoverflow.com/questions/18199359/how-to-display-contacts-in-a-listview-in-android-for-android-api-11
-	    private CursorAdapter mAdapter;
+	    private ContactAdapter adapter;
 
 	    // and name should be displayed in the text1 textview in item layout
 	    private static final String[] FROM = { Contacts.DISPLAY_NAME };
 	    private static final int[] TO = { android.R.id.text1 };
 
 	    // columns requested from the database
-	    private static final String[] PROJECTION = {
+	    private static final String[] DISPLAY_NAME_PROJECTION = {
 	        Contacts._ID, // _ID is always required
-	        Contacts.DISPLAY_NAME // that's what we want to display
+	        Contacts.DISPLAY_NAME, // that's what we want to display
+	        Contacts.HAS_PHONE_NUMBER
+	    };
+	    
+	    private static final String[] PHONE_PROJECTION = {
+	    	Phone.TYPE,
+	    	Phone.NUMBER,
+	    	Phone.IS_SUPER_PRIMARY
+	    };
+	    
+	    private static final String[] STRUCTURED_NAME_PROJECTION = {
+	    	StructuredName.GIVEN_NAME,
+	    	StructuredName.FAMILY_NAME
 	    };
 
 	    protected String cursorFilter;
 
+	    //indexes of shit in my contacts list for each row
+	    private static ArrayList<String> ids;
+	    private static ArrayList<String> numbers;
+	    private static ArrayList<String> displayNames;
+	    private static ArrayList<String> firstNames;
+	    private static ArrayList<String> lastNames;
+	    
+		private static ArrayList<String> selectedIds;
+
+		private String search;
+
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
 	        super.onCreate(savedInstanceState);
-
-	        // create adapter once=
-	        int layout = android.R.layout.simple_list_item_multiple_choice;
-	        Cursor c = null; // there is no cursor yet
-	        int flags = 0; // no auto-requery! Loader requeries.
-	        mAdapter = new SimpleCursorAdapter(getActivity(), layout, c, FROM, TO, flags);
+	        
+	        ids = new ArrayList<String>();
+	        numbers = new ArrayList<String>();
+	        displayNames = new ArrayList<String>();
+	        firstNames = new ArrayList<String>();
+	        lastNames = new ArrayList<String>();
+	        selectedIds = new ArrayList<String>();
+	        
+	        ContentResolver resolver = getActivity().getContentResolver();
+	        Cursor c = resolver.query(Contacts.CONTENT_URI, DISPLAY_NAME_PROJECTION, null, null, null);
+	        if (c != null && c.getCount() > 0)
+	        {
+	        	c.moveToPosition(-1);
+	        	while(c.moveToNext())
+	        	{
+	        		if (Integer.parseInt(c.getString(c.getColumnIndex(Contacts.HAS_PHONE_NUMBER))) > 0)
+	        		{
+	        			String id = c.getString(c.getColumnIndex(Contacts._ID));
+		        		Cursor pCur = resolver.query(
+		        				Phone.CONTENT_URI,
+		        				PHONE_PROJECTION,
+		        				Phone.CONTACT_ID +" = ?",
+		        				new String[]{id}, null);
+		        		//only add their info if they do have a number!
+		        		if (pCur != null && pCur.getCount() > 0)
+		        		{
+		        			String phone = null;
+		        			String primaryPhone = null;
+		        			pCur.moveToPosition(-1);
+		        			while (pCur.moveToNext())
+		        			{
+		        				if (pCur.getInt(pCur.getColumnIndex(Phone.TYPE)) == Phone.TYPE_MOBILE)
+		        				{
+		        					phone = pCur.getString(pCur.getColumnIndex(Phone.NUMBER));
+		        					break;
+		        				}
+		        				else if (pCur.getInt(pCur.getColumnIndex(Phone.IS_SUPER_PRIMARY)) > 0)
+		        					primaryPhone = pCur.getString(pCur.getColumnIndex(Phone.NUMBER));
+		        			}
+		        			//if they don't have a mobile but they do have another number
+		        			if (phone == null && primaryPhone != null)
+		        				phone = primaryPhone;
+		        			//check to make sure we didn't fuck up and there is no phone
+		        			if (phone != null)
+		        			{
+				        		ids.add(id);
+				        		numbers.add(phone);
+				        		String displayName = c.getString(c.getColumnIndex(Contacts.DISPLAY_NAME));
+				        		displayNames.add(displayName);
+				        		Cursor nCur = resolver.query(
+				        				ContactsContract.Data.CONTENT_URI,
+				        				STRUCTURED_NAME_PROJECTION,
+				        				ContactsContract.Data.MIMETYPE + " = ? AND " + 
+				        						StructuredName.CONTACT_ID + " = ?",
+				        				new String[]{StructuredName.CONTENT_ITEM_TYPE, id},
+				        				StructuredName.GIVEN_NAME);
+				        		String firstName = null;
+				        		String lastName = null;
+				        		if (nCur != null && nCur.getCount() > 0)
+				        		{
+				        			nCur.moveToFirst();
+				        			firstName = nCur.getString(nCur.getColumnIndex
+				        					(StructuredName.GIVEN_NAME));
+				        			lastName = nCur.getString(nCur.getColumnIndex
+				        					(StructuredName.FAMILY_NAME));
+				        		}
+				        		nCur.close();
+				        		
+			        			//if for some reason they don't have a first or a last name
+			        			if (firstName == null && lastName == null)
+			        			{
+			        				firstNames.add(displayName);
+			        				lastNames.add("");
+			        			}
+			        			else
+			        			{
+			        				if (firstName == null)
+			        					firstNames.add("");
+			        				else
+			        					firstNames.add(firstName);
+			        				if (lastName == null)
+			        					lastNames.add("");
+			        				else
+			        					lastNames.add(lastName);
+			        			}
+		        			}
+		        		}
+		        		pCur.close();
+	        		}
+	        	}
+	        }
+	        c.close();
 	    }
 
 		@Override
@@ -1097,73 +1204,228 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    {
 	        super.onActivityCreated(savedInstanceState);
 	        
+	        adapter = new ContactAdapter(getActivity(), R.layout.list_item_contact,
+	        		displayNames, numbers, ids);
+	        
 	        // each time we are started use our listadapter
 	        mListView = (ListView) getActivity().findViewById(R.id.contactsList);
-	        mListView.setAdapter(mAdapter);
+	        mListView.setAdapter(adapter);
 	        mListView.setItemsCanFocus(false);
-	        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE); 
+	        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+	        
+	        /*
+	        ((EditText) getActivity().findViewById(R.id.searchContacts))
+	        	.addTextChangedListener(filterTextWatcher);*/
 	        // and tell loader manager to start loading
-	        getLoaderManager().initLoader(0, null, this);
 	    }
     
 	    public void onResume()
 		{
 			super.onResume();
+			final SearchView sv = (SearchView) getActivity().findViewById(R.id.searchContacts);
+			sv.setOnQueryTextListener(this);
+			sv.setSubmitButtonEnabled(true);
+			int searchCloseButtonId = sv.getContext().getResources()
+	                .getIdentifier("android:id/search_close_btn", null, null);
+			ImageView closeButton = (ImageView) sv.findViewById(searchCloseButtonId);
+			
+            // Set on click listener
+            closeButton.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    //Find EditText view
+        			int searchText = sv.getContext().getResources()
+        	                .getIdentifier("android:id/search_src_text", null, null);
+                    EditText et = (EditText) getActivity().findViewById(searchText);
+                    
+                    //Clear the text from EditText view
+                    et.setText("");
+
+                    //Clear query
+                    search = "";SparseBooleanArray checked = mListView.getCheckedItemPositions();
+    	            for (int i = 0; i < mListView.getChildCount(); i++) {
+    	                String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
+    	                		.getText().toString();
+    	                if (checked.get(i) && !selectedIds.contains(id))
+    	                    selectedIds.add(id);
+    	                else if (!checked.get(i) && selectedIds.contains(id))
+    	                	selectedIds.remove(id);
+    	            }
+    	            adapter.getFilter().filter("");
+                    adapter.notifyDataSetChanged();
+    	            //then filter the results
+    	            adapter.getFilter().filter("", new Filter.FilterListener() {
+    	                public void onFilterComplete(int count) {
+    	                    adapter.notifyDataSetChanged();
+    	                    
+    	                    for (int i = 0; i < mListView.getChildCount(); i ++) {
+    	                    	System.out.println("Index is " + i);
+    	                        // if the current (filtered) 
+    	                        // listview you are viewing has the name included in the list,
+    	                        // check the box
+    	                    	String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
+    	                        		.getText().toString();
+    	                        if (selectedIds.contains(id)) {
+    	                        	mListView.setItemChecked(i, true);
+    	                        } else {
+    	                        	mListView.setItemChecked(i, false);
+    	                        }
+    	                    }
+    	
+    	                }
+    	            });   
+                }
+            });
+			
 			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_contacts));
 			if (getActivity() instanceof NewInvitationActivity)
 				mCurrentFragment = "SelectMembersFromContactsFragment";
 		}
-	    
-	    @Override
-	    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-	    	
-	    	Uri contentUri;
-			if (cursorFilter != null)
-	            contentUri = Uri.withAppendedPath(Contacts.CONTENT_FILTER_URI,
-	                     Uri.encode(cursorFilter));
-	        // load from the "Contacts table"
-	        else
-	        	contentUri = Contacts.CONTENT_URI;
+	    /*
+	    private TextWatcher filterTextWatcher = new TextWatcher() {
 
-	        // no sub-selection, no sort order, simply every row
-	        // projection says we want just the _id and the name column
-	        return new CursorLoader(getActivity(),
-	                contentUri,
-	                PROJECTION,
-	                null,
-	                null,
-	                Phone.DISPLAY_NAME + " ASC");
-	    }
+	        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-	    @Override
-	    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-	        // Once cursor is loaded, give it to adapter
-	        mAdapter.swapCursor(data);
-	    }
+	            SparseBooleanArray checked = mListView.getCheckedItemPositions();
+	            for (int i = 0; i < mListView.getCount(); i++) {
+                    String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
+                    		.getText().toString();
+	                if (checked.get(i) && !selectedIds.contains(id))
+	                    selectedIds.add(id);
+	                else if (!checked.get(i) && selectedIds.contains(id))
+	                	selectedIds.remove(id);
+	            }           
+	        } //<-- End of beforeTextChanged
 
-	    @Override
-	    public void onLoaderReset(Loader<Cursor> loader) {
-	        // on reset take any old cursor away
-	        mAdapter.swapCursor(null);
-	    }
-	            
-	    
-	    public class ContactItem
-	    {
-	    	 public final int index;
-	         public final String value;
+	        public void onTextChanged(CharSequence s, int start, int before, int count) {           
+	            adapter.getFilter().filter(s);              
+	        } //<-- End of onTextChanged
 
-	         public ContactItem(final int index, final String value) {
-	             super();
-	             this.index = index;
-	             this.value = value;
-	         }
+	        public void afterTextChanged(Editable s) {
 
-	         @Override
-	         public String toString() {
-	             return value;
-	         }
-	    }
+	            adapter.getFilter().filter(s, new Filter.FilterListener() {
+	                public void onFilterComplete(int count) {
+	                    adapter.notifyDataSetChanged();
+	                    System.out.println("count is " + mListView.getCount());
+	                    for (int i = 0; i < mListView.getChildCount(); i ++) {
+	                    	System.out.println("Index is " + i);
+	                        // if the current (filtered) 
+	                        // listview you are viewing has the name included in the list,
+	                        // check the box
+	                    	String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
+	                        		.getText().toString();
+	                    	System.out.println(id);
+	                        if (selectedIds.contains(id)) {
+	                        	mListView.setItemChecked(i, true);
+	                        } else {
+	                        	mListView.setItemChecked(i, false);
+	                        }
+	                    }
+
+	                }
+	            });         
+	        } //<-- End of afterTextChanged
+
+	    }; //<-- End of TextWatcher
+	    */
+
+		@Override
+		public boolean onQueryTextChange(String newText) {
+			return true;
+		}
+
+		//search now!
+		@Override
+		public boolean onQueryTextSubmit(String query) {
+			//first save current checks
+			if (search == null || search.compareTo(query) != 0)
+			{
+				search = query;
+				SparseBooleanArray checked = mListView.getCheckedItemPositions();
+	            for (int i = 0; i < mListView.getChildCount(); i++) {
+	                String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
+	                		.getText().toString();
+	                if (checked.get(i) && !selectedIds.contains(id))
+	                    selectedIds.add(id);
+	                else if (!checked.get(i) && selectedIds.contains(id))
+	                	selectedIds.remove(id);
+	            }
+	            adapter.getFilter().filter(query);
+                adapter.notifyDataSetChanged();
+	            //then filter the results
+	            adapter.getFilter().filter(query, new Filter.FilterListener() {
+	                public void onFilterComplete(int count) {
+	                    adapter.notifyDataSetChanged();
+	                    
+	                    for (int i = 0; i < mListView.getChildCount(); i ++) {
+	                    	System.out.println("Index is " + i);
+	                        // if the current (filtered) 
+	                        // listview you are viewing has the name included in the list,
+	                        // check the box
+	                    	String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
+	                        		.getText().toString();
+	                        if (selectedIds.contains(id)) {
+	                        	mListView.setItemChecked(i, true);
+	                        } else {
+	                        	mListView.setItemChecked(i, false);
+	                        }
+	                    }
+	
+	                }
+	            });   
+			}
+			return true;
+		}
+		
+		public static void saveContacts()
+		{
+			//save all the latest checkmarks
+			SparseBooleanArray checked = mListView.getCheckedItemPositions();
+            for (int i = 0; i < mListView.getChildCount(); i++) {
+                String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
+                		.getText().toString();
+                if (checked.get(i) && !selectedIds.contains(id))
+                    selectedIds.add(id);
+                else if (!checked.get(i) && selectedIds.contains(id))
+                	selectedIds.remove(id);
+            }
+            
+			mMemberFirstNames = new String[selectedIds.size()];
+			mMemberLastNames = new String[selectedIds.size()];
+			mPhoneNumbers = new String[selectedIds.size()];
+			
+			for (int i = 0; i < selectedIds.size(); i++)
+			{
+				String id = selectedIds.get(i);
+				int index = ids.indexOf(id);
+				mMemberFirstNames[i] = firstNames.get(index);
+				mMemberLastNames[i] = lastNames.get(index);
+				mPhoneNumbers[i] = numbers.get(index);
+			}
+		}
+		
+		//so i can reuse this for new contact list activity
+		//remember to call saveContacts first for these to work!
+		public static int getCheckedCount()
+		{
+			return mMemberFirstNames.length;
+		}
+		
+		public static String getFirstName(int index)
+		{
+			return mMemberFirstNames[index];
+		}
+		
+		public static String getLastName(int index)
+		{
+			return mMemberLastNames[index];
+		}
+		
+		public static String getPhoneNumber(int index)
+		{
+			return mPhoneNumbers[index];
+		}
 	}
 	
 	public static class SelectMembersFromListFragment extends ProgressFragment {

@@ -294,124 +294,33 @@ public class NewContactListActivity extends ProgressActivity {
 	// http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
 	public void saveContacts()
 	{
-		//  i get the checked contact_id
-		long[] id = ((ListView) findViewById(R.id.contactsList)).getCheckedItemIds();
-        mContacts = new JSONArray();
-        for (int i = 0; i < id.length; i++)
-        {
-        	mContacts.put(getPhoneNumber(id[i]));
-        }
-		if (mContacts.length() == 0)
+		SelectMembersFromContactsFragment.saveContacts();
+		if (SelectMembersFromContactsFragment.getCheckedCount() == 0)
 			Toast.makeText(this, "No friends?", Toast.LENGTH_SHORT).show();
 		else
 			findOrCreateContacts();
 	}
 	
-	/* References
-	 * http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
-	 * http://stackoverflow.com/questions/7114573/get-contacts-mobile-number-only
-	 * http://www.regular-expressions.info/shorthand.html
-	 */
-	private JSONObject getPhoneNumber(long id) {
-		JSONObject contact = new JSONObject();
-	    String phone = null;
-	    String firstName = null;
-	    String lastName = null;
-	    Cursor phonesCursor = queryPhoneNumbers(id);
-	    Cursor nameCursor = queryName(id);
-	    
-	    if (phonesCursor == null || phonesCursor.getCount() == 0) {
-	        // No valid number
-	    	System.out.println("No valid number");
-	        return null;
-	    }
-	    else {
-	        phonesCursor.moveToPosition(-1);
-	        while (phonesCursor.moveToNext()) {
-		        int phoneType = phonesCursor.getInt(phonesCursor.getColumnIndex(ContactsContract
-		        		.CommonDataKinds.Phone.TYPE));
-		        if (phoneType == Phone.TYPE_MOBILE)
-		        {
-		        	phone = phonesCursor.getString(phonesCursor.getColumnIndex(ContactsContract
-			        		.CommonDataKinds.Phone.NUMBER));
-		 	        firstName = nameCursor.getString(nameCursor.getColumnIndex(ContactsContract
-			        		.CommonDataKinds.StructuredName.GIVEN_NAME));
-			        lastName = nameCursor.getString(nameCursor.getColumnIndex(ContactsContract
-			        		.CommonDataKinds.StructuredName.FAMILY_NAME));
-		            break;
-		        }
-	        }
-	    }
-	    //if no mobile number, try the primary
-	    if (phone == null)
-	    {
-	        phone = phonesCursor.getString(phonesCursor
-	                .getColumnIndex(Phone.NUMBER));
-	    }
-        //phone = phone.replaceAll("[^[0-9]]", "");
-        //TODO deal with missing area codes and missing country codes - use user's number
-        //has area code but no country code - cloud code auto adds america
-        
-        //make the contact!! :D
-        try {
-			contact.put("mobileNumber", phone);
-			contact.put("firstName", firstName);
-			contact.put("lastName", lastName);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        
-        System.out.println("mobileNumber: " + phone + "; firstName: " 
-        		+ firstName + "; lastName :" + lastName);
-        
-        phonesCursor.close();
-        nameCursor.close();
-	    return contact;
-	}
-	
-	// http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
-	private Cursor queryPhoneNumbers(long contactId) {
-	    ContentResolver cr = getContentResolver();
-	    Uri baseUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI,
-	            contactId);
-	    Uri dataUri = Uri.withAppendedPath(baseUri,
-	            ContactsContract.Contacts.Data.CONTENT_DIRECTORY);
-
-	    
-	    Cursor c = cr.query(dataUri, new String[] { Phone._ID, Phone.NUMBER,
-	            Phone.IS_SUPER_PRIMARY, RawContacts.ACCOUNT_TYPE, Phone.TYPE,
-	            Phone.LABEL }, Data.MIMETYPE + "=?",
-	            new String[] { Phone.CONTENT_ITEM_TYPE }, null);
-	            
-	    if (c != null && c.moveToFirst()) {
-	        return c;
-	    }
-	    return null;
-	}
-	
-	private Cursor queryName(long contactId) {
-	    ContentResolver cr = getContentResolver();
-	    Uri baseUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI,
-	            contactId);
-	    Uri dataUri = Uri.withAppendedPath(baseUri,
-	            ContactsContract.Contacts.Data.CONTENT_DIRECTORY);
-	    Cursor c = cr.query(dataUri, new String[] { StructuredName.FAMILY_NAME, StructuredName.GIVEN_NAME },
-	    		Data.MIMETYPE + "=?", new String[] { StructuredName.CONTENT_ITEM_TYPE }, null);
-	            
-	    if (c != null && c.moveToFirst()) {
-	        return c;
-	    }
-	    return null;
-	}
-	
 	public void findOrCreateContacts()
 	{
 		showSpinner();
-		HashMap<String, Object> request = new HashMap<String, Object>();
-		request.put("contacts", mContacts);
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		JSONArray contacts = new JSONArray();
+		for (int i = 0; i < SelectMembersFromContactsFragment.getCheckedCount(); i++)
+		{
+			JSONObject contact = new JSONObject();
+			try {
+				contact.put("firstName", SelectMembersFromContactsFragment.getFirstName(i));
+				contact.put("lastName", SelectMembersFromContactsFragment.getLastName(i));
+				contact.put("mobileNumber", SelectMembersFromContactsFragment.getPhoneNumber(i));
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			contacts.put(contact);
+		}
+		params.put("contacts", contacts);
 		System.out.println("starting to find or create users");
-		ParseCloud.callFunctionInBackground("findOrCreateUsers", request,
+		ParseCloud.callFunctionInBackground("findOrCreateUsers", params,
 				new FunctionCallback<Object>() {
 
 					@SuppressWarnings("unchecked")
@@ -437,7 +346,20 @@ public class NewContactListActivity extends ProgressActivity {
 		list.put("isVisibleToMembers", mPublicList);
 		if (mContactListImage != null)
 			list.put("photo", mContactListImage);
-		list.addAll("members", members);
+		JSONArray mMembers = new JSONArray();
+		for (int i = 0; i < members.size(); i++)
+		{
+			try {
+				JSONObject person = new JSONObject();
+				person.put("__type", "Pointer");
+				person.put("className", "_User");
+				person.put("objectId", members.get(i).getObjectId());
+				mMembers.put(person);
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+		}
+		list.put("members", mMembers);
 		System.out.println("Saving...");
 		list.saveInBackground(new SaveCallback() {
 			public void done(ParseException e) {
@@ -521,7 +443,7 @@ public class NewContactListActivity extends ProgressActivity {
 
 	//because what the fuck am i doing
 	public static class SelectMembersFromContactsFragment extends 
-		NewInvitationActivity.SelectMembersFromContactsFragment implements LoaderCallbacks<Cursor> {
+		NewInvitationActivity.SelectMembersFromContactsFragment {
 		
 		public void onResume()
 		{

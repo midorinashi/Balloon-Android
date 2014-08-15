@@ -30,7 +30,8 @@ public class NewInvitationFromGroupActivity extends NewInvitationActivity {
 		mMakeContactList = false;
 		mMemberIds = null;
 		mMembers = null;
-		mMemberNames = null;
+		mMemberFirstNames = null;
+		mMemberLastNames = null;
 		mPreviewName = null;
 		mInviteMore = true;
 		mCurrentFragment = "";

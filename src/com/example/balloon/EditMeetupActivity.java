@@ -93,7 +93,8 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		mPhoneNumbers = null;
 		mMakeContactList = false;
 		mMemberIds = null;
-		mMemberNames = null;
+		mMemberFirstNames = null;
+		mMemberLastNames = null;
 		
 		mMembers = meetup.getJSONArray("invitedUsers");
 		//TODO mPreviewName = mMembers.get(0);
