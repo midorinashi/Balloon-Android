@@ -42,6 +42,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
 import com.parse.ParseException;
@@ -96,7 +97,7 @@ public class ContactListInfoActivity extends ProgressActivity {
 	        NavUtils.navigateUpFromSameTask(this);
 	        return true;
 	    }
-		else if (id == R.id.action_add)
+		else if (id == R.id.action_manage_members)
 		{
 			//TODO
 		}
@@ -108,9 +109,103 @@ public class ContactListInfoActivity extends ProgressActivity {
 			intent.putExtras(bundle);
 			startActivity(intent);
 		}
+		else if (id == R.id.action_delete_yourself)
+		{
+			deleteYourself();
+		}
+		else if (id == R.id.action_delete_group)
+		{
+			deleteGroup();
+		}
 		
 		//TODO ALL THE REMOVESSSSS
 		return super.onOptionsItemSelected(item);
+	}
+	
+	public void deleteYourself()
+	{
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage(R.string.delete_yourself_warning)
+	    	.setTitle(R.string.action_delete_yourself)
+	    	.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					showSpinner();
+					JSONArray members = list.getJSONArray("members");
+					String id = ParseUser.getCurrentUser().getObjectId();
+					JSONArray newMembers = new JSONArray();
+					for (int i = 0; i < members.length(); i++)
+					{
+						try {
+							//because i can't use remove D:
+							if (members.getJSONObject(i).getString("objectId").compareTo(id) != 0)
+							{
+								newMembers.put(members.getJSONObject(i));
+							}
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
+					list.put("members", newMembers);
+					//finally, close the list
+					System.out.println("saving");
+					list.saveInBackground(new SaveCallback() {
+						@Override
+						public void done(ParseException e) {
+							if (e == null)
+							{
+								System.out.println("done!");
+								removeSpinner();
+								finish();
+							}
+							else
+								showParseException(e);
+						}
+					});
+				}
+	    	})
+	       	.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					
+				}
+	       	})
+	       	.create()
+	       	.show();
+	}
+	
+	public void deleteGroup()
+	{
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage(R.string.delete_group_warning)
+	    	.setTitle(R.string.action_delete_group)
+	    	.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					showSpinner();
+					list.deleteInBackground(new DeleteCallback() {
+						@Override
+						public void done(ParseException e) {
+							if (e == null)
+							{
+								System.out.println("done!");
+								removeSpinner();
+								finish();
+							}
+							else
+								showParseException(e);
+						}
+					});
+				}
+	    	})
+	       	.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					
+				}
+	       	})
+	       	.create()
+	       	.show();
 	}
 	
 	@Override
@@ -317,7 +412,12 @@ public class ContactListInfoActivity extends ProgressActivity {
 						fetchNames();
 					}
 					else
+					{
 						showParseException(e);
+						Toast.makeText(getActivity(), "Oops! We can't find this group. Maybe it was deleted.",
+								Toast.LENGTH_SHORT).show();
+						getActivity().finish();
+					}
 				}
 		    });
 		}
@@ -372,7 +472,11 @@ public class ContactListInfoActivity extends ProgressActivity {
 			{
 				if (mIsOwner)
 				{
+					//fix that menu
 					mOptionMenu.getItem(0).setVisible(true);
+					mOptionMenu.getItem(2).setVisible(false);
+					mOptionMenu.getItem(3).setVisible(true);
+					
 					View view = getActivity().findViewById(R.id.editGroup);
 					view.setVisibility(View.VISIBLE);
 					CheckBox cb = (CheckBox) view.findViewById(R.id.checkBox1);

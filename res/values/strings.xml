@@ -2,10 +2,12 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <string name="app_name">Balloon</string>
-    <string name="action_add_members">Add Members</string>
+    <string name="action_manage_members">Manage Members</string>
     <string name="action_agenda">View Meetup Plan</string>
     <string name="action_comment">Add an Update</string>
     <string name="action_create">Create Invite</string>
+    <string name="action_delete_yourself">Remove Self from Group</string>
+    <string name="action_delete_group">Delete Group</string>
     <string name="action_done">Done</string>
     <string name="action_edit">Edit Meetup</string>
     <string name="action_invites">New Invites</string>
@@ -33,6 +35,8 @@
     <string name="create_custom_location">Create Custom Location</string>
     <string name="deadline_time">7:00PM</string>
     <string name="deadline_text">Your invitation wil\nbe visible from\nnow until</string>
+    <string name="delete_group_warning">Are you sure you want to delete this group?</string>
+    <string name="delete_yourself_warning">Do you really want to remove yourself from this group?</string>
     <string name="done">Done</string>
     <string name="dummy_agenda">Sleepin\' all the way to tomorrow brooooo and I can\'t wait man</string>
     <string name="dummy_location">Kevin\'s house</string>
@@ -64,6 +68,7 @@
     <string name="more_info">More info</string>
     <string name="new_contact_list">Name The Contact List</string>
     <string name="next">Next</string>
+    <string name="no">No</string>
     <string name="no_internet">Oops! No internet.</string>
     <string name="no_invites"><b>No Invites</b></string>
     <string name="no_time"></string>
@@ -117,9 +122,9 @@
     <string name="tomorrow">Tomorrow</string>
     <string name="verification_code_sent">A verification code has been sent to you via SMS.</string>
     <string name="white_space"></string>
-    <string name="title_activity_edit_meetup">EditMeetupActivity</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="title_activity_contact_list_info">ContactListInfoActivity</string>
-    <string name="title_activity_new_invitation_from_group">NewInvitationFromGroupActivity</string>
+    <string name="yes">Yes</string>
+    <string name="title_activity_edit_meetup">Edit Meetup</string>
+    <string name="title_activity_contact_list_info"></string>
+    <string name="title_activity_new_invitation_from_group"></string>
 
 </resources>

@@ -4,16 +4,29 @@
     tools:context="com.example.balloon.ContactListInfoActivity" >
 
     <item
-        android:id="@+id/action_add"
+        android:id="@+id/action_manage_members"
         android:orderInCategory="1"
-        android:title="@string/action_add_members"
+        android:title="@string/action_manage_members"
         android:visible="false"
         app:showAsAction="never"/>
     
     <item
         android:id="@+id/action_send"
-        android:orderInCategory="1"
+        android:orderInCategory="2"
         android:title="@string/action_send_invite_to_group"
+        app:showAsAction="never"/>
+    
+    <item
+        android:id="@+id/action_delete_yourself"
+        android:orderInCategory="3"
+        android:title="@string/action_delete_yourself"
+        app:showAsAction="never"/>
+    
+    <item
+        android:id="@+id/action_delete_group"
+        android:orderInCategory="4"
+        android:title="@string/action_delete_yourself"
+        android:visible="false"
         app:showAsAction="never"/>
 
 </menu>
