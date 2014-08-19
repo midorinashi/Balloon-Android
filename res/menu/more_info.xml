@@ -29,8 +29,15 @@
         android:showAsAction="never"/>
     
     <item
-        android:id="@+id/action_locate"
+        android:id="@+id/action_contact"
         android:orderInCategory="5"
+        android:title="@string/action_contact"
+        android:showAsAction="never"
+        android:visible="false" />
+    
+    <item
+        android:id="@+id/action_locate"
+        android:orderInCategory="6"
         android:title="@string/action_locate"
         android:showAsAction="never"/>
 

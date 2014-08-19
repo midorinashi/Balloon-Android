@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -42,9 +43,7 @@ import android.provider.ContactsContract.Contacts.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.MediaStore;
 import android.support.v4.app.NavUtils;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.text.format.Time;
 import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
@@ -878,6 +877,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		protected String[] lists;
 		protected String[] photoURLs;
 		protected ParseObject[] ids;
+		protected ArrayList<Boolean> mShellGroups;
 		protected OnMemberListSelectedListener mListener;
 		
 		public void onAttach(Activity activity) {
@@ -904,6 +904,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			showSpinner();
 			getActivity().setTitle(getResources().getString(R.string.title_select_list));
 			mCurrentFragment = "SelectListFragment";
+			mShellGroups = new ArrayList<Boolean>();
+			//set co-workers, college friends, family, frat/soro, highschool, and room to false
+			for (int i = 0; i < 6; i++)
+			{
+				mShellGroups.add(false);
+			}
 			
 			mPlus = true;
 			getActivity().invalidateOptionsMenu();
@@ -937,6 +943,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 						for (int i = 0; i < memberLists.size(); i++)
 						{
 							lists[i] = memberLists.get(i).getString("name");
+							checkForShellGroups(lists[i]);
 							if (memberLists.get(i).containsKey("photo"))
 								photoURLs[i] = memberLists.get(i).getParseFile("photo").getUrl();
 							else
@@ -952,6 +959,23 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 						showParseException(e);
 				}
 			});
+		}
+		
+		public void checkForShellGroups(String name)
+		{
+			name = name.replaceAll("[\\W]", "").toLowerCase(Locale.US);
+			if (name.contains("work") || name.contains("colleague"))
+				mShellGroups.set(0, true);
+			else if (name.contains("collegefriend"))
+				mShellGroups.set(1, true);
+			else if (name.contains("family"))
+				mShellGroups.set(2, true);
+			else if (name.contains("frat") || name.contains("sorority"))
+				mShellGroups.set(3, true);
+			else if (name.contains("highschool"))
+				mShellGroups.set(4, true);
+			else if (name.contains("roommate"))
+				mShellGroups.set(5, true);
 		}
 		
 		public void addListsToView()

@@ -5,6 +5,7 @@
     <string name="action_add_members">Add Members</string>
     <string name="action_agenda">View Meetup Plan</string>
     <string name="action_comment">Add a Comment</string>
+    <string name="action_contact">Contact Host</string>
     <string name="action_create">Create Invite</string>
     <string name="action_delete_group">Delete Group</string>
     <string name="action_delete_member">Remove</string>

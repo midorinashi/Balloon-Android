@@ -7,20 +7,24 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.Toast;
-import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.GetCallback;
@@ -28,6 +32,7 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.squareup.picasso.Picasso;
 
 public class ContactListsActivity extends Activity implements OnMemberListSelectedListener{
 	
@@ -66,7 +71,8 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 	        return true;
 	    }
 		else if (id == R.id.action_plus) {
-			newContactList();
+			Intent intent = new Intent(this, NewContactListActivity.class);
+			startActivity(intent);
 			return true;
 		}
 		if (id == R.id.action_invites)
@@ -103,15 +109,12 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 		transaction.addToBackStack(null);
 		transaction.commit();
 	}
-	
-	public void newContactList()
-	{
-		Intent intent = new Intent(this, NewContactListActivity.class);
-		startActivity(intent);
-	}
 
 	public static class ContactListsFragment extends NewInvitationActivity.SelectListFragment {
 
+		private final String[] SHELL_GROUP_NAMES = {"Co-workers", "College Friends", "Family", 
+				"Fraternity/Sorority", "High School", "Roommates"};
+		
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
@@ -129,25 +132,83 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 		
 		public void addListsToView()
 		{
-			GroupAdapter adapter = new GroupAdapter(getActivity(), R.layout.list_group, lists, photoURLs);
-	        ListView lv = (ListView) getActivity().findViewById(R.id.groupList);
-	        lv.setAdapter(adapter);
-	        lv.setOnItemClickListener(new OnItemClickListener() {
-
-				public void onItemClick(AdapterView<?> a, View v, int position, long id) {
-					Intent intent = new Intent(getActivity(), ContactListInfoActivity.class);
-					Bundle bundle = new Bundle();
-					bundle.putString("listName", lists[position]);
-					bundle.putString("listId", ids[position].getObjectId());
-					intent.putExtras(bundle);
-					startActivity(intent);
-					/*
-					mListName = lists[position];
-					mListId = ids[position].getObjectId();
-					mListener.onMemberListSelected();
-					*/
-				}
-	        });
+	        LinearLayout ll = (LinearLayout) getActivity().findViewById(R.id.groupList);
+	        ll.removeAllViews();
+	        LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT,
+	        		LayoutParams.WRAP_CONTENT);
+	        LayoutInflater inflater = getActivity().getLayoutInflater();
+	        for (int i = 0; i < lists.length; i++)
+	        {
+	        	View vi = inflater.inflate(R.layout.list_group, null);
+	        	((TextView) vi.findViewById(R.id.name)).setText(lists[i]);
+	            //if we give it a resource id, then make it an int resource, not a string url
+	            if (photoURLs[i] != null && photoURLs[i].indexOf('.') == -1)
+	    	        Picasso.with(getActivity()).load(Integer.parseInt(photoURLs[i]))
+	    	        	.resize(140, 140).into((ImageView) vi.findViewById(R.id.imageView1));
+	            else
+	    	        Picasso.with(getActivity()).load(photoURLs[i]).resize(140, 140)
+	    	        	.into((ImageView) vi.findViewById(R.id.imageView1));
+	            final int position = i;
+	            vi.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						Intent intent = new Intent(getActivity(), ContactListInfoActivity.class);
+						Bundle bundle = new Bundle();
+						bundle.putString("listName", lists[position]);
+						bundle.putString("listId", ids[position].getObjectId());
+						intent.putExtras(bundle);
+						startActivity(intent);
+					}
+	            });
+	            vi.setLayoutParams(lp);
+	            ll.addView(vi);
+    			ll.addView(makeDivider());
+	        }
+	        
+	        //now deal with shell groups
+	        System.out.println(mShellGroups.contains(false));
+	        if (mShellGroups.contains(false))
+	        {
+	        	View vi = new View(getActivity());
+	        	vi.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, (int)
+    					TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, 
+    					getResources().getDisplayMetrics())));
+	        	ll.addView(vi);
+	        	for (int i = 0; i < mShellGroups.size(); i++)
+	        	{
+	        		//if we don't have this shell group, add it
+	        		if (!mShellGroups.get(i))
+	        		{
+	        			ll.addView(makeDivider());
+	        			vi = inflater.inflate(R.layout.list_group, null);
+	        			vi.setLayoutParams(lp);
+	        			((TextView) vi.findViewById(R.id.name)).setText(SHELL_GROUP_NAMES[i]);
+	        			vi.findViewById(R.id.imageView1).setVisibility(View.GONE);
+	        			vi.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, (int)
+	        					TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, 
+	        					getResources().getDisplayMetrics())));
+	        			final int position = i;
+	        			vi.setOnClickListener(new OnClickListener() {
+							@Override
+							public void onClick(View arg0) {
+								Intent intent = new Intent(getActivity(),
+										NewContactListActivity.class);
+								intent.putExtra("name", SHELL_GROUP_NAMES[position]);
+								startActivity(intent);
+							}
+	        			});
+	        			ll.addView(vi);
+	        		}
+	        	}
+	        }
+		}
+		
+		public View makeDivider()
+		{
+			View view = new View(getActivity());
+			view.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, 1));
+			view.setBackgroundColor(getResources().getColor(R.color.lightGray));
+			return view;
 		}
 	}
 	

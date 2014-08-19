@@ -472,7 +472,7 @@ public class MainActivity extends ProgressActivity
 						showSpinner();
 						HashMap<String, Object> params = new HashMap<String, Object>();
 						params.put("meetupId", objectId);
-						params.put("willAttend", false);
+						params.put("willAttend", true);
 						ParseCloud.callFunctionInBackground("respondToMeetup", params,
 								new FunctionCallback<Object>() {
 							@Override

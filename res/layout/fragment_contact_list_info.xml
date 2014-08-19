@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:layout_marginTop="20dp"
-            android:gravity="center"
+            android:gravity="bottom"
             android:visibility="gone" >
 
             <TextView
@@ -52,9 +52,10 @@
                 android:clickable="true"
                 android:ellipsize="end"
                 android:gravity="center_vertical"
-                android:onClick="changeName"
                 android:maxLines="1"
-                android:padding="15dp"
+                android:onClick="changeName"
+                android:paddingLeft="15dp"
+                android:paddingTop="26dp"
                 android:text="TextView" />
 
             <View
@@ -95,7 +96,8 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignTop="@id/blank"
                 android:gravity="center"
-                android:padding="10dp"
+                android:paddingLeft="10dp"
+                android:paddingTop="26dp"
                 android:text="@string/share_group" />
 
             <ImageView

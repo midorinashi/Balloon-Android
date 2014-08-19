@@ -57,6 +57,7 @@ public class MoreInfoActivity extends ProgressActivity
 	private static String mObjectId;
 	private static boolean mIsCreator;
 	private static String mCreator;
+	private static String mCreatorNumber;
 	private static String mAgenda;
 	private static String mVenueInfo;
 	private static String mVenuePhotoURL;
@@ -92,6 +93,7 @@ public class MoreInfoActivity extends ProgressActivity
 						mMeetup = meetup;
 						ParseUser creator = meetup.getParseUser("creator");
 						mCreator = creator.getString("firstName") + " " + creator.getString("lastName");
+						mCreatorNumber = creator.getUsername();
 						if (creator == ParseUser.getCurrentUser())
 							mIsCreator = true;
 						
@@ -153,6 +155,10 @@ public class MoreInfoActivity extends ProgressActivity
 			menu.findItem(R.id.action_edit).setVisible(true);
 			menu.findItem(R.id.action_update).setVisible(true);
 		}
+		else
+		{
+			menu.findItem(R.id.action_contact).setVisible(true);
+		}
 	    return super.onPrepareOptionsMenu(menu);
 	}
 
@@ -192,6 +198,14 @@ public class MoreInfoActivity extends ProgressActivity
 			transaction.replace(R.id.container, new AddCommentFragment(), "AddCommentFragment");
 			transaction.addToBackStack(null);
 			transaction.commit();
+			return true;
+		}
+		else if (id == R.id.action_contact) {
+			Intent smsIntent = new Intent(Intent.ACTION_VIEW);
+			smsIntent.setType("vnd.android-dir/mms-sms");
+			smsIntent.putExtra("address", mCreatorNumber);
+			smsIntent.putExtra("sms_body","");
+			startActivity(smsIntent);
 			return true;
 		}
 		else if (id == R.id.action_locate) {
