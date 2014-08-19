@@ -11,10 +11,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -33,10 +38,14 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.CheckBox;
+import android.widget.Checkable;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.FunctionCallback;
@@ -58,6 +67,8 @@ public class NewContactListActivity extends ProgressActivity {
 	private static CheckBox mCheckbox;
 	private File lastSavedFile;
 	private static ContextMenu mMenu;
+	private static ArrayList<ParseUser> members;
+	private static boolean hasChangedName;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -65,13 +76,15 @@ public class NewContactListActivity extends ProgressActivity {
 		setContentView(R.layout.activity_new_contact_list);
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		//Set default values for first screen
-		mListName = "";
+		mListName = "New Group";
+		if (getIntent().hasExtra("name"))
+			mListName = getIntent().getStringExtra("name");
 		mPublicList = false;
 		nextTitle = "Next";
 		
 		if (savedInstanceState == null) {
 			getFragmentManager().beginTransaction()
-					.add(R.id.container, new NewContactListFragment()).commit();
+					.add(R.id.container, new SelectMembersFromContactsFragment()).commit();
 		}
 	}
 	
@@ -203,11 +216,10 @@ public class NewContactListActivity extends ProgressActivity {
 	
 	public void setContactListImage()
 	{
-		ImageView view = (ImageView) findViewById(R.id.image);
+		ImageView view = (ImageView) findViewById(R.id.editGroup).findViewById(R.id.imageView1);
 		if (view != null)
 		{
-			Picasso.with(this).load(mContactListImage.getUrl()).into(view);
-			findViewById(R.id.addPhoto).setVisibility(View.GONE);
+			Picasso.with(this).load(mContactListImage.getUrl()).resize(140, 140).into(view);
 		}
 	}
 
@@ -247,10 +259,14 @@ public class NewContactListActivity extends ProgressActivity {
 				transaction.commit();
 				return true;
 			}
-			else
+			else if (item.getTitle().toString().compareTo("Done") == 0)
 			{
 				//finish activity and save list
 				saveContacts();
+			}
+			else
+			{
+				makeContactList();
 			}
 		}
 		if (id == R.id.action_settings) {
@@ -285,6 +301,7 @@ public class NewContactListActivity extends ProgressActivity {
 	public void saveContacts()
 	{
 		SelectMembersFromContactsFragment.saveContacts();
+		System.out.println("Count is " + SelectMembersFromContactsFragment.getCheckedCount());
 		if (SelectMembersFromContactsFragment.getCheckedCount() == 0)
 			Toast.makeText(this, "No friends?", Toast.LENGTH_SHORT).show();
 		else
@@ -311,29 +328,38 @@ public class NewContactListActivity extends ProgressActivity {
 		params.put("contacts", contacts);
 		System.out.println("starting to find or create users");
 		ParseCloud.callFunctionInBackground("findOrCreateUsers", params,
-				new FunctionCallback<Object>() {
+				new FunctionCallback<ArrayList<ParseUser>>() {
 
-					@SuppressWarnings("unchecked")
 					@Override
-					public void done(Object members, ParseException e) {
+					public void done(ArrayList<ParseUser> m, ParseException e) {
 						if (e != null)
 							showParseException(e);
 						else
 						{
+							members = m;
 							System.out.println("Find or create users complete.");
-							makeContactList((ArrayList<ParseUser>) members);
+							FragmentTransaction transaction = getFragmentManager().beginTransaction();
+							transaction.replace(R.id.container, new GroupSummaryFragment());
+							transaction.addToBackStack(null);
+							transaction.commit();
 						}
 					}
 			
 		});
 	}
+	
+	public void changeName(View view)
+	{
+	    DialogFragment newFragment = new ChangeNameFragment();
+	    newFragment.show(getFragmentManager(), null);
+	}
 
-	public void makeContactList(ArrayList<ParseUser> members)
+	public void makeContactList()
 	{
 		ParseObject list = new ParseObject("ContactList");
 		list.put("name", mListName);
 		list.put("owner", ParseUser.getCurrentUser());
-		list.put("isVisibleToMembers", mPublicList);
+		list.put("isVisibleToMembers", ((Checkable) findViewById(R.id.checkBox1)).isChecked());
 		if (mContactListImage != null)
 			list.put("photo", mContactListImage);
 		JSONArray mMembers = new JSONArray();
@@ -442,5 +468,128 @@ public class NewContactListActivity extends ProgressActivity {
 			nextTitle = "Done";
 			getActivity().invalidateOptionsMenu();
 		}
+	}
+	
+	public static class GroupSummaryFragment extends Fragment
+	{
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			View rootView = inflater.inflate(R.layout.fragment_contact_list_info,
+					container, false);
+
+			nextTitle = "Save";
+			getActivity().invalidateOptionsMenu();
+			
+			rootView.findViewById(R.id.editGroup).setVisibility(View.VISIBLE);
+			
+			ImageView image = (ImageView) rootView.findViewById(R.id.imageView1);
+			image.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					getActivity().registerForContextMenu(v); 
+				    getActivity().openContextMenu(v);
+				    SubMenu s = mMenu.getItem(1).getSubMenu();
+				    mMenu.performIdentifierAction(s.getItem().getItemId(), 0);
+				    getActivity().unregisterForContextMenu(v);
+				}
+			});
+			TypedArray array = getResources().obtainTypedArray(R.array.contact_list_images);
+			Picasso.with(getActivity()).load(array.getResourceId(Math.abs(mListName.hashCode())
+					% 12,R.drawable.color_balloon_8)).resize(140, 140).into(image);
+			array.recycle();
+			
+			((TextView) rootView.findViewById(R.id.listName)).setText(mListName);
+			
+			LinearLayout ll = (LinearLayout) rootView.findViewById(R.id.linearLayout);
+			ll.removeAllViews();
+			LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, 1);
+			
+			//first add the creator
+			View member = View.inflate(getActivity(), R.layout.list_members, null);
+			ParseUser user = ParseUser.getCurrentUser();
+			((TextView) member.findViewById(R.id.name)).setText(user.getString("firstName") +
+					" " + user.getString("lastName"));
+			((TextView) member.findViewById(R.id.responseRate)).setText("" + 
+					(Math.round(user.getDouble("responseRate")*1000)/10.0) + "%");
+			if (user.containsKey("profilePhoto"))
+				Picasso.with(getActivity()).load(user.getParseFile("profilePhoto").getUrl())
+					.resize(140, 140).into((ImageView) member.findViewById(R.id.imageView1));
+			ll.addView(member, 0);
+			View line = new View(getActivity());
+			line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+			line.setLayoutParams(lp);
+			ll.addView(line, 1);
+			
+			for (int i = 0; i < members.size(); i++)
+			{
+				member = View.inflate(getActivity(), R.layout.list_members, null);
+				user = members.get(i);
+				((TextView) member.findViewById(R.id.name)).setText(user.getString("firstName") +
+						" " + user.getString("lastName"));
+				if (user.containsKey("responseRate"))
+					((TextView) member.findViewById(R.id.responseRate)).setText("" + 
+							(Math.round(user.getDouble("responseRate")*1000)/10.0) + "%");
+				else
+					((TextView) member.findViewById(R.id.responseRate)).setText("100.0%");
+				if (user.containsKey("profilePhoto"))
+					Picasso.with(getActivity()).load(user.getParseFile("profilePhoto").getUrl())
+						.resize(140, 140).into((ImageView) member.findViewById(R.id.imageView1));
+				ll.addView(member, 2*i + 2);
+				line = new View(getActivity());
+				line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+				line.setLayoutParams(lp);
+				ll.addView(line, 2*i + 3);
+			}
+			ll.invalidate();
+			ll.requestLayout();
+			((ProgressActivity) getActivity()).removeSpinner();
+			
+			if (mListName.equals("New Group"))
+			{
+			    DialogFragment newFragment = new ChangeNameFragment();
+			    newFragment.show(getFragmentManager(), null);
+			}
+			
+			return rootView;
+		}
+	}
+	
+	public static class ChangeNameFragment extends DialogFragment {
+		
+		Dialog dialog;
+		
+	    @Override
+	    public Dialog onCreateDialog(Bundle savedInstanceState) {
+	        // Use the Builder class for convenient dialog construction
+	        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+	        builder.setView(getActivity().getLayoutInflater().inflate
+	        			(R.layout.fragment_change_group_name, null))
+	        	   .setTitle("Set group name")
+	               .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
+	                   public void onClick(DialogInterface d, int id) {
+	                	   mListName = ((EditText) dialog.findViewById(R.id.changeName))
+	                			   .getText().toString();
+	                	   ((TextView) getActivity().findViewById(R.id.listName)).setText(mListName);
+	                	   hasChangedName = true;
+	                   }
+	               });
+	        if (hasChangedName)
+	        {
+	        	builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+	                   public void onClick(DialogInterface dialog, int id) {
+	           	    	ChangeNameFragment.this.getDialog().cancel();
+	                   }
+	               });
+	        }
+	        dialog = builder.create();
+	        // Create the AlertDialog object and return it
+	        return dialog;
+	    }
+	    
+	    public void onResume()
+	    {
+	    	super.onResume();
+	    	((EditText) dialog.findViewById(R.id.changeName)).setText(mListName);
+	    }
 	}
 }

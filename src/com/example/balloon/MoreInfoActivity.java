@@ -204,7 +204,7 @@ public class MoreInfoActivity extends ProgressActivity
 			Intent smsIntent = new Intent(Intent.ACTION_VIEW);
 			smsIntent.setType("vnd.android-dir/mms-sms");
 			smsIntent.putExtra("address", mCreatorNumber);
-			smsIntent.putExtra("sms_body","");
+			smsIntent.putExtra("sms_body", "");
 			startActivity(smsIntent);
 			return true;
 		}

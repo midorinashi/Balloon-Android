@@ -1128,6 +1128,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	        ContentResolver resolver = getActivity().getContentResolver();
 	        Cursor c = resolver.query(Contacts.CONTENT_URI, DISPLAY_NAME_PROJECTION, null, null,
 	        		Phone.DISPLAY_NAME + " ASC");
+	        int idNum = 0;
 	        if (c != null && c.getCount() > 0)
 	        {
 	        	c.moveToPosition(-1);
@@ -1163,7 +1164,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		        			//check to make sure we didn't fuck up and there is no phone
 		        			if (phone != null)
 		        			{
-				        		ids.add(id);
+				        		ids.add(""+idNum);
+				        		idNum++;
 				        		numbers.add(phone);
 				        		String displayName = c.getString(c.getColumnIndex(Contacts.DISPLAY_NAME));
 				        		displayNames.add(displayName);
@@ -1405,9 +1407,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			//save all the latest checkmarks
 			SparseBooleanArray checked = mListView.getCheckedItemPositions();
-            for (int i = 0; i < mListView.getChildCount(); i++) {
-                String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
-                		.getText().toString();
+            for (int i = 0; i < mListView.getCount(); i++) {
+                String id = (String) mListView.getItemAtPosition(i);
+                boolean isChecked = checked.get(i);
+                boolean contains = selectedIds.contains(id);
                 if (checked.get(i) && !selectedIds.contains(id))
                     selectedIds.add(id);
                 else if (!checked.get(i) && selectedIds.contains(id))
@@ -1422,6 +1425,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			{
 				String id = selectedIds.get(i);
 				int index = ids.indexOf(id);
+				;
 				mMemberFirstNames[i] = firstNames.get(index);
 				mMemberLastNames[i] = lastNames.get(index);
 				mPhoneNumbers[i] = numbers.get(index);

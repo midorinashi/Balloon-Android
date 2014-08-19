@@ -44,6 +44,11 @@ public class GroupAdapter extends ArrayAdapter<String> implements Filterable {
     public int getCount() {
         return names.length;
     }
+    
+    public String getItem(int position)
+    {
+    	return "" + position;
+    }
  
     public long getItemId(int position) {
         return position;

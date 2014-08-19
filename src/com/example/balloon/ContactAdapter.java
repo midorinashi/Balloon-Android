@@ -47,6 +47,10 @@ public class ContactAdapter extends ArrayAdapter<String> implements Filterable {
         return filteredNames.size();
     }
 
+    public String getItem(int position) {
+        return "" + position;
+    }
+    
     public long getItemId(int position) {
         return position;
     }

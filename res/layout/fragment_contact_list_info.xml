@@ -16,12 +16,12 @@
 	        android:layout_height="wrap_content"
 	        android:orientation="vertical" />
 
-        <RelativeLayout
+       <RelativeLayout
             android:id="@+id/editGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
             android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
             android:gravity="bottom"
             android:visibility="gone" >
 
@@ -32,7 +32,7 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
                 android:padding="10dp"
-                android:text="Edit Group:" />
+                android:text="@string/edit_group" />
 
             <View
                 android:id="@+id/view1"
@@ -55,8 +55,7 @@
                 android:maxLines="1"
                 android:onClick="changeName"
                 android:paddingLeft="15dp"
-                android:paddingTop="26dp"
-                android:text="TextView" />
+                android:paddingTop="26dp" />
 
             <View
                 android:layout_width="fill_parent"
@@ -81,12 +80,6 @@
                 android:layout_alignTop="@+id/blank"
                 android:paddingTop="15dp" />
 
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:layout_alignBottom="@id/blank"
-                android:layout_alignParentLeft="true"
-                android:background="@color/lightGray" />
 
             <TextView
                 android:id="@+id/textView1"
@@ -107,6 +100,12 @@
                 android:layout_alignParentLeft="true"
                 android:layout_below="@+id/view1"/>
 
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:layout_alignBottom="@+id/blank"
+                android:layout_alignParentLeft="true"
+                android:background="@color/lightGray" />
         </RelativeLayout>
 
     </LinearLayout>
