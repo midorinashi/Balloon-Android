@@ -5,14 +5,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.TypedArray;
@@ -36,15 +39,22 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.CheckBox;
+import android.widget.Checkable;
 import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.PopupMenu;
+import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.DeleteCallback;
 import com.parse.FindCallback;
+import com.parse.FunctionCallback;
 import com.parse.GetCallback;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseObject;
@@ -53,15 +63,20 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.squareup.picasso.Picasso;
 
-public class ContactListInfoActivity extends ProgressActivity {
+public class ContactListInfoActivity extends ProgressActivity implements OnMenuItemClickListener {
 
 	public static String mListName;
 	public static String mListId;
 	protected static ParseObject list;
+	protected static String[] phones;
 	private File lastSavedFile;
 	protected ParseFile mContactListImage;
 	private static Menu mOptionMenu;
 	private static ContextMenu mMenu;
+	public static String memberToDelete;
+	public String[] mMemberFirstNames;
+	public String[] mMemberLastNames;
+	public String[] mPhoneNumbers;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -97,9 +112,12 @@ public class ContactListInfoActivity extends ProgressActivity {
 	        NavUtils.navigateUpFromSameTask(this);
 	        return true;
 	    }
-		else if (id == R.id.action_manage_members)
+		else if (id == R.id.action_add_members)
 		{
-			//TODO
+			FragmentTransaction transaction = getFragmentManager().beginTransaction();
+			transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
+			transaction.addToBackStack(null);
+			transaction.commit();
 		}
 		else if (id == R.id.action_send)
 		{
@@ -117,6 +135,14 @@ public class ContactListInfoActivity extends ProgressActivity {
 		{
 			deleteGroup();
 		}
+		else if (id == R.id.action_delete_group)
+		{
+			deleteGroup();
+		}
+		else if (id == R.id.save)
+		{
+			saveNewMembers();
+		}
 		
 		//TODO ALL THE REMOVESSSSS
 		return super.onOptionsItemSelected(item);
@@ -130,6 +156,7 @@ public class ContactListInfoActivity extends ProgressActivity {
 	    	.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
+
 					showSpinner();
 					JSONArray members = list.getJSONArray("members");
 					String id = ParseUser.getCurrentUser().getObjectId();
@@ -206,6 +233,137 @@ public class ContactListInfoActivity extends ProgressActivity {
 	       	})
 	       	.create()
 	       	.show();
+	}
+	
+	//so we can delete members
+	public boolean onMenuItemClick(MenuItem item)
+	{
+		System.out.println(item.getItemId());
+		System.out.println(R.id.action_delete_member);
+		if (item.getItemId() == R.id.action_delete_member)
+		{
+			System.out.println("deleting");
+			JSONArray members = list.getJSONArray("members");
+			JSONArray newMembers = new JSONArray();
+			for (int i = 0; i < members.length(); i++)
+			{
+				try {
+					//because i can't use remove D:
+					if (members.getJSONObject(i).getString("objectId").compareTo(memberToDelete) != 0)
+					{
+						newMembers.put(members.getJSONObject(i));
+					}
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+			list.put("members", newMembers);
+			//finally, close the list
+			System.out.println("saving");
+			list.saveInBackground(new SaveCallback() {
+				@Override
+				public void done(ParseException e) {
+					if (e == null)
+					{
+						System.out.println("done!");
+					}
+					else
+						showParseException(e);
+				}
+			});
+			
+			//then we need to take out this member from the view
+			LinearLayout ll = (LinearLayout) findViewById(R.id.linearLayout);
+			//we don't want the lines
+			for (int i = 0; i < ll.getChildCount(); i += 2)
+			{
+				View view = ll.getChildAt(i);
+				if (((TextView) view.findViewById(R.id.id)).getText().toString()
+						.compareTo(memberToDelete) == 0)
+				{
+					//remove both the members and the line under it
+					ll.removeViews(i, 2);
+					break;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	public void saveNewMembers()
+	{
+		showSpinner();
+		SelectMembersFromContactsFragment.saveContacts();
+		//get a list of member object ids who are in the group already
+		final JSONArray members = list.getJSONArray("members");
+		final ArrayList<String> memberIds = new ArrayList<String>();
+		for (int i = 0; i < members.length(); i++)
+		{
+			try {
+				memberIds.add(members.getJSONObject(i).getString("objectId"));
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		//find le parse members
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		JSONArray contacts = new JSONArray();
+		for (int i = 0; i < SelectMembersFromContactsFragment.getCheckedCount(); i++)
+		{
+			JSONObject contact = new JSONObject();
+			try {
+				contact.put("firstName", SelectMembersFromContactsFragment.getFirstName(i));
+				contact.put("lastName", SelectMembersFromContactsFragment.getLastName(i));
+				contact.put("mobileNumber", SelectMembersFromContactsFragment.getPhoneNumber(i));
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			contacts.put(contact);
+		}
+		params.put("contacts", contacts);
+		ParseCloud.callFunctionInBackground("findOrCreateUsers", params, 
+				new FunctionCallback<ArrayList<ParseUser>>() {
+			@Override
+			public void done(ArrayList<ParseUser> newMembers, ParseException e) {
+				if (e == null)
+				{
+					for (int i = 0; i < newMembers.size(); i++)
+					{
+						//if this person isn't already in the list, add them
+						if (!memberIds.contains(newMembers.get(i).getObjectId()))
+						{
+							JSONObject person = new JSONObject();
+							try {
+								person.put("__type", "Pointer");
+								person.put("className", "_User");
+								person.put("objectId", newMembers.get(i).getObjectId());
+							} catch (JSONException e1) {
+								e1.printStackTrace();
+							}
+							members.put(person);
+						}
+					}
+					list.put("members", members);
+					list.saveInBackground(new SaveCallback() {
+						@Override
+						public void done(ParseException e) {
+							if (e == null)
+							{
+								removeSpinner();
+								Toast.makeText(getApplication(), "Members saved!", 
+										Toast.LENGTH_SHORT).show();
+								getFragmentManager().popBackStack();
+							}
+							else
+								showParseException(e);
+						}
+					});
+				}
+				else
+					showParseException(e);
+			}
+		});
 	}
 	
 	@Override
@@ -349,6 +507,7 @@ public class ContactListInfoActivity extends ProgressActivity {
 	    newFragment.show(getFragmentManager(), null);
 	}
 	
+	
 	public static class ShowListFragment extends ProgressFragment {
 		protected String[] names;
 		protected double[] responseRates;
@@ -382,12 +541,14 @@ public class ContactListInfoActivity extends ProgressActivity {
 						// don't forget to include the owner
 						int length = members.length();
 						names = new String[length + 1];
+						phones = new String[length + 1];
 						responseRates = new double[length + 1];
 						ids = new ArrayList<String>();
 						photoURLs = new String[length + 1];
 						//first add the owner
 						names[0] = contactList.getParseUser("owner").getString("firstName") + 
 								" " + contactList.getParseUser("owner").getString("lastName");
+						phones[0] = contactList.getParseUser("owner").getString("username");
 						if (contactList.getParseUser("owner").containsKey("profilePhoto"))
 							photoURLs[0] = contactList.getParseUser("owner")
 									.getParseFile("profilePhoto").getUrl();
@@ -451,6 +612,8 @@ public class ContactListInfoActivity extends ProgressActivity {
 							//make room for the creator
 							names[i + 1] = userList.get(i).getString("firstName") + " " + 
 										userList.get(i).getString("lastName");
+							phones[i+1] = userList.get(i).getString("username");
+							ids.set(i, userList.get(i).getObjectId());
 							if (userList.get(i).containsKey("profilePhoto"))
 								photoURLs[i + 1] = userList.get(i).getParseFile("profilePhoto").getUrl();
 							if (userList.get(i).containsKey("responseRate"))
@@ -474,8 +637,10 @@ public class ContactListInfoActivity extends ProgressActivity {
 				{
 					//fix that menu
 					mOptionMenu.getItem(0).setVisible(true);
+					mOptionMenu.getItem(1).setVisible(true);
 					mOptionMenu.getItem(2).setVisible(false);
 					mOptionMenu.getItem(3).setVisible(true);
+					mOptionMenu.getItem(4).setVisible(false);
 					
 					View view = getActivity().findViewById(R.id.editGroup);
 					view.setVisibility(View.VISIBLE);
@@ -513,6 +678,15 @@ public class ContactListInfoActivity extends ProgressActivity {
 					
 					((TextView) view.findViewById(R.id.listName)).setText(mListName);
 				}
+				else
+				{
+					//fix that menu
+					mOptionMenu.getItem(0).setVisible(false);
+					mOptionMenu.getItem(1).setVisible(true);
+					mOptionMenu.getItem(2).setVisible(true);
+					mOptionMenu.getItem(3).setVisible(false);
+					mOptionMenu.getItem(4).setVisible(false);
+				}
 				LinearLayout ll = (LinearLayout) getActivity().findViewById(R.id.linearLayout);
 				ll.removeAllViews();
 				LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, 1);
@@ -524,6 +698,22 @@ public class ContactListInfoActivity extends ProgressActivity {
 							(Math.round(responseRates[i]*1000)/10.0) + "%");
 					Picasso.with(getActivity()).load(photoURLs[i]).resize(140, 140)
 		        		.into((ImageView) member.findViewById(R.id.imageView1));
+					if (mIsOwner && i > 0)
+					{
+						//need to offset for the owner
+						((TextView) member.findViewById(R.id.id)).setText(ids.get(i - 1));
+						member.setOnClickListener(new OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								memberToDelete = ((TextView) v.findViewById(R.id.id)).getText().toString();
+								PopupMenu popup = new PopupMenu(getActivity(), v);
+							    MenuInflater inflater = popup.getMenuInflater();
+							    popup.setOnMenuItemClickListener((OnMenuItemClickListener) getActivity());
+							    inflater.inflate(R.menu.delete_member, popup.getMenu());
+							    popup.show();
+							}
+						});
+					}
 					ll.addView(member, 2*i);
 					View line = new View(getActivity());
 					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
@@ -574,4 +764,59 @@ public class ContactListInfoActivity extends ProgressActivity {
 	    	((EditText) dialog.findViewById(R.id.changeName)).setText(mListName);
 	    }
 	}
+	
+	public static class SelectMembersFromContactsFragment extends 
+		NewInvitationActivity.SelectMembersFromContactsFragment {
+		
+		public void onResume()
+		{
+			super.onResume();
+			
+			//fix that menu
+			mOptionMenu.getItem(0).setVisible(false);
+			mOptionMenu.getItem(1).setVisible(false);
+			mOptionMenu.getItem(2).setVisible(false);
+			mOptionMenu.getItem(3).setVisible(false);
+			mOptionMenu.getItem(4).setVisible(true);
+			mOptionMenu.getItem(4).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+			
+			final ListView lv = (ListView) getActivity().findViewById(R.id.contactsList);
+			final ContactAdapter adapter = (ContactAdapter) lv.getAdapter();
+			adapter.getFilter().filter("");
+            adapter.notifyDataSetChanged();
+            //then filter the results
+            adapter.getFilter().filter("", new Filter.FilterListener() {
+                public void onFilterComplete(int count) {
+                    adapter.notifyDataSetChanged();
+                    
+                    for (int i = 0; i < lv.getCount(); i++)
+        			{
+        				System.out.println(((ContactAdapter) lv.getAdapter()).getNumber(i)
+        							.toString().replaceAll("[^[0-9]]", ""));
+        				for (int j = 0; j < phones.length; j++)
+        				{
+        					System.out.println("member number = " + phones[j]);
+        					if (phones[j].endsWith(((ContactAdapter) lv.getAdapter()).getNumber(i)
+        							.toString().replaceAll("[^[0-9]]", "")))
+        					{
+        						System.out.println("found!");
+        						System.out.println(i);
+        						lv.setItemChecked(i, true);
+        						lv.getChildAt(i).setEnabled(false);
+        						lv.getChildAt(i).setBackgroundColor(getActivity().getResources().getColor(R.color.red));
+        						lv.getChildAt(i).setOnClickListener(new OnClickListener() {
+									@Override
+									public void onClick(View view) {
+										((Checkable) view).setChecked(true);
+										System.out.println("checked");
+									}
+        						});
+        					}
+        				}
+        			}
+                }
+            });
+		}
+	}
+	
 }

@@ -13,7 +13,7 @@ public class ProgressActivity extends Activity {
 	public void showParseException(ParseException e)
 	{
 		removeSpinner();
-		Toast.makeText(this, e.getStackTrace().toString(), Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
 		e.printStackTrace();
 	}
 	

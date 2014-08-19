@@ -13,7 +13,7 @@ public abstract class ProgressFragment extends Fragment {
 	{
 		removeSpinner();
 		if (getActivity() != null)
-			Toast.makeText(getActivity(), e.getStackTrace().toString(), Toast.LENGTH_SHORT).show();
+			Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
 		e.printStackTrace();
 	}
 	

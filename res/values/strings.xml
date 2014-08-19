@@ -2,12 +2,13 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <string name="app_name">Balloon</string>
-    <string name="action_manage_members">Manage Members</string>
+    <string name="action_add_members">Add Members</string>
     <string name="action_agenda">View Meetup Plan</string>
     <string name="action_comment">Add an Update</string>
     <string name="action_create">Create Invite</string>
-    <string name="action_delete_yourself">Remove Self from Group</string>
     <string name="action_delete_group">Delete Group</string>
+    <string name="action_delete_member">Remove</string>
+    <string name="action_delete_yourself">Remove Self from Group</string>
     <string name="action_done">Done</string>
     <string name="action_edit">Edit Meetup</string>
     <string name="action_invites">New Invites</string>

@@ -46,9 +46,13 @@ public class ContactAdapter extends ArrayAdapter<String> implements Filterable {
     public int getCount() {
         return filteredNames.size();
     }
- 
+
     public long getItemId(int position) {
         return position;
+    }
+
+    public String getNumber(int position) {
+        return phones.get(position);
     }
     
     public Filter getFilter() {

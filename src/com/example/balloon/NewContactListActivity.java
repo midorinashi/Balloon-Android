@@ -11,12 +11,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.app.LoaderManager.LoaderCallbacks;
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -25,11 +21,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.ContactsContract;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
-import android.provider.ContactsContract.CommonDataKinds.StructuredName;
-import android.provider.ContactsContract.Contacts.Data;
-import android.provider.ContactsContract.RawContacts;
 import android.provider.MediaStore;
 import android.support.v4.app.NavUtils;
 import android.view.ContextMenu;
@@ -65,7 +56,6 @@ public class NewContactListActivity extends ProgressActivity {
 	private static String nextTitle;
 	private static ListView mListView;
 	private static CheckBox mCheckbox;
-	private static JSONArray mContacts;
 	private File lastSavedFile;
 	private static ContextMenu mMenu;
 

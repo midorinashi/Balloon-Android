@@ -115,7 +115,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	
 	//views to mangae select members fragment
 	protected static CheckBox mCheckbox;
-	protected static ListView mListView;
+	public static ListView mListView;
 	protected static ContextMenu mMenu;
 	protected File lastSavedFile;
 	public static Date mStartDeadline;
@@ -1059,10 +1059,6 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		// Following code mostly from http://stackoverflow.com/questions/18199359/how-to-display-contacts-in-a-listview-in-android-for-android-api-11
 	    private ContactAdapter adapter;
 
-	    // and name should be displayed in the text1 textview in item layout
-	    private static final String[] FROM = { Contacts.DISPLAY_NAME };
-	    private static final int[] TO = { android.R.id.text1 };
-
 	    // columns requested from the database
 	    private static final String[] DISPLAY_NAME_PROJECTION = {
 	        Contacts._ID, // _ID is always required
@@ -1084,15 +1080,15 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    protected String cursorFilter;
 
 	    //indexes of shit in my contacts list for each row
-	    private static ArrayList<String> ids;
-	    private static ArrayList<String> numbers;
-	    private static ArrayList<String> displayNames;
-	    private static ArrayList<String> firstNames;
-	    private static ArrayList<String> lastNames;
+	    protected static ArrayList<String> ids;
+	    protected static ArrayList<String> numbers;
+	    protected static ArrayList<String> displayNames;
+	    protected static ArrayList<String> firstNames;
+	    protected static ArrayList<String> lastNames;
 	    
-		private static ArrayList<String> selectedIds;
+	    protected static ArrayList<String> selectedIds;
 
-		private String search;
+	    protected String search;
 
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
@@ -1209,10 +1205,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	        
 	        // each time we are started use our listadapter
 	        mListView = (ListView) getActivity().findViewById(R.id.contactsList);
+	        System.out.println(mListView);
 	        mListView.setAdapter(adapter);
 	        mListView.setItemsCanFocus(false);
 	        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-	        
+	        adapter.notifyDataSetChanged();
 	        /*
 	        ((EditText) getActivity().findViewById(R.id.searchContacts))
 	        	.addTextChangedListener(filterTextWatcher);*/
@@ -1243,7 +1240,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
                     et.setText("");
 
                     //Clear query
-                    search = "";SparseBooleanArray checked = mListView.getCheckedItemPositions();
+                    search = "";
+                    SparseBooleanArray checked = mListView.getCheckedItemPositions();
     	            for (int i = 0; i < mListView.getChildCount(); i++) {
     	                String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
     	                		.getText().toString();
@@ -1600,26 +1598,6 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					for ( int i = 0; i < mListView.getCount(); i++)
 						mListView.setItemChecked(i, true);
 				}
-				
-				//do the search box shit
-				((EditText) getActivity().findViewById(R.id.searchMembers))
-					.addTextChangedListener(new TextWatcher() {
-		             
-		            @Override
-		            public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
-		                // When user changed the Text
-		            	mArrayAdapter.getFilter().filter(cs);   
-		            }
-		             
-		            @Override
-		            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
-		                    int arg3) {
-		            }
-		             
-		            @Override
-		            public void afterTextChanged(Editable arg0) {                        
-		            }
-		        });
 		    }
 		}
 		

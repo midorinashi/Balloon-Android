@@ -5,21 +5,6 @@
     android:background="@color/lightGray"
     android:orientation="vertical" >
 
-    <EditText
-        android:id="@+id/searchMembers"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="1dp"
-        android:background="@color/white"
-        android:hint="Search..."
-        android:inputType="textVisiblePassword"
-        android:paddingBottom="10dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingTop="15dp" >
-
-    </EditText>
-
     <CheckBox
         android:id="@+id/membersSelectAll"
         android:layout_width="match_parent"
