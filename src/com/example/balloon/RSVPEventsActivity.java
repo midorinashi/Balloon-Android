@@ -255,7 +255,7 @@ public class RSVPEventsActivity extends Activity {
 							final boolean hasResponded = true;
 							final boolean isCreator = ParseUser.getCurrentUser().getObjectId()
 									.equals(meetup.getParseUser("creator").getObjectId());
-							final boolean willAttend = isCreator || ((ParseObject) upcoming.get(i)
+							final boolean willAttend = ((ParseObject) upcoming.get(i)
 									.get("response")).getBoolean("isAttending");
 	
 							event.setOnClickListener(new View.OnClickListener() {

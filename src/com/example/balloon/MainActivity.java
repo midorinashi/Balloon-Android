@@ -58,10 +58,7 @@ public class MainActivity extends ProgressActivity
 				"GHtE0svPk0epFG4olYnFTnnDtmARHtENXxXuHoXp");
 		PushService.setDefaultPushCallback(this, MainActivity.class);
 		
-		String Tracey = "+19739002782";
 		String Mao = "+18007580051";
-		//the proxy
-		String Liu = "+19739129828";
 		/*
 		ParseUser.logInInBackground(Tracey, "cat", new LogInCallback() {
 			  public void done(ParseUser user, ParseException e) { 

@@ -771,7 +771,7 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 		public void onResume()
 		{
 			super.onResume();
-			
+			getActivity().setTitle(getActivity().getString(R.string.add_members_to) + " " + mListName);
 			//fix that menu
 			mOptionMenu.getItem(0).setVisible(false);
 			mOptionMenu.getItem(1).setVisible(false);
@@ -802,15 +802,16 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
         						System.out.println("found!");
         						System.out.println(i);
         						lv.setItemChecked(i, true);
+        						/*
         						lv.getChildAt(i).setEnabled(false);
-        						lv.getChildAt(i).setBackgroundColor(getActivity().getResources().getColor(R.color.red));
+        						//lv.getChildAt(i).setBackgroundColor(getActivity().getResources().getColor(R.color.red));
         						lv.getChildAt(i).setOnClickListener(new OnClickListener() {
 									@Override
 									public void onClick(View view) {
 										((Checkable) view).setChecked(true);
 										System.out.println("checked");
 									}
-        						});
+        						});*/
         					}
         				}
         			}

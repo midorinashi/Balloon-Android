@@ -1069,7 +1069,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    private static final String[] PHONE_PROJECTION = {
 	    	Phone.TYPE,
 	    	Phone.NUMBER,
-	    	Phone.IS_SUPER_PRIMARY
+	    	Phone.IS_PRIMARY
 	    };
 	    
 	    private static final String[] STRUCTURED_NAME_PROJECTION = {
@@ -1102,7 +1102,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	        selectedIds = new ArrayList<String>();
 	        
 	        ContentResolver resolver = getActivity().getContentResolver();
-	        Cursor c = resolver.query(Contacts.CONTENT_URI, DISPLAY_NAME_PROJECTION, null, null, null);
+	        Cursor c = resolver.query(Contacts.CONTENT_URI, DISPLAY_NAME_PROJECTION, null, null,
+	        		Phone.DISPLAY_NAME + " ASC");
 	        if (c != null && c.getCount() > 0)
 	        {
 	        	c.moveToPosition(-1);
@@ -1120,7 +1121,6 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		        		if (pCur != null && pCur.getCount() > 0)
 		        		{
 		        			String phone = null;
-		        			String primaryPhone = null;
 		        			pCur.moveToPosition(-1);
 		        			while (pCur.moveToNext())
 		        			{
@@ -1129,12 +1129,13 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		        					phone = pCur.getString(pCur.getColumnIndex(Phone.NUMBER));
 		        					break;
 		        				}
-		        				else if (pCur.getInt(pCur.getColumnIndex(Phone.IS_SUPER_PRIMARY)) > 0)
-		        					primaryPhone = pCur.getString(pCur.getColumnIndex(Phone.NUMBER));
 		        			}
 		        			//if they don't have a mobile but they do have another number
-		        			if (phone == null && primaryPhone != null)
-		        				phone = primaryPhone;
+		        			if (phone == null && pCur.getCount() > 0)
+		        			{
+		        				pCur.moveToFirst();
+		        				phone = pCur.getString(pCur.getColumnIndex(Phone.NUMBER));
+		        			}
 		        			//check to make sure we didn't fuck up and there is no phone
 		        			if (phone != null)
 		        			{

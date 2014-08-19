@@ -16,14 +16,21 @@
         android:showAsAction="never"/>
     
     <item
-        android:id="@+id/action_comment"
+        android:id="@+id/action_update"
         android:orderInCategory="3"
+        android:title="@string/action_update"
+        android:showAsAction="never"
+        android:visible="false" />
+        
+    <item
+        android:id="@+id/action_comment"
+        android:orderInCategory="4"
         android:title="@string/action_comment"
         android:showAsAction="never"/>
     
     <item
         android:id="@+id/action_locate"
-        android:orderInCategory="4"
+        android:orderInCategory="5"
         android:title="@string/action_locate"
         android:showAsAction="never"/>
 

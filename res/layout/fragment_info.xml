@@ -143,16 +143,37 @@
                 android:layout_marginBottom="5dp"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="30dp"
-                android:text="@string/comments_header"
+                android:text="@string/updates_header"
                 android:textColor="@color/blue"
+                android:visibility="gone"
 	    		custom:fontName="Roboto-Light.ttf" />
 
             <LinearLayout
                 android:id="@+id/updates"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:orientation="vertical" >
 
+            </LinearLayout>
+            
+            <com.example.balloon.TextBox
+                android:id="@+id/commentsHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="30dp"
+                android:text="@string/comments_header"
+                android:textColor="@color/blue"
+	    		custom:fontName="Roboto-Light.ttf" />
+
+            <LinearLayout
+                android:id="@+id/comments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+                
             </LinearLayout>
 
             <com.example.balloon.TextBox
@@ -168,6 +189,26 @@
 
             <LinearLayout
                 android:id="@+id/coming"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+                
+        	</LinearLayout>
+        	
+            <com.example.balloon.TextBox
+                android:id="@+id/notComingHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="30dp"
+                android:text="@string/not_coming_header"
+                android:textColor="@color/blue"
+                android:visibility="gone"
+	    		custom:fontName="Roboto-Light.ttf" />
+
+            <LinearLayout
+                android:id="@+id/notComing"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="30dp"

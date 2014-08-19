@@ -66,6 +66,7 @@ public class MoreInfoActivity extends ProgressActivity
 	private static boolean mWillAttend;
 	protected static ParseObject mMeetup;
 	protected static JSONObject mVenueLocation;
+	private static boolean mIsUpdate;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +96,7 @@ public class MoreInfoActivity extends ProgressActivity
 							mIsCreator = true;
 						
 						mAgenda = meetup.getString("agenda");
+						setTitle(mAgenda);
 						
 						try {
 							mVenueInfo = meetup.getJSONObject("venueInfo").getString("name");
@@ -147,7 +149,10 @@ public class MoreInfoActivity extends ProgressActivity
 	public boolean onPrepareOptionsMenu(final Menu menu) {
 		//set to edit text string if necessary
 		if (mIsCreator)
+		{
 			menu.findItem(R.id.action_edit).setVisible(true);
+			menu.findItem(R.id.action_update).setVisible(true);
+		}
 	    return super.onPrepareOptionsMenu(menu);
 	}
 
@@ -173,7 +178,16 @@ public class MoreInfoActivity extends ProgressActivity
 			showAgenda(null);
 			return true;
 		}
+		else if (id == R.id.action_update) {
+			mIsUpdate = true;
+			FragmentTransaction transaction = getFragmentManager().beginTransaction();
+			transaction.replace(R.id.container, new AddCommentFragment(), "AddCommentFragment");
+			transaction.addToBackStack(null);
+			transaction.commit();
+			return true;
+		}
 		else if (id == R.id.action_comment) {
+			mIsUpdate = false;
 			FragmentTransaction transaction = getFragmentManager().beginTransaction();
 			transaction.replace(R.id.container, new AddCommentFragment(), "AddCommentFragment");
 			transaction.addToBackStack(null);
@@ -237,7 +251,8 @@ public class MoreInfoActivity extends ProgressActivity
 		//TODO Look into using include?? I can't seem to get first names tho
 		ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
 		comingQuery.whereEqualTo("meetup", mMeetup);
-		comingQuery.whereEqualTo("isAttending", true);
+		if (!mIsCreator)
+			comingQuery.whereEqualTo("isAttending", true);
 		comingQuery.include("responder");
 		comingQuery.findInBackground(new FindCallback<ParseObject>() {
 
@@ -254,11 +269,13 @@ public class MoreInfoActivity extends ProgressActivity
 	public void makeComingList(List<ParseObject> responses)
 	{
 		System.out.println("makeComingList activated");
-	    LinearLayout lin = (LinearLayout) findViewById(R.id.coming);
-	    if (lin != null)
+		LinearLayout comingList = (LinearLayout) findViewById(R.id.coming);
+		LinearLayout notComingList = (LinearLayout) findViewById(R.id.notComing);
+		
+	    if (comingList != null)
 	    {
-	    	System.out.println(responses.size());
-		    lin.removeAllViews();
+	    	comingList.removeAllViews();
+	    	notComingList.removeAllViews();
 		    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
 					.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 		    for (int i = 0; i < responses.size(); i++)
@@ -270,9 +287,13 @@ public class MoreInfoActivity extends ProgressActivity
 				((TextView) response.findViewById(R.id.responseRate)).setText("" + 
 						(Math.round(user.getDouble("responseRate")*1000)/10.0) + "%");
 				if (user.containsKey("profilePhoto"))
-					Picasso.with(this).load(user.getParseFile("profilePhoto").getUrl())
-						.resize(100, 100).into((ImageView) response.findViewById(R.id.profilePhoto));
-				lin.addView(response, lp);
+					Picasso.with(this).load(user.getParseFile("profilePhoto")
+						.getUrl()).resize(100, 100).into((ImageView) response.findViewById
+						(R.id.profilePhoto));
+				if (responses.get(i).getBoolean("isAttending"))
+					comingList.addView(response, lp);
+				else
+					notComingList.addView(response, lp);
 		    }
 	    }
 		removeSpinner();
@@ -295,12 +316,16 @@ public class MoreInfoActivity extends ProgressActivity
 		c.put("comment", comment);
 		c.put("commenter", ParseUser.getCurrentUser());
 		c.put("meetup", mMeetup);
+		c.put("isUpdate", mIsUpdate);
 		c.saveInBackground(new SaveCallback() {
 			@Override
 			public void done(ParseException e) {
 				if (e == null)
 				{
-					outputToast("Update added!");
+					if (mIsUpdate)
+						outputToast("Update added!");
+					else
+						outputToast("Comment added!");
 				}
 				else
 					showParseException(e);
@@ -386,7 +411,7 @@ public class MoreInfoActivity extends ProgressActivity
 	
 	public static class InfoFragment extends ProgressFragment
 	{
-		private Handler mHandler;
+		private static Handler mHandler;
 		private Timer mTimer;
 		public PullToRefreshBase<ScrollView> pullToRefreshView;
 
@@ -397,6 +422,8 @@ public class MoreInfoActivity extends ProgressActivity
 			View rootView = inflater.inflate(R.layout.fragment_info,
 					container, false);
 			//Handles changing the RSVP time every second with the timer
+			if (mIsCreator)
+				rootView.findViewById(R.id.notComingHeader).setVisibility(View.VISIBLE);
 			pullToRefreshView = null;
 			return rootView;
 		}
@@ -574,10 +601,11 @@ public class MoreInfoActivity extends ProgressActivity
 		
 		public void makeCommentList(final List<ParseObject> comments)
 		{
-			LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.updates);
-			if (lin != null)
+			LinearLayout commentList = (LinearLayout) getActivity().findViewById(R.id.comments);
+			LinearLayout updateList = (LinearLayout) getActivity().findViewById(R.id.updates);
+			if (commentList != null)
 			{
-				lin.removeAllViews();
+				commentList.removeAllViews();
 				RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
 						.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 				for (int i = 0; i < comments.size(); i++)
@@ -591,10 +619,19 @@ public class MoreInfoActivity extends ProgressActivity
 					Picasso.with(getActivity()).load(commenter.getParseFile("profilePhoto")
 							.getUrl()).resize(100, 100).into((ImageView) comment
 							.findViewById(R.id.imageView1));
-					lin.addView(comment, lp);
+					if (comments.get(i).getBoolean("isUpdate"))
+					{
+						getActivity().findViewById(R.id.updatesHeader).setVisibility(View.VISIBLE);
+						updateList.setVisibility(View.VISIBLE);
+						updateList.addView(comment, lp);
+					}
+					else
+						commentList.addView(comment, lp);
 				}
-				lin.invalidate();
-				lin.requestLayout();
+				commentList.invalidate();
+				commentList.requestLayout();
+				updateList.invalidate();
+				updateList.requestLayout();
 			}
 			fetchComing();
 		}
@@ -605,7 +642,8 @@ public class MoreInfoActivity extends ProgressActivity
 			//TODO Look into using include?? I can't seem to get first names tho
 			ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
 			comingQuery.whereEqualTo("meetup", mMeetup);
-			comingQuery.whereEqualTo("isAttending", true);
+			if (!mIsCreator)
+				comingQuery.whereEqualTo("isAttending", true);
 			comingQuery.include("responder");
 			comingQuery.findInBackground(new FindCallback<ParseObject>() {
 
@@ -622,13 +660,18 @@ public class MoreInfoActivity extends ProgressActivity
 		public void makeComingList(List<ParseObject> responses)
 		{
 			System.out.println("makeComingList activated");
-		    LinearLayout lin = null;
+		    LinearLayout comingList = null;
+		    LinearLayout notComingList = null;
 			if (getActivity() != null)
-				lin = (LinearLayout) getActivity().findViewById(R.id.coming);
-		    if (lin != null)
+			{
+				comingList = (LinearLayout) getActivity().findViewById(R.id.coming);
+				notComingList = (LinearLayout) getActivity().findViewById(R.id.notComing);
+			}
+		    if (comingList != null)
 		    {
 		    	System.out.println(responses.size());
-			    lin.removeAllViews();
+		    	comingList.removeAllViews();
+		    	notComingList.removeAllViews();
 			    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
 						.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 			    for (int i = 0; i < responses.size(); i++)
@@ -643,7 +686,10 @@ public class MoreInfoActivity extends ProgressActivity
 						Picasso.with(getActivity()).load(user.getParseFile("profilePhoto")
 							.getUrl()).resize(100, 100).into((ImageView) response.findViewById
 							(R.id.profilePhoto));
-					lin.addView(response, lp);
+					if (responses.get(i).getBoolean("isAttending"))
+						comingList.addView(response, lp);
+					else
+						notComingList.addView(response, lp);
 			    }
 		    }
 		    removeSpinner();
@@ -704,6 +750,9 @@ public class MoreInfoActivity extends ProgressActivity
 		{
 			View rootView = inflater.inflate(R.layout.fragment_add_comment,
 					container, false);
+			if (mIsUpdate)
+				((EditText) rootView.findViewById(R.id.comment)).setHint(getActivity()
+						.getString(R.string.updates_hint));
 			return rootView;
 		}
 	}
