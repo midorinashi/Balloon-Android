@@ -19,11 +19,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.database.Cursor;
@@ -46,6 +51,7 @@ import android.support.v4.app.NavUtils;
 import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.SparseBooleanArray;
+import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -62,6 +68,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.Checkable;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Filter;
@@ -104,6 +111,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	protected static String[] mMemberFirstNames;
 	protected static String[] mMemberLastNames;
 	protected static boolean mMakeContactList;
+	protected static boolean mFinishSavingMeetup;
 	protected static String[] mMemberIds;
 	protected static JSONArray mMembers;
 	protected static String mPreviewName;
@@ -117,6 +125,9 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	public static ListView mListView;
 	protected static ContextMenu mMenu;
 	protected File lastSavedFile;
+	public static boolean popped;
+	public static boolean hasChangedName;
+	protected static ArrayList<ParseUser> mParseUsers;
 	public static Date mStartDeadline;
 	protected static ParseFile mContactListImage;
 	
@@ -128,6 +139,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		ParseUser.getCurrentUser().fetchInBackground(null);
 		setContentView(R.layout.activity_new_invitation);
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		//set all the defaults
@@ -150,6 +162,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		mPhoneNumbers = null;
 		//same for makeContactList, but consistency
 		mMakeContactList = false;
+		mFinishSavingMeetup = false;
 		mMemberIds = null;
 		mMembers = null;
 		mMemberFirstNames = null;
@@ -181,7 +194,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	public boolean onPrepareOptionsMenu(final Menu menu) {
 	    if (!mPlus)
 	    {
-	    	if (!mCurrentFragment.equals("FinalEditFragment"))
+	    	if (!mCurrentFragment.equals("FinalEditFragment") &&
+	    			!mCurrentFragment.equals("ChooseFromExistingList"))
 	    	{
 			    MenuItem item = menu.findItem(R.id.action_next);
 		    	item.setTitle(mNext);
@@ -206,7 +220,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		else if (id == R.id.action_plus)
 		{
 			FragmentTransaction transaction = getFragmentManager().beginTransaction();
-			transaction.replace(R.id.container, new CreateListFragment());
+			transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
 			transaction.addToBackStack(null);
 			transaction.commit();
 			return true;
@@ -225,7 +239,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		removeSpinner();
 		FragmentTransaction transaction = getFragmentManager().beginTransaction();
 		if (mCurrentFragment.equals("SelectListFragment"))
-			transaction.replace(R.id.container, new CreateListFragment());
+			transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
 		else if (mCurrentFragment.equals("CreateListFragment"))
 		{
 			if (((EditText) findViewById(R.id.editContactListName)).length() != 0)
@@ -241,7 +255,6 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				mMakeContactList = true;
 				if (mAfterFinalEdit)
 				{
-					getFragmentManager().popBackStack();
 					getFragmentManager().popBackStack();
 					getFragmentManager().popBackStack();
 					return;
@@ -294,6 +307,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			ImageListFragment.setSave(true);
 			getFragmentManager().popBackStack();
+			return;
+		}
+		else if (mCurrentFragment.equals("GroupSummaryFragment"))
+		{
+			saveNewContactList();
 			return;
 		}
 		else
@@ -480,6 +498,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	//this is here so that we can reuse the code when editing le meetup
 	public void makeMeetup(final View view)
 	{
+		if (view != null)
+			view.setOnClickListener(null);
 		saveMeetup(new ParseObject("Meetup"));
 	}
 	
@@ -487,7 +507,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	{
 		showSpinner();
 		//make the contact list if we need to
-		if (mMakeContactList)
+		if (mMakeContactList && !mFinishSavingMeetup)
 		{
 			HashMap<String, Object> params = new HashMap<String, Object>();
 			JSONArray contacts = new JSONArray();
@@ -512,6 +532,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					if (e == null)
 					{
 						// need to give all the members to makeMeetup and to create a new contact list
+						/*
 						ParseObject contactList = new ParseObject("ContactList");
 						contactList.put("owner", ParseUser.getCurrentUser());
 						contactList.put("name", mListName);
@@ -519,11 +540,13 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 							contactList.put("photo", mContactListImage);
 						contactList.put("isVisibleToMembers", mPublicList);
 						JSONArray mContacts = new JSONArray();
+						*/
 						//two different json arrays because send invites need json objects, not parse objects
+						mParseUsers = list;
 						mMembers = new JSONArray();
 						for (int i = 0; i < list.size(); i++)
 						{
-							mContacts.put(list.get(i));
+							//mContacts.put(list.get(i));
 							try {
 								JSONObject person = new JSONObject();
 								person.put("__type", "Pointer");
@@ -534,6 +557,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 								e1.printStackTrace();
 							}
 						}
+						/*
 						contactList.put("members", mContacts);
 						mListId = contactList;
 						contactList.saveInBackground(new SaveCallback() {
@@ -548,13 +572,15 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 									showParseException(e);
 							}
 						});
+						*/
+						mFinishSavingMeetup = true;
+						saveMeetup(meetup);
 					}
 					else
 						showParseException(e);
 				}
 				
 			});
-			mMakeContactList = false;
 			return;
 		}
 		meetup.put("agenda", mAgenda);
@@ -624,7 +650,17 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			public void done(Object o, ParseException e) {
 				if (e != null)
 					showParseException(e);
-				end();
+				else
+				{
+					Toast.makeText(context, "Sent!", Toast.LENGTH_SHORT).show();
+					if (mMakeContactList)
+					{
+						DialogFragment dialog = new AskToSaveListFragment();
+				        dialog.show(getFragmentManager(), "NoticeDialogFragment");
+					}
+					else
+						end();
+				}
 			}
 		});
 	}
@@ -649,13 +685,6 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	
 	public void end()
 	{
-		//Show message
-		Context context = getApplicationContext();
-		CharSequence text = "Sent!";
-		int duration = Toast.LENGTH_SHORT;
-
-		Toast toast = Toast.makeText(context, text, duration);
-		toast.show();
 		Intent intent = new Intent(this, RSVPEventsActivity.class);
 		startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 		finish();
@@ -849,12 +878,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	
 	public void setContactListImage()
 	{
-		if (mCurrentFragment == "CreateListFragment")
+		if (mCurrentFragment == "GroupSummaryFragment")
 		{
 			removeSpinner();
-			ImageView view = (ImageView) findViewById(R.id.image);
-			Picasso.with(this).load(mContactListImage.getUrl()).into(view);
-			findViewById(R.id.addPhoto).setVisibility(View.GONE);
+			ImageView view = (ImageView) findViewById(R.id.editGroup).findViewById(R.id.imageView1);
+			if (view != null)
+				Picasso.with(this).load(mContactListImage.getUrl()).resize(140, 140).into(view);
 		}
 	}
 	
@@ -872,6 +901,37 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			tv.setText("1 photo");
 	}
 	
+	public void saveNewContactList()
+	{
+		showSpinner();
+		ParseObject contactList = new ParseObject("ContactList");
+		contactList.put("name", mListName);
+		contactList.put("owner", ParseUser.getCurrentUser());
+		contactList.put("isVisibleToMembers", ((Checkable) findViewById(R.id.checkBox1)).isChecked());
+		if (mContactListImage != null)
+			contactList.put("photo", mContactListImage);
+		contactList.put("members", mMembers);
+		contactList.saveInBackground(new SaveCallback() {
+			@Override
+			public void done(ParseException e) {
+				if (e == null)
+				{
+					removeSpinner();
+					Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show();
+				}
+				else
+				{
+					showParseException(e);
+					Toast.makeText(context, "Oops! Something went wrong.", Toast.LENGTH_SHORT).show();
+				}
+				popped = true;
+				Intent intent = new Intent(context, RSVPEventsActivity.class);
+				startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+				finish();
+			}
+		});
+	}
+	
 	public static class SelectListFragment extends ProgressFragment {
 
 		protected String[] lists;
@@ -879,6 +939,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		protected ParseObject[] ids;
 		protected ArrayList<Boolean> mShellGroups;
 		protected OnMemberListSelectedListener mListener;
+		protected List<ParseObject> mMemberLists;
 		
 		public void onAttach(Activity activity) {
 	        super.onAttach(activity);
@@ -936,6 +997,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				public void done(List<ParseObject> memberLists, ParseException e) {
 					if (e == null && isAdded())
 					{
+						mMemberLists = memberLists;
 						TypedArray images = getResources().obtainTypedArray(R.array.contact_list_images);
 						lists = new String[memberLists.size()];
 						photoURLs = new String[memberLists.size()];
@@ -972,7 +1034,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				mShellGroups.set(2, true);
 			else if (name.contains("frat") || name.contains("sorority"))
 				mShellGroups.set(3, true);
-			else if (name.contains("highschool"))
+			else if (name.contains("school"))
 				mShellGroups.set(4, true);
 			else if (name.contains("roommate"))
 				mShellGroups.set(5, true);
@@ -1117,7 +1179,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
 	        super.onCreate(savedInstanceState);
-	        
+
 	        ids = new ArrayList<String>();
 	        numbers = new ArrayList<String>();
 	        displayNames = new ArrayList<String>();
@@ -1226,7 +1288,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    public void onActivityCreated(Bundle savedInstanceState)
 	    {
 	        super.onActivityCreated(savedInstanceState);
-	        
+
+			mNext = getResources().getString(R.string.action_next);
+			getActivity().invalidateOptionsMenu();
+			
 	        adapter = new ContactAdapter(getActivity(), R.layout.list_item_contact,
 	        		displayNames, numbers, ids);
 	        
@@ -1409,8 +1474,6 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			SparseBooleanArray checked = mListView.getCheckedItemPositions();
             for (int i = 0; i < mListView.getCount(); i++) {
                 String id = (String) mListView.getItemAtPosition(i);
-                boolean isChecked = checked.get(i);
-                boolean contains = selectedIds.contains(id);
                 if (checked.get(i) && !selectedIds.contains(id))
                     selectedIds.add(id);
                 else if (!checked.get(i) && selectedIds.contains(id))
@@ -1420,12 +1483,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			mMemberFirstNames = new String[selectedIds.size()];
 			mMemberLastNames = new String[selectedIds.size()];
 			mPhoneNumbers = new String[selectedIds.size()];
-			
+			mPreviewName = firstNames.get(ids.indexOf(selectedIds.get(0)));
 			for (int i = 0; i < selectedIds.size(); i++)
 			{
 				String id = selectedIds.get(i);
 				int index = ids.indexOf(id);
-				;
 				mMemberFirstNames[i] = firstNames.get(index);
 				mMemberLastNames[i] = lastNames.get(index);
 				mPhoneNumbers[i] = numbers.get(index);
@@ -1735,7 +1797,13 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		}
 
 		public static void makeList(final JSONArray array) {
-			final String[] names = new String[array.length()];
+
+			final String[] names;
+			//array won't show last spot of the searched array because of create new location
+			if (search == "")
+				names = new String[array.length()];
+			else
+				names = new String[array.length() + 1];
 			final String[] addresses = new String[array.length()];
 			JSONArray formattedAddress;
 			String address;
@@ -1760,6 +1828,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				}
 			}
 			System.out.println("Got names");
+			if (search != "")
+				names[array.length()] = "";
 			ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context,
 					R.layout.list_item_location, R.id.text1, names) {
 				
@@ -1930,7 +2000,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			TimePicker tp = (TimePicker) getActivity().findViewById(R.id.timePicker);
 			if (mExpiresAtHour == -1)
 			{
-				mExpiresAtHour = tp.getCurrentHour() + 1;
+				mExpiresAtHour = tp.getCurrentHour() + 3;
 			}
 			tp.setCurrentHour(mExpiresAtHour);
 			tp.setCurrentMinute(mExpiresAtMinute);
@@ -2254,6 +2324,380 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				//System.out.println(pos);
 				mHandler.obtainMessage(1).sendToTarget();
 			}
+		}
+	}
+	
+	public static class AskToSaveListFragment extends DialogFragment
+	{
+		private boolean clearAll;
+		
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			clearAll = true;
+		    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		    builder.setTitle(R.string.ask_to_save_group)
+		           .setItems(R.array.ask_to_save_group, new DialogInterface.OnClickListener() {
+		               public void onClick(DialogInterface dialog, int which) {
+		            	   if (which == 0)
+		            	   {
+		            		   clearAll = false;
+		            		   FragmentTransaction transaction = getFragmentManager().beginTransaction();
+		            		   transaction.add(R.id.container, new GroupSummaryFragment());
+		            		   transaction.addToBackStack(null);
+		            		   transaction.commit();
+		            		   
+		            	   }
+		            	   else if (which == 1)
+		            	   {
+		            		   clearAll = false;
+		            		   FragmentTransaction transaction = getFragmentManager().beginTransaction();
+		            		   transaction.add(R.id.container, new ChooseFromExistingList());
+		            		   transaction.addToBackStack(null);
+		            		   transaction.commit();
+		            	   }
+		            	   else
+		            	   {
+		            		    Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+		            			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+		            			getActivity().finish();
+		            	   }
+		           }
+		    });
+		    return builder.create();
+		}
+		
+		public void onStop()
+		{
+			super.onStop();
+			if (clearAll)
+			{
+				Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+    			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+    			getActivity().finish();
+			}
+		}
+	}
+	
+	public static class GroupSummaryFragment extends Fragment
+	{
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			View rootView = inflater.inflate(R.layout.fragment_contact_list_info,
+					container, false);
+			
+			popped = false;
+			hasChangedName = false;
+			mCurrentFragment = "GroupSummaryFragment";
+			mListName = "New Group";
+			mNext = "Save";
+			getActivity().invalidateOptionsMenu();
+			getActivity().setTitle(getActivity().getString(R.string.title_create_list));
+			rootView.findViewById(R.id.editGroup).setVisibility(View.VISIBLE);
+			
+			ImageView image = (ImageView) rootView.findViewById(R.id.imageView1);
+			image.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					getActivity().registerForContextMenu(v); 
+				    getActivity().openContextMenu(v);
+				    SubMenu s = mMenu.getItem(1).getSubMenu();
+				    mMenu.performIdentifierAction(s.getItem().getItemId(), 0);
+				    getActivity().unregisterForContextMenu(v);
+				}
+			});
+			TypedArray array = getResources().obtainTypedArray(R.array.contact_list_images);
+			Picasso.with(getActivity()).load(array.getResourceId(Math.abs(mListName.hashCode())
+					% 12,R.drawable.color_balloon_8)).resize(140, 140).into(image);
+			array.recycle();
+			
+			((TextView) rootView.findViewById(R.id.listName)).setText(mListName);
+			
+			LinearLayout ll = (LinearLayout) rootView.findViewById(R.id.linearLayout);
+			ll.removeAllViews();
+			LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, 1);
+			
+			//first add the creator
+			View member = View.inflate(getActivity(), R.layout.list_members, null);
+			ParseUser user = ParseUser.getCurrentUser();
+			((TextView) member.findViewById(R.id.name)).setText(user.getString("firstName") +
+					" " + user.getString("lastName"));
+			((TextView) member.findViewById(R.id.responseRate)).setText("" + 
+					(Math.round(user.getDouble("responseRate")*1000)/10.0) + "%");
+			if (user.containsKey("profilePhoto"))
+				Picasso.with(getActivity()).load(user.getParseFile("profilePhoto").getUrl())
+					.resize(140, 140).into((ImageView) member.findViewById(R.id.imageView1));
+			ll.addView(member, 0);
+			View line = new View(getActivity());
+			line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+			line.setLayoutParams(lp);
+			ll.addView(line, 1);
+			
+			for (int i = 0; i < mParseUsers.size(); i++)
+			{
+				member = View.inflate(getActivity(), R.layout.list_members, null);
+				user = mParseUsers.get(i);
+				((TextView) member.findViewById(R.id.name)).setText(user.getString("firstName") +
+						" " + user.getString("lastName"));
+				if (user.containsKey("responseRate"))
+					((TextView) member.findViewById(R.id.responseRate)).setText("" + 
+							(Math.round(user.getDouble("responseRate")*1000)/10.0) + "%");
+				else
+					((TextView) member.findViewById(R.id.responseRate)).setText("100.0%");
+				if (user.containsKey("profilePhoto"))
+					Picasso.with(getActivity()).load(user.getParseFile("profilePhoto").getUrl())
+						.resize(140, 140).into((ImageView) member.findViewById(R.id.imageView1));
+				ll.addView(member, 2*i + 2);
+				line = new View(getActivity());
+				line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+				line.setLayoutParams(lp);
+				ll.addView(line, 2*i + 3);
+			}
+			ll.invalidate();
+			ll.requestLayout();
+			((ProgressActivity) getActivity()).removeSpinner();
+			
+			if (mListName.equals("New Group"))
+			{
+			    DialogFragment newFragment = new ChangeNameFragment();
+			    newFragment.show(getFragmentManager(), null);
+			}
+			
+			return rootView;
+		}
+		
+		public void onDestroy()
+		{
+			if (!popped)
+			{
+				Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+				startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+				getActivity().finish();
+			}
+			super.onDestroy();
+		}
+	}
+	
+	public static class ChangeNameFragment extends DialogFragment {
+		
+		Dialog dialog;
+		
+	    @Override
+	    public Dialog onCreateDialog(Bundle savedInstanceState) {
+	        // Use the Builder class for convenient dialog construction
+	        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+	        builder.setView(getActivity().getLayoutInflater().inflate
+	        			(R.layout.fragment_change_group_name, null))
+	        	   .setTitle("Set group name")
+	               .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
+	                   public void onClick(DialogInterface d, int id) {
+	                	   String str = ((EditText) dialog.findViewById(R.id.changeName))
+	                			   .getText().toString();
+	                	   if (str.replaceAll("\\s+", "").equals(""))
+	                	   {
+	                		   mListName = str;
+		                	   ((TextView) getActivity().findViewById(R.id.listName)).setText(mListName);
+		                	   hasChangedName = true;
+	                	   }
+	                   }
+	               });
+	        if (hasChangedName)
+	        {
+	        	builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+	                   public void onClick(DialogInterface dialog, int id) {
+	           	    	ChangeNameFragment.this.getDialog().cancel();
+	                   }
+	               });
+	        }
+	        dialog = builder.create();
+	        // Create the AlertDialog object and return it
+	        return dialog;
+	    }
+	    
+	    public void onResume()
+	    {
+	    	super.onResume();
+	    	((EditText) dialog.findViewById(R.id.changeName)).setText(mListName);
+	    }
+	}
+	
+	public static class ChooseFromExistingList extends SelectListFragment {
+
+		private final String[] SHELL_GROUP_NAMES = {"Co-workers", "College Friends", "Family", 
+				"Fraternity/Sorority", "High School", "Roommates"};
+		private boolean popped;
+		
+		@Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			View rootView = inflater.inflate(R.layout.fragment_contact_lists,
+					container, false);
+			popped = false;
+			mCurrentFragment = "ChooseFromExistingList";
+			getActivity().invalidateOptionsMenu();
+			return rootView;
+		}
+		
+		public void onResume()
+		{
+			super.onResume();
+			getActivity().setTitle(getResources().getString(R.string.title_contact_list));
+			mCurrentFragment = "ChooseFromExistingList";
+		}
+		
+		public void addListsToView()
+		{
+	        LinearLayout ll = (LinearLayout) getActivity().findViewById(R.id.groupList);
+	        ll.removeAllViews();
+	        LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT,
+	        		LayoutParams.WRAP_CONTENT);
+	        LayoutInflater inflater = getActivity().getLayoutInflater();
+	        for (int i = 0; i < lists.length; i++)
+	        {
+	        	View vi = inflater.inflate(R.layout.list_group, null);
+	        	((TextView) vi.findViewById(R.id.name)).setText(lists[i]);
+	            //if we give it a resource id, then make it an int resource, not a string url
+	            if (photoURLs[i] != null && photoURLs[i].indexOf('.') == -1)
+	    	        Picasso.with(getActivity()).load(Integer.parseInt(photoURLs[i]))
+	    	        	.resize(140, 140).into((ImageView) vi.findViewById(R.id.imageView1));
+	            else
+	    	        Picasso.with(getActivity()).load(photoURLs[i]).resize(140, 140)
+	    	        	.into((ImageView) vi.findViewById(R.id.imageView1));
+	            final int position = i;
+	            vi.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						showSpinner();
+						ParseObject contactList = mMemberLists.get(position);
+						JSONArray members = contactList.getJSONArray("members");
+						ArrayList<String> curMemberIds = new ArrayList<String>();
+						//add creator id to compare to also
+						curMemberIds.add(contactList.getParseUser("owner").getObjectId());
+						for (int i = 0; i < members.length(); i++)
+						{
+							try {
+								curMemberIds.add(members.getJSONObject(i).getString("objectId"));
+								System.out.println(members.getJSONObject(i).getString("objectId"));
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+						}
+						System.out.println("invitees");
+						//then add invitees who aren't already in the list
+						for (int i = 0; i < mMembers.length(); i++)
+						{
+							try {
+								System.out.println(mMembers.getJSONObject(i).getString("objectId"));
+								if (!curMemberIds.contains(mMembers.getJSONObject(i).getString("objectId")))
+									members.put(mMembers.getJSONObject(i));
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+						}
+						contactList.put("members", members);
+						contactList.saveInBackground(new SaveCallback() {
+
+							@Override
+							public void done(ParseException e) {
+								if (e == null)
+								{
+									Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show();
+								}
+								else
+								{
+									showParseException(e);
+									Toast.makeText(context, "Oops! Something went wrong.", Toast.LENGTH_SHORT).show();
+								}
+								popped = true;
+								Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+								startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+								getActivity().finish();
+							}
+							
+						});
+					}
+	            });
+	            vi.setLayoutParams(lp);
+	            ll.addView(vi);
+    			ll.addView(makeDivider());
+	        }
+	        
+	        //now deal with shell groups
+	        System.out.println(mShellGroups.contains(false));
+	        if (mShellGroups.contains(false))
+	        {
+	        	View vi = new View(getActivity());
+	        	vi.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, (int)
+    					TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, 
+    					getResources().getDisplayMetrics())));
+	        	ll.addView(vi);
+	        	for (int i = 0; i < mShellGroups.size(); i++)
+	        	{
+	        		//if we don't have this shell group, add it
+	        		if (!mShellGroups.get(i))
+	        		{
+	        			ll.addView(makeDivider());
+	        			vi = inflater.inflate(R.layout.list_group, null);
+	        			vi.setLayoutParams(lp);
+	        			((TextView) vi.findViewById(R.id.name)).setText(SHELL_GROUP_NAMES[i]);
+	        			vi.findViewById(R.id.imageView1).setVisibility(View.GONE);
+	        			vi.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, (int)
+	        					TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, 
+	        					getResources().getDisplayMetrics())));
+	        			final int position = i;
+	        			vi.setOnClickListener(new OnClickListener() {
+	    					@Override
+	    					public void onClick(View v) {
+	    						showSpinner();
+	    						ParseObject contactList = new ParseObject("ContactList");
+	    						contactList.put("name", SHELL_GROUP_NAMES[position]);
+	    						contactList.put("owner", ParseUser.getCurrentUser());
+	    						contactList.put("isVisibleToMembers", false);
+	    						contactList.put("members", mMembers);
+	    						contactList.saveInBackground(new SaveCallback() {
+
+									@Override
+	    							public void done(ParseException e) {
+	    								if (e == null)
+	    								{
+	    									Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show();
+	    								}
+	    								else
+	    								{
+	    									showParseException(e);
+	    									Toast.makeText(context, "Oops! Something went wrong.", 
+	    											Toast.LENGTH_SHORT).show();
+	    								}
+	    								popped = true;
+	    								Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+	    								startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+	    								getActivity().finish();
+	    							}
+	    							
+	    						});
+	    					}
+	    	            });
+	        			ll.addView(vi);
+	        		}
+	        	}
+	        }
+		}
+		
+		public View makeDivider()
+		{
+			View view = new View(getActivity());
+			view.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, 1));
+			view.setBackgroundColor(getResources().getColor(R.color.lightGray));
+			return view;
+		}
+		
+		public void onDestroy()
+		{
+			if (!popped)
+			{
+				Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+				startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+				getActivity().finish();
+			}
+			super.onDestroy();
 		}
 	}
 }

@@ -12,4 +12,9 @@
 	    <item>@drawable/color_balloon_8</item>
 	    <item>@drawable/color_balloon_9</item>
 	</array>
+	<array name="ask_to_save_group">
+	    <item>@string/save_to_new_group</item>
+	    <item>@string/save_to_existing_group</item>
+	    <item>@string/no_thanks</item>
+	</array>
 </resources>

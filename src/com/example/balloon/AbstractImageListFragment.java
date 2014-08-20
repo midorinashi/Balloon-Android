@@ -63,10 +63,13 @@ public abstract class AbstractImageListFragment extends ProgressFragment {
 			//don't forget - sparsebooleanarray looks up KEYS not positions
 			SparseBooleanArray checked = list.getCheckedItemPositions();
 			JSONArray urlsToSave = new JSONArray();
-			for (int i = 0; i < urls.length; i++)
+			if (urls != null)
 			{
-				if (checked.get(i, false))
-					urlsToSave.put(urls[i]);
+				for (int i = 0; i < urls.length; i++)
+				{
+					if (checked.get(i, false))
+						urlsToSave.put(urls[i]);
+				}
 			}
 			saveUrls(urlsToSave);
 		}

@@ -77,12 +77,6 @@ public class AccessFoursquareVenues extends AccessFoursquare implements Location
 			
          } catch (IOException e) {
              e.printStackTrace();
-             try {
-            	    Thread.sleep(1000);
-            	    doInBackground(strings);
-            	} catch(InterruptedException ex) {
-            	    Thread.currentThread().interrupt();
-            	}
          } catch (Exception e) {
 			e.printStackTrace();
          } finally {

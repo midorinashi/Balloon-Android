@@ -740,12 +740,16 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 	        	   .setTitle("Change group name")
 	               .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
 	                   public void onClick(DialogInterface d, int id) {
-	                	   mListName = ((EditText) dialog.findViewById(R.id.changeName))
+	                	   String str = ((EditText) dialog.findViewById(R.id.changeName))
 	                			   .getText().toString();
-	                	   getActivity().setTitle(mListName);
-	                	   ((TextView) getActivity().findViewById(R.id.listName)).setText(mListName);
-	                	   list.put("name", mListName);
-	                	   list.saveInBackground();
+	                	   if (str.replaceAll("\\s+", "").equals(""))
+	                	   {
+	                		   mListName = str;
+		                	   getActivity().setTitle(mListName);
+		                	   ((TextView) getActivity().findViewById(R.id.listName)).setText(mListName);
+		                	   list.put("name", mListName);
+		                	   list.saveInBackground();
+	                	   }
 	                   }
 	               })
 	               .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {

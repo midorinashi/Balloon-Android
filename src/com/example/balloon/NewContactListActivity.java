@@ -567,10 +567,14 @@ public class NewContactListActivity extends ProgressActivity {
 	        	   .setTitle("Set group name")
 	               .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
 	                   public void onClick(DialogInterface d, int id) {
-	                	   mListName = ((EditText) dialog.findViewById(R.id.changeName))
+	                	   String str = ((EditText) dialog.findViewById(R.id.changeName))
 	                			   .getText().toString();
-	                	   ((TextView) getActivity().findViewById(R.id.listName)).setText(mListName);
-	                	   hasChangedName = true;
+	                	   if (str.replaceAll("\\s+", "").equals(""))
+	                	   {
+	                		   mListName = str;
+		                	   ((TextView) getActivity().findViewById(R.id.listName)).setText(mListName);
+		                	   hasChangedName = true;
+	                	   }
 	                   }
 	               });
 	        if (hasChangedName)

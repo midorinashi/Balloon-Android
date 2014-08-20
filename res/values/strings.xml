@@ -28,6 +28,7 @@
     <string name="agenda_empty">No plan :C</string>
     <string name="agenda_edit">What\'s the plan?\n\n(e.g. Let\'s go to Shake Shack at 8PM)</string>
     <string name="already_have_account">Already have an account? <u>Login</u></string>
+    <string name="ask_to_save_group">Save Invitees to a Group?</string>
     <string name="balloon">Balloon</string>
     <string name="cancel">Cancel</string>
     <string name="check_your_plans">Check your plans for\nupcoming events</string>
@@ -64,6 +65,7 @@
     <string name="final_edit_photo">Photos:</string>
     <string name="final_edit_to">To:</string>
     <string name="from">From: </string>
+    <string name="group">Group</string>
     <string name="image_content_description">The Image</string>
     <string name="leftToRSVP"> left to RSVP</string>
     <string name="login">Login</string>
@@ -76,6 +78,7 @@
     <string name="no">No</string>
     <string name="no_internet">Oops! No internet.</string>
     <string name="no_invites"><b>No Invites</b></string>
+    <string name="no_thanks"><b>No Thanks</b></string>
     <string name="no_time"></string>
     <string name="not_coming_header">NOT COMING</string>
     <string name="optional">Optional</string>
@@ -89,6 +92,8 @@
     <string name="preview">Preview</string>
     <string name="response_rate">Response Rate: </string>
     <string name="save">Save</string>
+    <string name="save_to_new_group">Save to New Group</string>
+    <string name="save_to_existing_group">Save to Existing Group</string>
     <string name="search_location">Search</string>
     <string name="send">Send</string>
     <string name="select_all">Select All:</string>
@@ -115,7 +120,7 @@
     <string name="title_contact_list">Groups</string>
     <string name="title_create_list">Create List</string>
     <string name="title_edit_agenda">Write Plan</string>
-    <string name="title_final_edit">Meetup Summary</string>
+    <string name="title_final_edit">Summary</string>
     <string name="title_first_page">Welcome to Balloon!</string>
     <string name="title_preview">Preview</string>
     <string name="title_select_list">Select List</string>

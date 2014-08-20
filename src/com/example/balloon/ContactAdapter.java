@@ -2,6 +2,8 @@ package com.example.balloon;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -84,7 +86,8 @@ public class ContactAdapter extends ArrayAdapter<String> implements Filterable {
                 filteredPhones.clear();
                 filteredIds.clear();
                 for (int i = 0; i < names.size(); i++) {
-                    if (names.get(i).toUpperCase().contains(constraint.toString().toUpperCase()) ||
+                    if (names.get(i).toUpperCase(Locale.US).contains(constraint
+                    		.toString().toUpperCase(Locale.US)) ||
                     	phones.get(i).contains(constraint))
                     {
                     	filteredNames.add(names.get(i));
