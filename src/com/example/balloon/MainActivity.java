@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -27,10 +28,10 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewAnimator;
 
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
@@ -38,6 +39,7 @@ import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
 import com.handmark.pulltorefresh.library.PullToRefreshScrollView;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
+import com.parse.GetCallback;
 import com.parse.Parse;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
@@ -49,6 +51,8 @@ import com.squareup.picasso.Picasso;
 
 public class MainActivity extends ProgressActivity
 {
+	private static String meetupId;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -96,6 +100,53 @@ public class MainActivity extends ProgressActivity
 		
 		getFragmentManager().beginTransaction()
 			.add(R.id.container, new PracticeFragment()).commit();
+		if (getIntent().getExtras() != null && getIntent().getExtras().containsKey("com.parse.Data"))
+		{
+			String str = getIntent().getExtras().getString("com.parse.Data");
+			try {
+				JSONObject data = new JSONObject(str);
+				String purpose = data.getString("purpose");
+				final String meetup = data.getString("meetup");
+				if (purpose.equals("nag") || purpose.equals("invite"))
+				{
+					meetupId = meetup;
+					FragmentTransaction transaction = getFragmentManager().beginTransaction();
+					transaction.replace(R.id.container, new OneInviteFragment());
+					transaction.addToBackStack(null);
+					transaction.commit();
+				}
+				else
+				{
+					ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Response");
+					query.whereEqualTo("meetup", meetup);
+					query.whereEqualTo("responder", ParseUser.getCurrentUser());
+					query.getFirstInBackground(new GetCallback<ParseObject>() {
+						@Override
+						public void done(ParseObject response, ParseException e) {
+							if (e != null)
+								showParseException(e);
+							Intent intent = new Intent(MainActivity.this, MoreInfoActivity.class);
+							Bundle extras = new Bundle();
+							extras.putString("objectId", meetup);
+							if (response != null)
+							{
+								extras.putBoolean("hasResponded", true);
+								extras.putBoolean("willAttend", response.getBoolean("isAttending"));
+							}
+							else
+							{
+								extras.putBoolean("hasResponded", false);
+								extras.putBoolean("willAttend", false);
+							}
+							intent.putExtras(extras);
+							startActivity(intent);
+						}
+					});
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override
@@ -295,7 +346,7 @@ public class MainActivity extends ProgressActivity
 			for (int i = 0; i < list.size(); i++)
 			{
 				final ParseObject meetup = list.get(i); 
-				
+				System.out.println(getActivity());
 				View event = View.inflate(getActivity(), R.layout.invite_card, null);
 				TextView tv;
 				//event.setObjectId(meetup.getObjectId());
@@ -314,6 +365,7 @@ public class MainActivity extends ProgressActivity
 						@Override
 						public void onClick(View arg0) {
 							Intent intent;
+							JSONObject v = venueInfo;
 							try {
 								String str = "geo:0,0?q="+venueInfo.getJSONObject("location").getDouble("lat")
 										+","+venueInfo.getJSONObject("location").getDouble("lng")
@@ -332,7 +384,7 @@ public class MainActivity extends ProgressActivity
 									String address = "";
 									JSONArray formattedAddress;
 									try {
-										formattedAddress = venueInfo.getJSONObject("address")
+										formattedAddress = venueInfo.getJSONObject("location")
 												.getJSONArray("formattedAddress");
 										for (int i = 0; i < formattedAddress.length(); i++)
 											address += " " + formattedAddress.getString(i);
@@ -571,8 +623,243 @@ public class MainActivity extends ProgressActivity
 
 			@Override
 			protected String[] doInBackground(Void... arg0) {
-				// TODO Auto-generated method stub
 				return null;
+			}
+		}
+	}
+	
+	public static class OneInviteFragment extends ProgressFragment
+	{
+		protected Timer timer;
+		public static Handler handler;
+
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			showSpinner();
+			final View rootView = inflater.inflate(R.layout.fragment_one_invite, container,
+					false);
+			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
+			query.whereEqualTo("objectId", meetupId);
+			query.include("creator");
+			query.getFirstInBackground(new GetCallback<ParseObject>() {
+				@Override
+				public void done(ParseObject meetup, ParseException e) {
+					if (e == null)
+					{
+						View event = View.inflate(getActivity(), R.layout.invite_card, null);
+						TextView tv;
+						//event.setObjectId(meetup.getObjectId());
+						ParseUser creator = meetup.getParseUser("creator");
+						tv = (TextView) event.findViewById(R.id.creator);
+						tv.setText(creator.getString("firstName")+" "+creator.getString("lastName"));
+						
+						tv = (TextView) event.findViewById(R.id.agenda);
+						tv.setText(ParseUser.getCurrentUser().getString("firstName") + ", " + 
+								meetup.getString("agenda"));
+						try {
+							tv = (TextView) event.findViewById(R.id.venueInfo);
+							final JSONObject venueInfo = meetup.getJSONObject("venueInfo");
+							tv.setText(venueInfo.getString("name"));
+							tv.setOnClickListener(new OnClickListener() {
+								@Override
+								public void onClick(View arg0) {
+									Intent intent;
+									try {
+										String str = "geo:0,0?q="+venueInfo.getJSONObject("location").getDouble("lat")
+												+","+venueInfo.getJSONObject("location").getDouble("lng")
+												+" (" + venueInfo.getString("name") + ")";
+										System.out.println(str);
+										intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(str));
+										if (intent.resolveActivity(getActivity().getPackageManager()) != null)
+										{
+											startActivity(intent);
+											System.out.println("Geo works!");
+										}
+										else
+										{
+											System.out.println("Geo does not work");
+											//TODO puts down a lot of markers. Don't know why
+											String address = "";
+											JSONArray formattedAddress;
+											try {
+												formattedAddress = venueInfo.getJSONObject("location")
+														.getJSONArray("formattedAddress");
+												for (int i = 0; i < formattedAddress.length(); i++)
+													address += " " + formattedAddress.getString(i);
+											} catch (JSONException e) {
+												// TODO Auto-generated catch block
+												e.printStackTrace();
+											}
+											//need to get rid of first space
+											String url = ("http://www.maps.google.com/maps?q="+(address).substring(1))
+													.replaceAll(" ", "+");
+											Uri uri = Uri.parse(url);
+											intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
+											if (intent.resolveActivity(getActivity().getPackageManager()) != null)
+												startActivity(intent);
+											else
+												Toast.makeText(getActivity(), "Oops! No location found",
+														Toast.LENGTH_SHORT).show();
+										}
+									} catch (JSONException e) {
+										Toast.makeText(getActivity(), "Oops! No location found",
+												Toast.LENGTH_SHORT).show();
+										e.printStackTrace();
+									}
+								}
+							});
+							JSONArray urls = meetup.getJSONArray("venuePhotoURLs");
+							ImageView v = ((ImageView) event.findViewById(R.id.image));
+							if (urls != null && urls.length() > 0)
+								Picasso.with(getActivity()).load(urls.getString(0)).into(v);
+							else
+								Picasso.with(getActivity()).load(R.drawable.logo).into(v);
+						} catch (JSONException e1) {
+							// Auto-generated catch block
+							e.printStackTrace();
+						}
+
+						timer = new Timer("RSVPTimer");
+						final Date expiresAt = meetup.getDate("expiresAt");
+						final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
+						final TextView mLeftToRSVP = (TextView) event.findViewById(R.id.leftToRSVP);
+						//Handles changing the RSVP time every second with the timer
+						handler = new Handler() {
+							public void handleMessage(Message message)
+							{
+								Date now = new Date();
+								long timeToRSVP = expiresAt.getTime() - now.getTime();
+								if (timeToRSVP < 0)
+								{
+									mTimeToRSVPView.setText("");
+									mLeftToRSVP.setText("");
+									timer.cancel();
+									getFragmentManager().popBackStack();
+								}
+								else
+								{
+									String time = "" + (int)timeToRSVP/(60*60*1000) + ":";
+									int minutes = (int)(timeToRSVP/(60*1000))%60;
+									if (minutes < 10)
+										time = time + "0";
+									time = time + minutes + ":";
+									int seconds = (int)(timeToRSVP/1000)%60;
+									if (seconds < 10)
+										time = time+ "0";
+									time = time + seconds;
+									//System.out.println(time);
+									mTimeToRSVPView.setText(time);
+									mTimeToRSVPView.invalidate();
+									mTimeToRSVPView.requestLayout();
+									//invalidate();
+									//requestLayout();
+								}
+							}
+						};
+						timer.schedule(new RSVPTimerTask(), 10, 1000);
+						
+						final String objectId = meetup.getObjectId();
+						((LinearLayout) event.findViewById(R.id.moreInfoBox))
+							.setOnClickListener(new OnClickListener() {
+								@Override
+								public void onClick(View v) {
+									Intent intent = new Intent(getActivity(), MoreInfoActivity.class);
+									Bundle bundle = new Bundle();
+									bundle.putString("objectId", objectId);
+									bundle.putBoolean("hasResponded", false);
+									bundle.putBoolean("isCreator", false);
+									intent.putExtras(bundle);
+									getActivity().startActivity(intent);
+									
+								}
+						});;
+						
+						Button button = (Button) event.findViewById(R.id.no);
+						button.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),
+								 "fonts/fontawesome-webfont.ttf"));
+						button.setOnClickListener(new OnClickListener(){
+							@Override
+							public void onClick(final View v) {
+								System.out.println("no");
+								v.setBackgroundColor(getResources().getColor(R.color.red));
+								showSpinner();
+								HashMap<String, Object> params = new HashMap<String, Object>();
+								params.put("meetupId", objectId);
+								params.put("willAttend", false);
+								ParseCloud.callFunctionInBackground("respondToMeetup", params,
+										new FunctionCallback<Object>() {
+									@Override
+									public void done(Object o, ParseException e) {
+										if (e == null)
+										{
+											((LinearLayout) v.getParent().getParent())
+												.removeView((View) v.getParent());
+											timer.cancel();
+											removeSpinner();
+											getFragmentManager().popBackStack();
+										}
+										else
+											showParseException(e);
+									}
+								});
+							}
+						});
+						button = (Button) event.findViewById(R.id.yes);
+						button.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),
+								 "fonts/fontawesome-webfont.ttf"));
+						button.setOnClickListener(new OnClickListener(){
+							@Override
+							public void onClick(final View v) {
+								System.out.println("no");
+								v.setBackgroundColor(getResources().getColor(R.color.green));
+								showSpinner();
+								HashMap<String, Object> params = new HashMap<String, Object>();
+								params.put("meetupId", objectId);
+								params.put("willAttend", true);
+								ParseCloud.callFunctionInBackground("respondToMeetup", params,
+										new FunctionCallback<Object>() {
+									@Override
+									public void done(Object o, ParseException e) {
+										if (e == null)
+										{
+											timer.cancel();
+											((LinearLayout) v.getParent().getParent())
+												.removeView((View) v.getParent());
+											removeSpinner();
+											getFragmentManager().popBackStack();
+										}
+										else
+											showParseException(e);
+									}
+								});
+							}
+						});
+						
+						LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+						lp.setMargins(20, 20, 20, 20);
+						event.setLayoutParams(lp);
+						
+						((LinearLayout) rootView.findViewById(R.id.invitations)).addView(event);
+						removeSpinner();
+					}
+					else
+					{
+						showParseException(e);
+						Toast.makeText(getActivity(), "Oops! We can't find this meetup.",
+								Toast.LENGTH_SHORT).show();
+						getFragmentManager().popBackStack();
+					}
+				}
+			});
+			return rootView;
+		}
+		
+		public class RSVPTimerTask extends TimerTask
+		{
+			@Override
+			public void run() {
+				//System.out.println(pos);
+				handler.obtainMessage(1).sendToTarget();
 			}
 		}
 	}

@@ -95,7 +95,10 @@ public class MoreInfoActivity extends ProgressActivity
 						mCreator = creator.getString("firstName") + " " + creator.getString("lastName");
 						mCreatorNumber = creator.getUsername();
 						if (creator == ParseUser.getCurrentUser())
+						{
 							mIsCreator = true;
+							invalidateOptionsMenu();
+						}
 						
 						mAgenda = meetup.getString("agenda");
 						setTitle(mAgenda);

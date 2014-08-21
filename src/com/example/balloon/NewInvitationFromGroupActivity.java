@@ -40,6 +40,9 @@ public class NewInvitationFromGroupActivity extends NewInvitationActivity {
 		mCheckbox = null;
 		mListView = null;
 		mContactListImage = null;
+		mLimit = 0;
+		mSpotsLeft = 0;
+		mIsFull = false;
 
 		//since we want to do cool new things!
 		ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("ContactList");

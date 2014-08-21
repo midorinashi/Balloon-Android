@@ -68,6 +68,8 @@
     <string name="group">Group</string>
     <string name="image_content_description">The Image</string>
     <string name="leftToRSVP"> left to RSVP</string>
+    <string name="limit">Limit:</string>
+    <string name="limit_question">How many other\npeople can\nattend?</string>
     <string name="login">Login</string>
     <string name="logout">Logout</string>
     <string name="members_header">Members:</string>
@@ -78,10 +80,11 @@
     <string name="no">No</string>
     <string name="no_internet">Oops! No internet.</string>
     <string name="no_invites"><b>No Invites</b></string>
+    <string name="no_limit">No Limit</string>
     <string name="no_thanks"><b>No Thanks</b></string>
     <string name="no_time"></string>
     <string name="not_coming_header">NOT COMING</string>
-    <string name="optional">Optional</string>
+    <string name="optional">Optional:</string>
     <string name="password">Password</string>
     <string name="photo_foursquare">Add Location Photos</string>
     <string name="photo_last">Use Last Photo Taken</string>

@@ -23,7 +23,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -76,6 +75,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.TextView;
@@ -135,6 +135,9 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	protected static boolean mPlus;
 	protected static String mNext;
 	protected static Activity context;
+	public static int mLimit;
+	public static int mSpotsLeft;
+	public static boolean mIsFull;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -175,6 +178,9 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		mListView = null;
 		mPlus = true;
 		mContactListImage = null;
+		mLimit = 0;
+		mSpotsLeft = 0;
+		mIsFull = false;
 		
 		if (savedInstanceState == null) {
 			mAfterFinalEdit = false;
@@ -194,8 +200,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	public boolean onPrepareOptionsMenu(final Menu menu) {
 	    if (!mPlus)
 	    {
-	    	if (!mCurrentFragment.equals("FinalEditFragment") &&
-	    			!mCurrentFragment.equals("ChooseFromExistingList"))
+	    	if (!mCurrentFragment.equals("ChooseFromExistingList"))
 	    	{
 			    MenuItem item = menu.findItem(R.id.action_next);
 		    	item.setTitle(mNext);
@@ -286,7 +291,13 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			//check we have a agenda
 			if (((EditText) findViewById(R.id.editAgenda)).getText().length() != 0)
 			{
-				transaction.replace(R.id.container, new ChooseLocationFragment());
+				EditAgendaFragment.saveAgenda();
+				if (mAfterFinalEdit)
+				{
+					getFragmentManager().popBackStack();
+				}
+				else
+					transaction.replace(R.id.container, new ChooseLocationFragment());
 			}
 			else
 				Toast.makeText(this, "What's the plan?", Toast.LENGTH_SHORT).show();
@@ -301,7 +312,18 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		}
 		else if (mCurrentFragment.equals("SetDeadlineFragment"))
 		{
-			transaction.replace(R.id.container, new FinalEditFragment());
+			SetDeadlineFragment.saveTime();
+			if (mAfterFinalEdit)
+			{
+				getFragmentManager().popBackStack();
+			}
+			else
+				transaction.replace(R.id.container, new FinalEditFragment());
+		}
+		else if (mCurrentFragment.equals("FinalEditFragment"))
+		{
+			makeMeetup(null);
+			return;
 		}
 		else if (mCurrentFragment.equals("ImageListFragment"))
 		{
@@ -590,7 +612,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		if (mListId != null)
 			meetup.put("contactList", mListId);
 		meetup.put("creator", ParseUser.getCurrentUser());
-		meetup.put("expiresAt", changeToDate());
+		meetup.put("expiresAt", changeToDate(mExpiresAtHour, mExpiresAtMinute));
 		meetup.put("invitedUsers", mMembers);
 		if (mStartDeadline != null)
 			meetup.put("startsAt", mStartDeadline);
@@ -665,11 +687,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		});
 	}
 	
-	public static Date changeToDate()
+	public static Date changeToDate(int hour, int minute)
 	{
 		GregorianCalendar calendar = new GregorianCalendar();
-		calendar.set(GregorianCalendar.HOUR_OF_DAY, mExpiresAtHour);
-		calendar.set(GregorianCalendar.MINUTE, mExpiresAtMinute);
+		calendar.set(GregorianCalendar.HOUR_OF_DAY, hour);
+		calendar.set(GregorianCalendar.MINUTE, minute);
 		Date date = calendar.getTime();
 		//if we're doing tomorrow, we need to incrememnt the dat
 		if (date.compareTo(new Date()) < 0)
@@ -1737,6 +1759,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			View rootView = inflater.inflate(R.layout.fragment_new_agenda,
 					container, false);
+			if (mAfterFinalEdit)
+			{
+				mNext = "Save";
+				getActivity().invalidateOptionsMenu();
+			}
 			return rootView;
 		}
 		
@@ -1753,11 +1780,16 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			}
 		}
 		
+		public static void saveAgenda()
+		{
+			EditText et = (EditText)(context.findViewById(R.id.editAgenda));
+			mAgenda = et.getText().toString();
+		}
+		
 		public void onPause()
 		{
 			super.onPause();
 			EditText et = (EditText)(getActivity().findViewById(R.id.editAgenda));
-			mAgenda = et.getText().toString(); 
 			InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(
 			      Context.INPUT_METHOD_SERVICE);
 			imm.hideSoftInputFromWindow(et.getWindowToken(), 0);
@@ -1961,6 +1993,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	public static class SetDeadlineFragment extends Fragment {
 
 		public TimePicker.OnTimeChangedListener mTimeListener;
+		public static int expiresAtHour;
+		public static int expiresAtMinute;
 
 		private String TODAY;
 		private String TOMORROW;
@@ -1968,6 +2002,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
+			if (mAfterFinalEdit)
+			{
+				mNext = "Save";
+				getActivity().invalidateOptionsMenu();
+			}
 			View rootView = inflater.inflate(R.layout.fragment_set_deadline,
 					container, false);
 			TODAY = getActivity().getResources().getString(R.string.today);
@@ -1976,9 +2015,9 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				@Override
 				public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
 					TextView tv = (TextView) getActivity().findViewById(R.id.deadlineTime);
-					mExpiresAtHour = hourOfDay;
-					mExpiresAtMinute = minute;
-					changeToDate();
+					expiresAtHour = hourOfDay;
+					expiresAtMinute = minute;
+					changeToDate(expiresAtHour, expiresAtMinute);
 					String day = TODAY;
 					if (!mToday)
 						day = TOMORROW;
@@ -2011,6 +2050,15 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			if (!mToday)
 				day = TOMORROW;
 			tv.setText(formatTime(tp.getCurrentHour(), tp.getCurrentMinute()) + " " + day);
+			
+			expiresAtHour = mExpiresAtHour;
+			expiresAtMinute = mExpiresAtMinute;
+		}
+		
+		public static void saveTime()
+		{
+			mExpiresAtHour = expiresAtHour;
+			mExpiresAtMinute = expiresAtMinute;
 		}
 	}
 	
@@ -2038,7 +2086,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			if (mStartDeadline != null)
 				c.setTime(mStartDeadline);
 			else
-				c.setTime(changeToDate());
+				c.setTime(changeToDate(mExpiresAtHour, mExpiresAtMinute));
 			
 			//TODO MAKE EVERYTHING USE CALENDAR IT'S BEAUTIFUL
 			datePicker.updateDate(c.get(Calendar.YEAR), c.get(Calendar.MONTH),
@@ -2076,7 +2124,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			mCurrentFragment = "FinalEditFragment";
 			mAfterFinalEdit = false;
 
-			mNext = getResources().getString(R.string.action_done);
+			mNext = getResources().getString(R.string.action_save);
 			getActivity().invalidateOptionsMenu();
 			
 			TextView tv = (TextView) getActivity().findViewById(R.id.finalEditToText);
@@ -2190,6 +2238,43 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		}
 	}
 	
+	public static class LimitFragment extends ProgressFragment
+	{
+		@Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			View rootView = inflater.inflate(R.layout.fragment_limit,
+					container, false);
+			
+			mNext = "Save";
+			getActivity().invalidateOptionsMenu();
+			
+			NumberPicker limit = (NumberPicker) rootView.findViewById(R.id.limit);
+			limit.setMaxValue(250);
+			limit.setMinValue(0);
+			limit.setValue(mLimit);
+			String[] values = new String[251];
+			values[0] = getActivity().getString(R.string.no_limit);
+			for (int i = 0; i <= 250; i++)
+				values[i] = "" + i;
+			limit.setDisplayedValues(values);
+			return rootView;
+		}
+		
+		public static void saveLimit()
+		{
+			NumberPicker limit = (NumberPicker) context.findViewById(R.id.limit);
+			mLimit = limit.getValue();
+			saveMaxAttendees();
+		}
+		
+		public static void saveMaxAttendees()
+		{
+			mSpotsLeft = mLimit;
+			mIsFull = false;
+		}
+	}
+	
 	public static class ImageListFragment extends AbstractImageListFragment {
 
 		public void onResume()
@@ -2271,7 +2356,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				Picasso.with(getActivity()).load(R.drawable.logo).into(v);
 			
 			timer = new Timer("RSVPTimer");
-			final Date expiresAt = changeToDate();
+			final Date expiresAt = changeToDate(mExpiresAtHour, mExpiresAtMinute);
 			final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
 			mHandler = new Handler() {
 				public void handleMessage(Message message)

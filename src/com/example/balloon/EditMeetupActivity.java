@@ -104,6 +104,18 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		mListView = null;
 		mPlus = false;
 		mContactListImage = null;
+		if (meetup.has("maxAttendees"))
+		{
+			mLimit = meetup.getInt("maxAttendees");
+			mSpotsLeft = meetup.getInt("spotsLeft");
+			mIsFull = meetup.getBoolean("isFull");
+		}
+		else
+		{
+			mLimit = 0;
+			mSpotsLeft = 0;
+			mIsFull = false;
+		}
 		
 		if (savedInstanceState == null) {
 			mAfterFinalEdit = false;
