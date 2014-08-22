@@ -365,7 +365,6 @@ public class MainActivity extends ProgressActivity
 						@Override
 						public void onClick(View arg0) {
 							Intent intent;
-							JSONObject v = venueInfo;
 							try {
 								String str = "geo:0,0?q="+venueInfo.getJSONObject("location").getDouble("lat")
 										+","+venueInfo.getJSONObject("location").getDouble("lng")

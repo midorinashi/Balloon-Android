@@ -336,6 +336,18 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			saveNewContactList();
 			return;
 		}
+		else if (mCurrentFragment.equals("StartTimeFragment"))
+		{
+			StartTimeFragment.saveStartTime();
+			getFragmentManager().popBackStack();
+			return;
+		}
+		else if (mCurrentFragment.equals("LimitFragment"))
+		{
+			LimitFragment.saveLimit();
+			getFragmentManager().popBackStack();
+			return;
+		}
 		else
 			return;
 		transaction.addToBackStack(null);
@@ -619,6 +631,9 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		meetup.put("venueInfo", mVenue);
 		meetup.put("venuePhotoURLs", mVenuePhotoUrls);
 		meetup.put("allowInviteMore", ((CheckBox) findViewById(R.id.finalEditInviteMoreBox)).isChecked());
+		meetup.put("maxAttendees", mLimit);
+		meetup.put("spotsLeft", mSpotsLeft);
+		meetup.put("isFull", mIsFull);
 		System.out.println("Save meetup id = " + meetup.getObjectId());
 		meetup.saveInBackground(new SaveCallback(){
 
@@ -1641,6 +1656,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				queries.add(userQuery);
 				System.out.println("Second iteration: id " + i + " is " + ids.get(i));
 			}
+			if (queries.size() == 0)
+			{
+				Toast.makeText(getActivity(), "Odd, an empty group?", Toast.LENGTH_SHORT).show();
+				return;
+			}
 			ParseQuery<ParseUser> mainQuery = ParseQuery.or(queries);
 			mainQuery.orderByAscending("firstName");
 			mainQuery.addAscendingOrder("lastName");
@@ -2068,6 +2088,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_start_time,
 					container, false);
+			mCurrentFragment = "StartTimeFragment";
 			return rootView;
 		}
 		
@@ -2095,14 +2116,13 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			timePicker.setCurrentMinute(c.get(Calendar.MINUTE));
 		}
 		
-		public void onStop()
+		public static void saveStartTime()
 		{
-			DatePicker dp = (DatePicker) getActivity().findViewById(R.id.datePicker);
-			TimePicker tp = (TimePicker) getActivity().findViewById(R.id.timePicker);
+			DatePicker dp = (DatePicker) context.findViewById(R.id.datePicker);
+			TimePicker tp = (TimePicker) context.findViewById(R.id.timePicker);
 			GregorianCalendar gc = new GregorianCalendar(dp.getYear(), dp.getMonth(), dp.getDayOfMonth(),
 					tp.getCurrentHour(), tp.getCurrentMinute());
 			mStartDeadline = gc.getTime();
-			super.onStop();
 		}
 	}
 	
@@ -2148,6 +2168,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				t.set(mStartDeadline.getTime());
 				tv.setText(t.format("%a, %b %e %I:%M %p"));
 			}
+			tv = (TextView) getActivity().findViewById(R.id.finalEditLimitText);
+			if (mLimit == 0)
+				tv.setText(getActivity().getString(R.string.no_limit));
+			else
+				tv.setText(""+mLimit);
 			CheckBox box = (CheckBox) getActivity().findViewById(R.id.finalEditInviteMoreBox);
 			box.setChecked(mInviteMore);
 			
@@ -2222,6 +2247,17 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				}
 			});
 			
+			getActivity().findViewById(R.id.finalEditLimit).setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					mAfterFinalEdit = true;
+					FragmentTransaction transaction = getActivity().getFragmentManager()
+							.beginTransaction();
+					transaction.replace(R.id.container, new LimitFragment());
+					transaction.addToBackStack(null);
+					transaction.commit();
+				}
+			});
 		}
 		
 		//if we go back in the flow, we gotta readd the next button
@@ -2245,17 +2281,18 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_limit,
 					container, false);
-			
+			mCurrentFragment = "LimitFragment";
 			mNext = "Save";
 			getActivity().invalidateOptionsMenu();
 			
 			NumberPicker limit = (NumberPicker) rootView.findViewById(R.id.limit);
 			limit.setMaxValue(250);
 			limit.setMinValue(0);
+			limit.setWrapSelectorWheel(false);
 			limit.setValue(mLimit);
 			String[] values = new String[251];
 			values[0] = getActivity().getString(R.string.no_limit);
-			for (int i = 0; i <= 250; i++)
+			for (int i = 1; i <= 250; i++)
 				values[i] = "" + i;
 			limit.setDisplayedValues(values);
 			return rootView;
