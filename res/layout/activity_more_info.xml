@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:background="@color/lightBlue"
     tools:context="com.example.balloon.MoreInfoActivity"
     tools:ignore="MergeRootFrame"  >
@@ -9,11 +10,13 @@
     <FrameLayout
     	android:id="@+id/container"
     	android:layout_width="match_parent"
-    	android:layout_height="match_parent" />
+    	android:layout_height="match_parent"
+    	android:animateLayoutChanges="true" />
     
     <FrameLayout
     	android:id="@+id/progress"
     	android:layout_width="match_parent"
-    	android:layout_height="match_parent" />
+    	android:layout_height="match_parent"
+    	android:animateLayoutChanges="true" />
     
 </RelativeLayout>

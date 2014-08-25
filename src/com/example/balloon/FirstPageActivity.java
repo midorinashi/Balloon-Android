@@ -239,7 +239,7 @@ public class FirstPageActivity extends ProgressActivity {
 		if (((EditText) findViewById(R.id.mobile)).length() == 0)
 			textForToast = "Please type your phone number";
 		else if (((EditText) findViewById(R.id.mobile)).getText().toString().replaceAll("[^0-9]", "").length() <= 10)
-			textForToast = "Please type your full phone number";
+			textForToast = "Please type your full phone number with the country code";
 		else if (((EditText) findViewById(R.id.firstName)).length() == 0)
 			textForToast = "Please type your first name.";
 		else if (((EditText) findViewById(R.id.lastName)).length() == 0)
@@ -406,7 +406,7 @@ public class FirstPageActivity extends ProgressActivity {
 		else
 		{
 			removeSpinner();
-			Toast.makeText(this, "You fucked up", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "Verification failed.", Toast.LENGTH_SHORT).show();
 		}
 	}
 	
@@ -431,7 +431,7 @@ public class FirstPageActivity extends ProgressActivity {
 	public void signupFailure(ParseException e)
 	{
 		showParseException(e);
-		Toast.makeText(this, "What a terrible failure.", Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, "Signup failed.", Toast.LENGTH_SHORT).show();
 	}
 	
 	public void loginFailure(ParseException e)

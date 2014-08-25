@@ -97,25 +97,13 @@
                      />
 
                 <com.example.balloon.TextBox
-                    android:id="@+id/leftToRSVP"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignBaseline="@+id/timeToRSVP"
-                    android:layout_alignBottom="@+id/timeToRSVP"
-                    android:layout_toRightOf="@+id/timeToRSVP"
-                    android:text="@string/leftToRSVP"
-                    android:textColor="@color/red"
-                    android:textSize="14sp"
-	    			custom:fontName="Roboto-Light.ttf" />
-
-                <com.example.balloon.TextBox
                     android:id="@+id/timeToRSVP"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignBottom="@+id/eventImage"
                     android:layout_alignLeft="@+id/venueInfo"
-                    android:layout_marginRight="5dp"
-                    android:text="@string/empty"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:textColor="@color/red"
                     android:textSize="14sp"
 				    custom:fontName="Roboto-Light.ttf" />
@@ -124,7 +112,7 @@
                     android:id="@+id/venueInfo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_above="@+id/leftToRSVP"
+                    android:layout_above="@+id/timeToRSVP"
                     android:layout_alignLeft="@+id/agenda"
                     android:layout_alignParentRight="true"
                     android:ellipsize="end"
@@ -135,7 +123,16 @@
 				    custom:fontName="Roboto-Light.ttf" />
 
             </RelativeLayout>
-
+            
+            <com.example.balloon.TextBox
+                android:id="@+id/startsAt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dp"
+                android:background="@color/white"
+                android:visibility="gone"
+	    		custom:fontName="Roboto-Light.ttf" />
+            
             <com.example.balloon.TextBox
                 android:id="@+id/updatesHeader"
                 android:layout_width="wrap_content"

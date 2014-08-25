@@ -201,54 +201,97 @@ public class RSVPEventsActivity extends Activity {
 								Picasso.with(getActivity()).load(R.drawable.logo).resize(150, 150).centerCrop()
 									.into((ImageView) event.findViewById(R.id.eventImage));
 							
-							final Date mExpiresAt = meetup.getDate("expiresAt");
-							if (mExpiresAt.getTime() - new Date().getTime() > 0)
-							{
-								Timer timer = new Timer("RSVPTimer");
-								timers.add(timer);
-								final Date expiresAt = meetup.getDate("expiresAt");
-								final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
-								final TextView mLeftToRSVP = (TextView) event.findViewById(R.id.leftToRSVP);
-								//Handles changing the RSVP time every second with the timer
-								Handler handler = new Handler() {
-									public void handleMessage(Message message)
+							Timer timer = new Timer("RSVPTimer");
+							timers.add(timer);
+							final Date expiresAt = meetup.getDate("expiresAt");
+							final Date startsAt = meetup.getDate("startsAt");
+							final int spotsLeft;
+							if (meetup.has("spotsLeft"))
+								spotsLeft = meetup.getInt("spotsLeft");
+							else
+								spotsLeft = -1;
+							final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
+							//Handles changing the RSVP time every second with the timer
+							Handler handler = new Handler() {
+								
+								final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
+								final String STARTS_IN = getString(R.string.starts_in);
+								final int BLACK = getResources().getColor(R.color.black);
+								
+								public void handleMessage(Message message)
+								{
+									Date now = new Date();
+									long timeToRSVP = expiresAt.getTime() - now.getTime();
+									System.out.println(startsAt);
+									if (timeToRSVP < 0)
 									{
-										Date now = new Date();
-										long timeToRSVP = expiresAt.getTime() - now.getTime();
-										if (timeToRSVP < 0)
+										if (startsAt != null)
+										{
+											timeToRSVP = startsAt.getTime() - now.getTime();
+											System.out.println(timeToRSVP);
+											if (timeToRSVP < 0)
+											{
+												mTimeToRSVPView.setText("");
+												// I want to cancel the handler, timer, and view
+												int index = handlers.indexOf(this);
+												timers.get(index).cancel();
+											}
+											else
+											{
+												String time = "" + timeToRSVP/(60*60*1000) + ":";
+												int minutes = (int)(timeToRSVP/(60*1000))%60;
+												if (minutes < 10)
+													time = time + "0";
+												time = time + minutes + ":";
+												int seconds = (int)(timeToRSVP/1000)%60;
+												if (seconds < 10)
+													time = time+ "0";
+												time = time + seconds;
+												//System.out.println(time);
+												mTimeToRSVPView.setTextColor(BLACK);
+												mTimeToRSVPView.setText(STARTS_IN + " " + time);
+												mTimeToRSVPView.invalidate();
+												mTimeToRSVPView.requestLayout();
+											}
+										}
+										else
 										{
 											mTimeToRSVPView.setText("");
-											mLeftToRSVP.setText("");
 											// I want to cancel the handler, timer, and view
 											int index = handlers.indexOf(this);
 											timers.get(index).cancel();
 										}
-										else
-										{
-											String time = "" + timeToRSVP/(60*60*1000) + ":";
-											int minutes = (int)(timeToRSVP/(60*1000))%60;
-											if (minutes < 10)
-												time = time + "0";
-											time = time + minutes + ":";
-											int seconds = (int)(timeToRSVP/1000)%60;
-											if (seconds < 10)
-												time = time+ "0";
-											time = time + seconds;
-											//System.out.println(time);
-											mTimeToRSVPView.setText(time);
-											mTimeToRSVPView.invalidate();
-											mTimeToRSVPView.requestLayout();
-											//invalidate();
-											//requestLayout();
-										}
 									}
-								};
-								handlers.add(handler);
-								timer.schedule(new RSVPTimerTask(handlers.size() - 1), 10, 1000);
+									else
+									{
+										String time = "" + timeToRSVP/(60*60*1000) + ":";
+										int minutes = (int)(timeToRSVP/(60*1000))%60;
+										if (minutes < 10)
+											time = time + "0";
+										time = time + minutes + ":";
+										int seconds = (int)(timeToRSVP/1000)%60;
+										if (seconds < 10)
+											time = time+ "0";
+										time = time + seconds;
+										//System.out.println(time);
+										String str = time + " " + LEFT_TO_RSVP;
+										if (spotsLeft > -1)
+											if (spotsLeft != 1)
+												str += " (" + spotsLeft + " spots left)";
+											else
+												str += " (1 spot left!)";
+										mTimeToRSVPView.setText(str);
+										mTimeToRSVPView.invalidate();
+										mTimeToRSVPView.requestLayout();
+										//invalidate();
+										//requestLayout();
+									}
+								}
+							};
+							handlers.add(handler);
+							timer.schedule(new RSVPTimerTask(handlers.size() - 1), 10, 1000);
 								
-							}
-							else
-								((TextView) event.findViewById(R.id.leftToRSVP)).setText("");
+							
 							
 							//to set the onclick listener
 							final String objectId = meetup.getObjectId();

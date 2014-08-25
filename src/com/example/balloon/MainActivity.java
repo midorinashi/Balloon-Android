@@ -424,9 +424,10 @@ public class MainActivity extends ProgressActivity
 				timers.add(timer);
 				final Date expiresAt = meetup.getDate("expiresAt");
 				final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
-				final TextView mLeftToRSVP = (TextView) event.findViewById(R.id.leftToRSVP);
+				final int spotsLeft = (meetup.has("spotsLeft")) ? meetup.getInt("spotsLeft") : -1;
 				//Handles changing the RSVP time every second with the timer
 				Handler handler = new Handler() {
+					final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
 					public void handleMessage(Message message)
 					{
 						Date now = new Date();
@@ -434,7 +435,6 @@ public class MainActivity extends ProgressActivity
 						if (timeToRSVP < 0)
 						{
 							mTimeToRSVPView.setText("");
-							mLeftToRSVP.setText("");
 							// I want to cancel the handler, timer, and view
 							int index = handlers.indexOf(this);
 							timers.get(index).cancel();
@@ -451,7 +451,12 @@ public class MainActivity extends ProgressActivity
 							int seconds = (int)(timeToRSVP/1000)%60;
 							if (seconds < 10)
 								time = time+ "0";
-							time = time + seconds;
+							time = time + seconds + " " + LEFT_TO_RSVP;
+							if (spotsLeft > -1)
+								if (spotsLeft == 1)
+									time += ", 1 spot left!";
+								else
+									time += ", " + spotsLeft + " spots left";
 							//System.out.println(time);
 							mTimeToRSVPView.setText(time);
 							mTimeToRSVPView.invalidate();
@@ -492,6 +497,7 @@ public class MainActivity extends ProgressActivity
 						showSpinner();
 						HashMap<String, Object> params = new HashMap<String, Object>();
 						params.put("meetupId", objectId);
+						params.put("responder", ParseUser.getCurrentUser().getObjectId());
 						params.put("willAttend", false);
 						ParseCloud.callFunctionInBackground("respondToMeetup", params,
 								new FunctionCallback<Object>() {
@@ -507,7 +513,10 @@ public class MainActivity extends ProgressActivity
 										noPlans();
 								}
 								else
+								{
 									showParseException(e);
+									v.setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+								}
 							}
 						});
 					}
@@ -523,6 +532,7 @@ public class MainActivity extends ProgressActivity
 						showSpinner();
 						HashMap<String, Object> params = new HashMap<String, Object>();
 						params.put("meetupId", objectId);
+						params.put("responder", ParseUser.getCurrentUser().getObjectId());
 						params.put("willAttend", true);
 						ParseCloud.callFunctionInBackground("respondToMeetup", params,
 								new FunctionCallback<Object>() {
@@ -538,7 +548,10 @@ public class MainActivity extends ProgressActivity
 										noPlans();
 								}
 								else
+								{
 									showParseException(e);
+									v.setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+								}
 							}
 						});
 					}
@@ -719,11 +732,12 @@ public class MainActivity extends ProgressActivity
 						}
 
 						timer = new Timer("RSVPTimer");
+						final int spotsLeft = (meetup.has("spotsLeft")) ? meetup.getInt("spotsLeft") : -1;
 						final Date expiresAt = meetup.getDate("expiresAt");
 						final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
-						final TextView mLeftToRSVP = (TextView) event.findViewById(R.id.leftToRSVP);
 						//Handles changing the RSVP time every second with the timer
 						handler = new Handler() {
+							final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
 							public void handleMessage(Message message)
 							{
 								Date now = new Date();
@@ -731,7 +745,6 @@ public class MainActivity extends ProgressActivity
 								if (timeToRSVP < 0)
 								{
 									mTimeToRSVPView.setText("");
-									mLeftToRSVP.setText("");
 									timer.cancel();
 									getFragmentManager().popBackStack();
 								}
@@ -745,7 +758,12 @@ public class MainActivity extends ProgressActivity
 									int seconds = (int)(timeToRSVP/1000)%60;
 									if (seconds < 10)
 										time = time+ "0";
-									time = time + seconds;
+									time = time + seconds + " " + LEFT_TO_RSVP;
+									if (spotsLeft > -1)
+										if (spotsLeft == 1)
+											time += ", 1 spot left!";
+										else
+											time += ", " + spotsLeft + " spots left";
 									//System.out.println(time);
 									mTimeToRSVPView.setText(time);
 									mTimeToRSVPView.invalidate();
@@ -784,6 +802,7 @@ public class MainActivity extends ProgressActivity
 								showSpinner();
 								HashMap<String, Object> params = new HashMap<String, Object>();
 								params.put("meetupId", objectId);
+								params.put("responder", ParseUser.getCurrentUser().getObjectId());
 								params.put("willAttend", false);
 								ParseCloud.callFunctionInBackground("respondToMeetup", params,
 										new FunctionCallback<Object>() {
@@ -798,7 +817,10 @@ public class MainActivity extends ProgressActivity
 											getFragmentManager().popBackStack();
 										}
 										else
+										{
 											showParseException(e);
+											v.setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+										}
 									}
 								});
 							}
@@ -814,6 +836,7 @@ public class MainActivity extends ProgressActivity
 								showSpinner();
 								HashMap<String, Object> params = new HashMap<String, Object>();
 								params.put("meetupId", objectId);
+								params.put("responder", ParseUser.getCurrentUser().getObjectId());
 								params.put("willAttend", true);
 								ParseCloud.callFunctionInBackground("respondToMeetup", params,
 										new FunctionCallback<Object>() {
@@ -822,13 +845,17 @@ public class MainActivity extends ProgressActivity
 										if (e == null)
 										{
 											timer.cancel();
+											
 											((LinearLayout) v.getParent().getParent())
 												.removeView((View) v.getParent());
 											removeSpinner();
 											getFragmentManager().popBackStack();
 										}
 										else
+										{
 											showParseException(e);
+											v.setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+										}
 									}
 								});
 							}

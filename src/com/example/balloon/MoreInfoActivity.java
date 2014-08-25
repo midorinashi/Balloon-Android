@@ -1,5 +1,6 @@
 package com.example.balloon;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -22,17 +23,18 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.NavUtils;
+import android.text.format.Time;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -62,12 +64,15 @@ public class MoreInfoActivity extends ProgressActivity
 	private static String mVenueInfo;
 	private static String mVenuePhotoURL;
 	private static Date mExpiresAt;
+	private static Date mStartsAt;
+	private static int mSpotsLeft;
 	private static String mTimeToRSVP;
 	private static boolean mHasResponded;
 	private static boolean mWillAttend;
 	protected static ParseObject mMeetup;
 	protected static JSONObject mVenueLocation;
 	private static boolean mIsUpdate;
+	private static Menu mMenu;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -153,15 +158,7 @@ public class MoreInfoActivity extends ProgressActivity
 	
 	public boolean onPrepareOptionsMenu(final Menu menu) {
 		//set to edit text string if necessary
-		if (mIsCreator)
-		{
-			menu.findItem(R.id.action_edit).setVisible(true);
-			menu.findItem(R.id.action_update).setVisible(true);
-		}
-		else
-		{
-			menu.findItem(R.id.action_contact).setVisible(true);
-		}
+		mMenu = menu;
 	    return super.onPrepareOptionsMenu(menu);
 	}
 
@@ -183,8 +180,23 @@ public class MoreInfoActivity extends ProgressActivity
 			intent.putExtras(bundle);
 			startActivity(intent);
 		}
-		if (id == R.id.action_agenda) {
+		else if (id == R.id.action_agenda) {
 			showAgenda(null);
+			return true;
+		}
+		else if (id == R.id.action_invite) {
+			Intent intent = new Intent(this, InviteMoreActivity.class);
+			Bundle bundle = new Bundle();
+			bundle.putString("objectId", mObjectId);
+			intent.putExtras(bundle);
+			startActivity(intent);
+			return true;
+		}
+		else if (id == R.id.action_view_invitees) {
+			FragmentTransaction transaction = getFragmentManager().beginTransaction();
+			transaction.replace(R.id.container, new ViewInviteesFragment());
+			transaction.addToBackStack(null);
+			transaction.commit();
 			return true;
 		}
 		else if (id == R.id.action_update) {
@@ -215,6 +227,10 @@ public class MoreInfoActivity extends ProgressActivity
 			locate();
 			return true;
 		}
+		else if (id == R.id.action_add) {
+			addComment();
+			return true;
+		}
 		return super.onOptionsItemSelected(item);
 	}
 	
@@ -226,39 +242,49 @@ public class MoreInfoActivity extends ProgressActivity
 		transaction.commit();
 	}
 	
-	public void respondNo(View view)
+	public void respondNo(final View view)
 	{
 		showSpinner();
 		HashMap<String, Object> params = new HashMap<String, Object>();
+		mHasResponded = true;
+		mWillAttend = false;
 		params.put("meetupId", mObjectId);
+		params.put("responder", ParseUser.getCurrentUser().getObjectId());
 		params.put("willAttend", false);
 		ParseCloud.callFunctionInBackground("respondToMeetup", params, new FunctionCallback<Object>() {
 			public void done(Object o, ParseException e) {
 				if (e == null)
+				{
 					fetchComing();
+					view.setBackgroundColor(getResources().getColor(R.color.red));
+				}
 				else
 					showParseException(e);
 			}
 		});
-		view.setBackgroundColor(getResources().getColor(R.color.red));
 		findViewById(R.id.yes).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
 	}
 	
-	public void respondYes(View view)
+	public void respondYes(final View view)
 	{
 		showSpinner();
 		HashMap<String, Object> params = new HashMap<String, Object>();
+		mHasResponded = true;
+		mWillAttend = true;
 		params.put("meetupId", mObjectId);
+		params.put("responder", ParseUser.getCurrentUser().getObjectId());
 		params.put("willAttend", true);
 		ParseCloud.callFunctionInBackground("respondToMeetup", params, new FunctionCallback<Object>() {
 			public void done(Object o, ParseException e) {
 				if (e == null)
+				{
 					fetchComing();
+					view.setBackgroundColor(getResources().getColor(R.color.green));
+				}
 				else
 					showParseException(e);
 			}
 		});
-		view.setBackgroundColor(getResources().getColor(R.color.green));
 		findViewById(R.id.no).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
 	}
 	
@@ -316,18 +342,11 @@ public class MoreInfoActivity extends ProgressActivity
 		removeSpinner();
 	}
 
-	public void addComment(View view)
+	public void addComment()
 	{
 		showSpinner();
 		EditText et = (EditText) findViewById(R.id.comment);
 		String comment = et.getText().toString();
-		
-		//to prevent multiple comments
-		view.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-			}
-		});
 		
 		ParseObject c = new ParseObject("Comment");
 		c.put("comment", comment);
@@ -461,6 +480,26 @@ public class MoreInfoActivity extends ProgressActivity
 				    }
 				});
 			}
+			
+			if (mIsCreator)
+			{
+				mMenu.findItem(R.id.action_edit).setVisible(true);
+				mMenu.findItem(R.id.action_update).setVisible(true);
+				mMenu.findItem(R.id.action_contact).setVisible(false);
+				mMenu.findItem(R.id.action_invite).setVisible(true);
+				mMenu.findItem(R.id.action_view_invitees).setVisible(true);
+			}
+			else
+			{
+				mMenu.findItem(R.id.action_edit).setVisible(false);
+				mMenu.findItem(R.id.action_update).setVisible(false);
+				mMenu.findItem(R.id.action_contact).setVisible(true);
+				mMenu.findItem(R.id.action_invite).setVisible(false);
+				mMenu.findItem(R.id.action_view_invitees).setVisible(false);
+			}
+			mMenu.findItem(R.id.action_comment).setVisible(true);
+			mMenu.findItem(R.id.action_locate).setVisible(true);
+			mMenu.findItem(R.id.action_add).setVisible(false);
 			reload();
 		}
 		
@@ -503,8 +542,24 @@ public class MoreInfoActivity extends ProgressActivity
 						}
 						
 						mExpiresAt = meetup.getDate("expiresAt");
-						
-						
+						mStartsAt = meetup.getDate("startsAt");
+						if (mStartsAt != null)
+						{
+							TextView tv = (TextView) getActivity().findViewById(R.id.startsAt);
+							if (tv != null)
+							{
+								tv.setVisibility(View.VISIBLE);
+								Time t = new Time();
+								t.set(mStartsAt.getTime());
+								tv.setText("Starts at " + t.format("%a, %b %e %I:%M %p"));
+							}
+						}
+						mSpotsLeft = -1;
+						if (meetup.has("spotsLeft"))
+							mSpotsLeft = meetup.getInt("spotsLeft");
+						if (meetup.getBoolean("allowInviteMore") && !mIsCreator &&
+								mExpiresAt.getTime() - new Date().getTime() > 0)
+							mMenu.findItem(R.id.action_invite).setVisible(true);
 						fetchMeetup();
 					}
 					else
@@ -512,50 +567,91 @@ public class MoreInfoActivity extends ProgressActivity
 				}
 			});
 		}
+		
 		public void fetchMeetup()
 		{
 			Resources res = getResources();
-			if (mExpiresAt.getTime() - new Date().getTime() > 0)
-			{
-				//Handles changing the RSVP time every second with the timer
-				mHandler = new Handler() {
-					public void handleMessage(Message message)
+			//Handles changing the RSVP time every second with the timer
+			mHandler = new Handler() {
+				
+				final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
+				final String STARTS_IN = getString(R.string.starts_in);
+				final int BLACK = getResources().getColor(R.color.black);
+				
+				public void handleMessage(Message message)
+				{
+					Date now = new Date();
+					long timeToRSVP = mExpiresAt.getTime() - now.getTime();
+					if (timeToRSVP < 0)
 					{
-						Date now = new Date();
-						long timeToRSVP = mExpiresAt.getTime() - now.getTime();
-						if (timeToRSVP < 0)
+						if (mStartsAt != null)
 						{
-							((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText("");
-							((TextView) getActivity().findViewById(R.id.leftToRSVP)).setText("");
-							mTimer.cancel();
-							mTimer.purge();
+							timeToRSVP = mStartsAt.getTime() - now.getTime();
+							if (timeToRSVP < 0)
+							{
+								((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText("");
+								mTimer.cancel();
+								mTimer.purge();
+							}
+							else
+							{
+								String time = "" + timeToRSVP/(60*60*1000) + ":";
+								int minutes = (int)(timeToRSVP/(60*1000))%60;
+								if (minutes < 10)
+									time = time + "0";
+								time = time + minutes + ":";
+								int seconds = (int)(timeToRSVP/1000)%60;
+								if (seconds < 10)
+									time = time+ "0";
+								time = time + seconds;
+								//System.out.println(time);
+								if (getActivity() != null && getActivity().findViewById(R.id.timeToRSVP) != null)
+								{
+									TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
+									tv.setTextColor(BLACK);
+									tv.setText(STARTS_IN + " " + time);
+									tv.invalidate();
+									tv.requestLayout();
+								}
+							}
 						}
 						else
 						{
-							mTimeToRSVP = "" + (int)timeToRSVP/(60*60*1000) + ":";
-							int minutes = (int)(timeToRSVP/(60*1000))%60;
-							if (minutes < 10)
-								mTimeToRSVP = mTimeToRSVP + "0";
-							mTimeToRSVP = mTimeToRSVP + minutes + ":";
-							int seconds = (int)(timeToRSVP/1000)%60;
-							if (seconds < 10)
-								mTimeToRSVP = mTimeToRSVP+ "0";
-							mTimeToRSVP = mTimeToRSVP + seconds;
 							if (getActivity() != null && getActivity().findViewById(R.id.timeToRSVP) != null)
-							{
-								TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
-								tv.setText(mTimeToRSVP);
-								tv.invalidate();
-								tv.requestLayout();
-							}
+								((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText("");
+							mTimer.cancel();
+							mTimer.purge();
 						}
 					}
-				};
-				mTimer = new Timer();
-				mTimer.schedule(new RSVPTimerTask(), 0, 1000);
-			}
-			else
-				((TextView) getActivity().findViewById(R.id.leftToRSVP)).setText("");
+					else
+					{
+						mTimeToRSVP = "" + (int)timeToRSVP/(60*60*1000) + ":";
+						int minutes = (int)(timeToRSVP/(60*1000))%60;
+						if (minutes < 10)
+							mTimeToRSVP = mTimeToRSVP + "0";
+						mTimeToRSVP = mTimeToRSVP + minutes + ":";
+						int seconds = (int)(timeToRSVP/1000)%60;
+						if (seconds < 10)
+							mTimeToRSVP = mTimeToRSVP+ "0";
+						mTimeToRSVP = mTimeToRSVP + seconds + " " + LEFT_TO_RSVP;
+						if (getActivity() != null && getActivity().findViewById(R.id.timeToRSVP) != null)
+						{
+							TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
+							if (mSpotsLeft > -1)
+								if (mSpotsLeft != 1)
+									mTimeToRSVP += ", " + mSpotsLeft + " spots left";
+								else
+									mTimeToRSVP += ", 1 spot left!";
+							tv.setText(mTimeToRSVP);
+							tv.invalidate();
+							tv.requestLayout();
+						}
+					}
+				}
+			};
+			mTimer = new Timer();
+			mTimer.schedule(new RSVPTimerTask(), 0, 1000);
+			
 			
 			Button button = (Button) getActivity().findViewById(R.id.no);
 			button.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),
@@ -767,9 +863,83 @@ public class MoreInfoActivity extends ProgressActivity
 		{
 			View rootView = inflater.inflate(R.layout.fragment_add_comment,
 					container, false);
+			for (int i = 0; i < mMenu.size(); i++)
+				mMenu.getItem(i).setVisible(false);
+			mMenu.findItem(R.id.action_add).setVisible(true);
+			mMenu.findItem(R.id.action_add).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 			if (mIsUpdate)
 				((EditText) rootView.findViewById(R.id.comment)).setHint(getActivity()
 						.getString(R.string.updates_hint));
+			return rootView;
+		}
+		
+		public void onStop()
+		{
+			EditText et = (EditText)(getActivity().findViewById(R.id.comment));
+			InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(
+			      Context.INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(et.getWindowToken(), 0);
+			super.onStop();
+		}
+	}
+	
+	public static class ViewInviteesFragment extends ProgressFragment
+	{
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState)
+		{
+			showSpinner();
+			final View rootView = inflater.inflate(R.layout.fragment_select_list,
+					container, false);
+			rootView.setBackgroundColor(getResources().getColor(R.color.white));
+			ArrayList<ParseQuery<ParseUser>> queries = new ArrayList<ParseQuery<ParseUser>>();
+			JSONArray members = mMeetup.getJSONArray("invitedUsers");
+			for (int i = 0; i < members.length(); i++)
+			{
+				try {
+					ParseQuery<ParseUser> query = ParseUser.getQuery();
+					query.whereEqualTo("objectId", members.getJSONObject(i).getString("objectId"));
+					queries.add(query);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			ParseQuery<ParseUser> mainQuery = ParseQuery.or(queries);
+			mainQuery.orderByAscending("firstName");
+			mainQuery.addAscendingOrder("lastName");
+			mainQuery.findInBackground(new FindCallback<ParseUser>() {
+				@Override
+				public void done(List<ParseUser> list, ParseException e) {
+					if (e == null)
+					{
+						String[] names = new String[list.size()];
+						String[] responseRates = new String[list.size()];
+						String[] photoURLs = new String[list.size()];
+						//we want a JSONArray of users, not just of userIds
+						for (int i = 0; i < list.size(); i++)
+						{
+							names[i] = list.get(i).getString("firstName") + " " + 
+									list.get(i).getString("lastName");
+							if (list.get(i).containsKey("profilePhoto"))
+								photoURLs[i] = list.get(i).getParseFile("profilePhoto").getUrl();
+							if (list.get(i).containsKey("responseRate"))
+								responseRates[i] = "" + (Math.round(list.get(i)
+										.getDouble("responseRate")*1000))/10.0+"%";
+							else
+								responseRates[i] = "100%";
+						}
+						ListView lv = (ListView) rootView.findViewById(R.id.groupList);
+						lv.setAdapter(new GroupAdapter(getActivity(), R.layout.list_members,
+								names, responseRates, photoURLs));
+					    lv.setItemsCanFocus(false);
+					    lv.setChoiceMode(ListView.CHOICE_MODE_NONE);
+					    removeSpinner();
+					}
+					else
+						showParseException(e);
+				}
+			});
 			return rootView;
 		}
 	}

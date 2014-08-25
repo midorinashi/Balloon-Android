@@ -16,29 +16,49 @@
         android:showAsAction="never"/>
     
     <item
-        android:id="@+id/action_update"
+        android:id="@+id/action_view_invitees"
         android:orderInCategory="3"
+        android:title="@string/action_view_invitees"
+        android:showAsAction="never"
+        android:visible="false"/>
+    
+    <item
+        android:id="@+id/action_invite"
+        android:orderInCategory="4"
+        android:title="@string/action_invite"
+        android:showAsAction="never"
+        android:visible="false"/>
+    
+    <item
+        android:id="@+id/action_update"
+        android:orderInCategory="5"
         android:title="@string/action_update"
         android:showAsAction="never"
         android:visible="false" />
         
     <item
         android:id="@+id/action_comment"
-        android:orderInCategory="4"
+        android:orderInCategory="6"
         android:title="@string/action_comment"
         android:showAsAction="never"/>
     
     <item
         android:id="@+id/action_contact"
-        android:orderInCategory="5"
+        android:orderInCategory="7"
         android:title="@string/action_contact"
         android:showAsAction="never"
         android:visible="false" />
     
     <item
         android:id="@+id/action_locate"
-        android:orderInCategory="6"
+        android:orderInCategory="8"
         android:title="@string/action_locate"
+        android:showAsAction="never"/>
+    
+    <item
+        android:id="@+id/action_add"
+        android:orderInCategory="9"
+        android:title="@string/action_add"
         android:showAsAction="never"/>
 
 </menu>

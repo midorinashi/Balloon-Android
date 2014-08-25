@@ -274,6 +274,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			if (((ListView) findViewById(R.id.memberList)).getCheckedItemCount() != 0)
 			{
+				SelectMembersFromListFragment.saveMembers();
 				mMakeContactList = false;
 				if (mAfterFinalEdit)
 				{
@@ -623,14 +624,19 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		//gotta set both contactList and mMembers here
 		if (mListId != null)
 			meetup.put("contactList", mListId);
-		meetup.put("creator", ParseUser.getCurrentUser());
+		if (!meetup.has("creator"))
+			meetup.put("creator", ParseUser.getCurrentUser());
+		else
+			meetup.put("creator", meetup.getParseUser("creator"));
 		meetup.put("expiresAt", changeToDate(mExpiresAtHour, mExpiresAtMinute));
 		meetup.put("invitedUsers", mMembers);
 		if (mStartDeadline != null)
 			meetup.put("startsAt", mStartDeadline);
 		meetup.put("venueInfo", mVenue);
 		meetup.put("venuePhotoURLs", mVenuePhotoUrls);
-		meetup.put("allowInviteMore", ((CheckBox) findViewById(R.id.finalEditInviteMoreBox)).isChecked());
+		if (findViewById(R.id.finalEditInviteMoreBox) != null)
+			meetup.put("allowInviteMore", ((CheckBox) 
+					findViewById(R.id.finalEditInviteMoreBox)).isChecked());
 		meetup.put("maxAttendees", mLimit);
 		meetup.put("spotsLeft", mSpotsLeft);
 		meetup.put("isFull", mIsFull);
@@ -1087,6 +1093,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		        lv.setAdapter(adapter);
 		        lv.setOnItemClickListener(new OnItemClickListener() {
 					public void onItemClick(AdapterView<?> a, View v, int position, long id) {
+						System.out.println(mListId);
 						mListName = lists[position];
 						if (mListId != ids[position])
 							mMemberIds = null;
@@ -1557,12 +1564,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	public static class SelectMembersFromListFragment extends ProgressFragment {
 		
 		// and name should be displayed in the text1 textview in item layout
-		private String[] names;
-		private String[] photoURLs;
-		private ArrayList<String> ids;
-		private JSONArray users;
+		private static String[] names;
+		private static String[] photoURLs;
+		private static ArrayList<String> ids;
+		private static JSONArray users;
 		private ArrayAdapter<String> mArrayAdapter;
-		protected String[] responseRates;
+		protected static String[] responseRates;
 		
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
@@ -1734,13 +1741,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		    }
 		}
 		
-		public void onPause()
+		public static void saveMembers()
 		{
-			super.onPause();
-			
-			SparseBooleanArray checked = ((ListView) getActivity().findViewById(R.id.memberList))
+			SparseBooleanArray checked = ((ListView) context.findViewById(R.id.memberList))
 					.getCheckedItemPositions();
-			int count = ((ListView) getActivity().findViewById(R.id.memberList)).getCount();
+			int count = ((ListView) context.findViewById(R.id.memberList)).getCount();
 			mMemberIds = new String[count];
 			mMembers = new JSONArray();
 			mMemberObjectIds = new JSONArray();
@@ -2144,11 +2149,27 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			mCurrentFragment = "FinalEditFragment";
 			mAfterFinalEdit = false;
 
-			mNext = getResources().getString(R.string.action_save);
+			mNext = getResources().getString(R.string.send);
 			getActivity().invalidateOptionsMenu();
 			
 			TextView tv = (TextView) getActivity().findViewById(R.id.finalEditToText);
-			tv.setText(mListName);
+			if (mPreviewName == null || mPreviewName == "")
+				mPreviewName = "1 person";
+			if (mMakeContactList)
+				if (mPhoneNumbers.length != 0)
+					tv.setText(mPhoneNumbers.length + " people");
+				else
+					tv.setText(mPreviewName);
+			else if (mMemberIds == null)
+				if (mMembers.length() != 0)
+					tv.setText(mListName + " (" + mMembers.length() + " people)");
+				else
+					tv.setText(mListName + " (" + mPreviewName + ")");
+			else
+				if (mMemberIds.length != 0)
+					tv.setText(mListName + " (" + mMemberIds.length + " people)");
+				else
+					tv.setText(mListName + " (" + mPreviewName + ")");
 			tv = (TextView) getActivity().findViewById(R.id.finalEditAgendaText);
 			tv.setText(mAgenda);
 			tv = (TextView) getActivity().findViewById(R.id.finalEditLocationText);
@@ -2377,7 +2398,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			tv.setText(ParseUser.getCurrentUser().getString("firstName") + "  " +
 					ParseUser.getCurrentUser().getString("lastName"));
 			tv = (TextView) event.findViewById(R.id.agenda);
-			tv.setText(mPreviewName + ", " + mAgenda);
+			if (mPreviewName != "1 person")
+				tv.setText(mPreviewName + ", " + mAgenda);
+			else
+				tv.setText(mAgenda);
 			tv = (TextView) event.findViewById(R.id.venueInfo);
 			tv.setText(mVenueInfo);
 			ImageView v = ((ImageView) event.findViewById(R.id.image));

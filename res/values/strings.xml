@@ -2,6 +2,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <string name="app_name">Balloon</string>
+    <string name="action_add">Add</string>
     <string name="action_add_members">Add Members</string>
     <string name="action_agenda">View Meetup Plan</string>
     <string name="action_comment">Add a Comment</string>
@@ -12,6 +13,7 @@
     <string name="action_delete_yourself">Remove Self from Group</string>
     <string name="action_done">Done</string>
     <string name="action_edit">Edit Meetup</string>
+    <string name="action_invite">Invite More People</string>
     <string name="action_invites">New Invites</string>
     <string name="action_lists">Groups</string>
     <string name="action_locate">Locate the Venue</string>
@@ -23,6 +25,7 @@
     <string name="action_send_invite_to_group">Send Invite to Group</string>
     <string name="action_settings">Settings</string>
     <string name="action_update">Add an Update</string>
+    <string name="action_view_invitees">View Invited</string>
     <string name="add_photo">Add\na\nPhoto</string>
     <string name="add_members_to">Add Members to </string>
     <string name="agenda_empty">No plan :C</string>
@@ -66,6 +69,7 @@
     <string name="final_edit_to">To:</string>
     <string name="from">From: </string>
     <string name="group">Group</string>
+    <string name="invite">Invite</string>
     <string name="image_content_description">The Image</string>
     <string name="leftToRSVP"> left to RSVP</string>
     <string name="limit">Limit:</string>
@@ -81,6 +85,7 @@
     <string name="no_internet">Oops! No internet.</string>
     <string name="no_invites"><b>No Invites</b></string>
     <string name="no_limit">No Limit</string>
+    <string name="no_plans"><b>No Plans</b></string>
     <string name="no_thanks"><b>No Thanks</b></string>
     <string name="no_time"></string>
     <string name="not_coming_header">NOT COMING</string>
@@ -110,10 +115,11 @@
     <string name="share_list">Share List with Members</string>
     <string name="share_group">Share Group</string>
     <string name="signup">Signup</string>
+    <string name="starts_in">Starts in</string>
     <string name="start_time">Start time: </string>
     <string name="submit">Submit</string>
     <string name="title_activity_contact_lists">ContactListsActivity</string>
-    <string name="title_activity_more_info">More Info Activity</string>
+    <string name="title_activity_more_info"></string>
     <string name="title_activity_new_contact_list">New Contact Lists</string>
     <string name="title_activity_new_invitation">New Invitation Activity</string>
     <string name="title_activity_rsvpevents">Plans</string>

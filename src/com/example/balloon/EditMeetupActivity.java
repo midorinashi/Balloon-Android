@@ -3,29 +3,31 @@ package com.example.balloon;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.parse.FunctionCallback;
 import com.parse.GetCallback;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
 public class EditMeetupActivity extends NewInvitationActivity {
 
-	private ParseObject meetup;
+	protected ParseObject meetup;
+	protected JSONObject mOldVenue;
+	protected Date mOldStartTime;
 	
 	//erase all static fields
 	@Override
@@ -47,7 +49,7 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		});
 	}
 	
-	private void setValues(ParseObject meetup, Bundle savedInstanceState)
+	protected void setValues(ParseObject meetup, Bundle savedInstanceState)
 	{
 		this.meetup = meetup;
 		context = this;
@@ -64,6 +66,7 @@ public class EditMeetupActivity extends NewInvitationActivity {
 			e.printStackTrace();
 		}
 		mVenue = meetup.getJSONObject("venueInfo");
+		mOldVenue = mVenue;
 		
 		//oh my god i don't want to deal with this
 		Date deadline = meetup.getDate("expiresAt");
@@ -88,10 +91,12 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		mStartDeadline = null;
 		if (meetup.has("startsAt"))
 			mStartDeadline = meetup.getDate("startsAt");
+		mOldStartTime = mStartDeadline;
 		
 		//do i need these fields??
 		mPhoneNumbers = null;
 		mMakeContactList = false;
+		mFinishSavingMeetup = false;
 		mMemberIds = null;
 		mMemberFirstNames = null;
 		mMemberLastNames = null;
@@ -117,6 +122,11 @@ public class EditMeetupActivity extends NewInvitationActivity {
 			mIsFull = false;
 		}
 		
+		loadView(savedInstanceState);
+	}
+	
+	public void loadView(Bundle savedInstanceState)
+	{
 		if (savedInstanceState == null) {
 			mAfterFinalEdit = false;
 			getFragmentManager().beginTransaction()
@@ -134,10 +144,40 @@ public class EditMeetupActivity extends NewInvitationActivity {
 	@Override
 	//Sorry for the messy code
 	//Since we are just editing the meetup, we don't need to resend the invites. My code is just sloppy
-	//This actually just ends the activity
+	//This actually just ends the activity and sends relevant pushes
 	//Sorry again
 	public void sendInvite(final ParseObject meetup)
 	{
+		if (!mVenue.equals(mOldVenue))
+		{
+			HashMap<String, Object> params = new HashMap<String, Object>();
+			params.put("meetupId", meetup.getObjectId());
+			ParseCloud.callFunctionInBackground("changeOfVenue", params, new FunctionCallback<Object> () {
+				@Override
+				public void done(Object arg0, ParseException arg1) {
+					mOldVenue = mVenue;
+					sendInvite(meetup);
+				}
+			});
+		}
+		else if (!mOldStartTime.equals(mStartDeadline))
+		{
+			HashMap<String, Object> params = new HashMap<String, Object>();
+			params.put("meetupId", meetup.getObjectId());
+			ParseCloud.callFunctionInBackground("changeOfStartTime", params, new FunctionCallback<Object> () {
+				@Override
+				public void done(Object arg0, ParseException arg1) {
+					end();
+				}
+			});
+		}
+		else
+			end();
+	}
+	
+	public void end()
+	{
+
 		Context context = getApplicationContext();
 		CharSequence text = "Saved!";
 		int duration = Toast.LENGTH_SHORT;
@@ -155,6 +195,30 @@ public class EditMeetupActivity extends NewInvitationActivity {
 			//gotta change the send button to a save button
 			Button save = (Button) getActivity().findViewById(R.id.send);
 			save.setText(R.string.save);
+			mNext = "Save";
+			getActivity().invalidateOptionsMenu();
+
+			int gray = getResources().getColor(R.color.lightGray);
+			//things that just shouldn't be changed
+			TextView tv = (TextView) getActivity().findViewById(R.id.finalEditToHeader);
+			tv.setTextColor(gray);
+			tv = (TextView) getActivity().findViewById(R.id.finalEditToText);
+			tv.setTextColor(gray);
+			tv = (TextView) getActivity().findViewById(R.id.finalEditAgendaHeader);
+			tv.setTextColor(gray);
+			tv = (TextView) getActivity().findViewById(R.id.finalEditAgendaText);
+			tv.setTextColor(gray);
+			tv = (TextView) getActivity().findViewById(R.id.finalEditLimitHeader);
+			tv.setTextColor(gray);
+			tv = (TextView) getActivity().findViewById(R.id.finalEditLimitText);
+			tv.setTextColor(gray);
+			
+			getActivity().findViewById(R.id.finalEditTo).setOnClickListener(null);
+			getActivity().findViewById(R.id.finalEditAgenda).setOnClickListener(null);
+			getActivity().findViewById(R.id.finalEditLimit).setOnClickListener(null);
+			
+			if ((new Date()).after(mStartDeadline))
+				((TextView) getActivity().findViewById(R.id.finalEditDeadlineText)).setText("Expired");;
 		}
 	}
 }
