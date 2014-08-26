@@ -53,6 +53,7 @@ public class NewInvitationFromGroupActivity extends NewInvitationActivity {
 				if (e == null)
 				{
 					mListId = o;
+					mListName = o.getString("name");
 					continueStart(savedInstanceState);
 				}
 				else

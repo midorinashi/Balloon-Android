@@ -34,7 +34,7 @@
     <item
         android:id="@+id/save"
         android:orderInCategory="4"
-        android:title="@string/save"
+        android:title="@string/add"
         android:visible="false"
         app:showAsAction="always" />
 

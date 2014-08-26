@@ -782,14 +782,12 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 		public void onResume()
 		{
 			super.onResume();
-			getActivity().setTitle(getActivity().getString(R.string.add_members_to) + " " + mListName);
+			getActivity().setTitle(getActivity().getString(R.string.add_members_to));
 			//fix that menu
-			mOptionMenu.getItem(0).setVisible(false);
-			mOptionMenu.getItem(1).setVisible(false);
-			mOptionMenu.getItem(2).setVisible(false);
-			mOptionMenu.getItem(3).setVisible(false);
-			mOptionMenu.getItem(4).setVisible(true);
-			mOptionMenu.getItem(4).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+			for (int i = 0; i < mOptionMenu.size() - 1; i++)
+				mOptionMenu.getItem(i).setVisible(false);
+			mOptionMenu.findItem(R.id.save).setVisible(true);
+			mOptionMenu.findItem(R.id.save).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 			
 			final ListView lv = (ListView) getActivity().findViewById(R.id.contactsList);
 			final ContactAdapter adapter = (ContactAdapter) lv.getAdapter();

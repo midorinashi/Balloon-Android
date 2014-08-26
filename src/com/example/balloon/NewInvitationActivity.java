@@ -201,7 +201,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	public boolean onPrepareOptionsMenu(final Menu menu) {
 	    if (!mPlus)
 	    {
-	    	if (!mCurrentFragment.equals("ChooseFromExistingList"))
+	    	if (!mCurrentFragment.equals("ChooseFromExistingList")
+	    			&& !mCurrentFragment.equals("PreviewFragment"))
 	    	{
 			    MenuItem item = menu.findItem(R.id.action_next);
 		    	item.setTitle(mNext);
@@ -1334,8 +1335,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    {
 	        super.onActivityCreated(savedInstanceState);
 
-			mNext = getResources().getString(R.string.action_next);
-			getActivity().invalidateOptionsMenu();
+	        if (getActivity() instanceof NewInvitationActivity)
+	        {
+				mNext = getResources().getString(R.string.action_next);
+				getActivity().invalidateOptionsMenu();
+	        }
 			
 	        adapter = new ContactAdapter(getActivity(), R.layout.list_item_contact,
 	        		displayNames, numbers, ids);
@@ -2407,7 +2411,9 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_preview,
 					container, false);
-			
+			getActivity().setTitle(getActivity().getString(R.string.preview));
+			mCurrentFragment = "PreviewFragment";
+			getActivity().invalidateOptionsMenu();
 			return rootView;
 		}
 		
@@ -2442,6 +2448,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			final Date expiresAt = changeToDate(mExpiresAtHour, mExpiresAtMinute);
 			final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
 			mHandler = new Handler() {
+				final String LEFT_TO_RSVP = getActivity().getString(R.string.leftToRSVP);
 				public void handleMessage(Message message)
 				{
 					Date now = new Date();
@@ -2455,8 +2462,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					if (seconds < 10)
 						time = time+ "0";
 					time = time + seconds;
-					System.out.println(time);
-					mTimeToRSVPView.setText(time);
+					mTimeToRSVPView.setText(time + " " + LEFT_TO_RSVP);
 					mTimeToRSVPView.invalidate();
 					mTimeToRSVPView.requestLayout();
 					//invalidate();
