@@ -201,7 +201,7 @@ public class InviteMoreActivity extends EditMeetupActivity {
 						showParseException(e);
 					else
 					{
-						Toast.makeText(context, "Sent!", Toast.LENGTH_SHORT).show();
+						//Toast.makeText(context, "Sent!", Toast.LENGTH_SHORT).show();
 						if (mMakeContactList)
 						{
 							//so we don't make a group with everyone actually invited

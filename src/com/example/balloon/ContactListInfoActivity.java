@@ -39,7 +39,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.CheckBox;
-import android.widget.Checkable;
 import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.ImageView;
@@ -294,10 +293,10 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 	public void saveNewMembers()
 	{
 		showSpinner();
-		SelectMembersFromContactsFragment.saveContacts();
-		//get a list of member object ids who are in the group already
 		final JSONArray members = list.getJSONArray("members");
 		final ArrayList<String> memberIds = new ArrayList<String>();
+		SelectMembersFromContactsFragment.saveContacts();
+		//get a list of member object ids who are in the group already
 		for (int i = 0; i < members.length(); i++)
 		{
 			try {
@@ -587,8 +586,16 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 		{
 			if (ids.size() == 0)
 			{
-				Toast.makeText(getActivity(), "Oops!", Toast.LENGTH_SHORT).show();
-				removeSpinner();
+				Toast.makeText(getActivity(), "Oops! This group is empty. Deleting group...", Toast.LENGTH_LONG).show();
+				list.deleteInBackground(new DeleteCallback() {
+					@Override
+					public void done(ParseException e) {
+						if (e != null)
+							showParseException(e);
+						removeSpinner();
+						getActivity().finish();
+					}
+				});
 				return;
 			}
 			//this is to get the members 
@@ -742,7 +749,7 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 	                   public void onClick(DialogInterface d, int id) {
 	                	   String str = ((EditText) dialog.findViewById(R.id.changeName))
 	                			   .getText().toString();
-	                	   if (str.replaceAll("\\s+", "").equals(""))
+	                	   if (!str.replaceAll("\\s+", "").equals(""))
 	                	   {
 	                		   mListName = str;
 		                	   getActivity().setTitle(mListName);

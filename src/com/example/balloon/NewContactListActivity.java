@@ -464,6 +464,7 @@ public class NewContactListActivity extends ProgressActivity {
 		public void onResume()
 		{
 			super.onResume();
+			getActivity().setTitle(getResources().getString(R.string.title_create_list));
 			mListView = (ListView) getActivity().findViewById(R.id.contactsList);
 			nextTitle = "Done";
 			getActivity().invalidateOptionsMenu();
@@ -479,6 +480,7 @@ public class NewContactListActivity extends ProgressActivity {
 
 			nextTitle = "Save";
 			getActivity().invalidateOptionsMenu();
+			getActivity().setTitle(getResources().getString(R.string.title_create_list));
 			
 			rootView.findViewById(R.id.editGroup).setVisibility(View.VISIBLE);
 			
@@ -569,7 +571,7 @@ public class NewContactListActivity extends ProgressActivity {
 	                   public void onClick(DialogInterface d, int id) {
 	                	   String str = ((EditText) dialog.findViewById(R.id.changeName))
 	                			   .getText().toString();
-	                	   if (str.replaceAll("\\s+", "").equals(""))
+	                	   if (!str.replaceAll("\\s+", "").equals(""))
 	                	   {
 	                		   mListName = str;
 		                	   ((TextView) getActivity().findViewById(R.id.listName)).setText(mListName);

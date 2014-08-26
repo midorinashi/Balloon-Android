@@ -251,18 +251,21 @@ public class MoreInfoActivity extends ProgressActivity
 		params.put("meetupId", mObjectId);
 		params.put("responder", ParseUser.getCurrentUser().getObjectId());
 		params.put("willAttend", false);
+		view.setBackgroundColor(getResources().getColor(R.color.red));
 		ParseCloud.callFunctionInBackground("respondToMeetup", params, new FunctionCallback<Object>() {
 			public void done(Object o, ParseException e) {
 				if (e == null)
 				{
 					fetchComing();
-					view.setBackgroundColor(getResources().getColor(R.color.red));
+					findViewById(R.id.yes).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
 				}
 				else
+				{
 					showParseException(e);
+					view.setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+				}
 			}
 		});
-		findViewById(R.id.yes).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
 	}
 	
 	public void respondYes(final View view)
@@ -274,18 +277,21 @@ public class MoreInfoActivity extends ProgressActivity
 		params.put("meetupId", mObjectId);
 		params.put("responder", ParseUser.getCurrentUser().getObjectId());
 		params.put("willAttend", true);
+		view.setBackgroundColor(getResources().getColor(R.color.green));
 		ParseCloud.callFunctionInBackground("respondToMeetup", params, new FunctionCallback<Object>() {
 			public void done(Object o, ParseException e) {
 				if (e == null)
 				{
 					fetchComing();
-					view.setBackgroundColor(getResources().getColor(R.color.green));
+					findViewById(R.id.no).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
 				}
 				else
+				{
 					showParseException(e);
+					view.setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+				}
 			}
 		});
-		findViewById(R.id.no).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
 	}
 	
 	public void fetchComing()
@@ -577,6 +583,7 @@ public class MoreInfoActivity extends ProgressActivity
 				final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
 				final String STARTS_IN = getString(R.string.starts_in);
 				final int BLACK = getResources().getColor(R.color.black);
+				final int RED = getResources().getColor(R.color.red);
 				
 				public void handleMessage(Message message)
 				{
@@ -643,6 +650,7 @@ public class MoreInfoActivity extends ProgressActivity
 								else
 									mTimeToRSVP += ", 1 spot left!";
 							tv.setText(mTimeToRSVP);
+							tv.setTextColor(RED);
 							tv.invalidate();
 							tv.requestLayout();
 						}
@@ -719,6 +727,7 @@ public class MoreInfoActivity extends ProgressActivity
 			if (commentList != null)
 			{
 				commentList.removeAllViews();
+				updateList.removeAllViews();
 				RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
 						.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 				for (int i = 0; i < comments.size(); i++)

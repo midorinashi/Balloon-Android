@@ -1,5 +1,5 @@
 package com.example.balloon;
-
+//TODO CHECK TO SEE IF THEY HAVE A CAMERA
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -82,6 +82,7 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.GetCallback;
@@ -1485,6 +1486,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	                else if (!checked.get(i) && selectedIds.contains(id))
 	                	selectedIds.remove(id);
 	            }
+	            for (int i = 0; i < selectedIds.size(); i++)
+	            {
+	            String id = selectedIds.get(i);
+				int index = ids.indexOf(id);
+				System.out.println("First name of " + id + " is " + firstNames.get(index));
+	            }
 	            adapter.getFilter().filter(query);
                 adapter.notifyDataSetChanged();
 	            //then filter the results
@@ -1604,6 +1611,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					if (e == null)
 					{
 						System.out.println("I AIN'T BROKE");
+						mListId = contactList;
 						JSONArray members = contactList.getJSONArray("members");
 						int length = members.length();
 						String currentUserId = ParseUser.getCurrentUser().getObjectId();
@@ -1655,6 +1663,20 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		
 		public void fetchNames()
 		{
+			if (ids.size() == 0)
+			{
+				Toast.makeText(getActivity(), "Oops! This group is empty. Deleting group...", Toast.LENGTH_LONG).show();
+				mListId.deleteInBackground(new DeleteCallback() {
+					@Override
+					public void done(ParseException e) {
+						if (e != null)
+							showParseException(e);
+						removeSpinner();
+						getActivity().finish();
+					}
+				});
+				return;
+			}
 			ArrayList<ParseQuery<ParseUser>> queries = new ArrayList<ParseQuery<ParseUser>>();
 			for (int i = 0; i < ids.size(); i++)
 			{

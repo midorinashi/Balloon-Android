@@ -74,6 +74,7 @@
                     android:layout_alignParentRight="true"
                     android:layout_alignTop="@+id/eventImage"
                     android:layout_toRightOf="@+id/eventImage"
+    				android:animateLayoutChanges="true"
                     android:text="@string/empty"
                     android:textSize="14sp"
 	   				custom:fontName="Roboto-Light.ttf" />
@@ -90,6 +91,7 @@
                     android:gravity="center_vertical"
                     android:lines="1"
                     android:maxLines="1"
+    				android:animateLayoutChanges="true"
                     android:text="@string/empty"
                     android:textColor="@color/gray"
                     android:textSize="14sp"
@@ -104,6 +106,7 @@
                     android:layout_alignLeft="@+id/venueInfo"
                     android:ellipsize="end"
                     android:maxLines="1"
+    				android:animateLayoutChanges="true"
                     android:textColor="@color/red"
                     android:textSize="14sp"
 				    custom:fontName="Roboto-Light.ttf" />
@@ -117,6 +120,7 @@
                     android:layout_alignParentRight="true"
                     android:ellipsize="end"
                     android:maxLines="1"
+    				android:animateLayoutChanges="true"
                     android:text="@string/empty"
                     android:textColor="@color/blue"
                     android:textSize="14sp" 
@@ -129,6 +133,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingLeft="10dp"
+                android:paddingBottom="10dp"
+    			android:animateLayoutChanges="true"
                 android:background="@color/white"
                 android:visibility="gone"
 	    		custom:fontName="Roboto-Light.ttf" />
@@ -140,6 +146,7 @@
                 android:layout_marginBottom="5dp"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="30dp"
+    			android:animateLayoutChanges="true"
                 android:text="@string/updates_header"
                 android:textColor="@color/blue"
                 android:visibility="gone"
@@ -150,6 +157,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
+    			android:animateLayoutChanges="true"
                 android:orientation="vertical" >
 
             </LinearLayout>
@@ -161,6 +169,7 @@
                 android:layout_marginBottom="5dp"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="30dp"
+    			android:animateLayoutChanges="true"
                 android:text="@string/comments_header"
                 android:textColor="@color/blue"
 	    		custom:fontName="Roboto-Light.ttf" />
@@ -169,6 +178,7 @@
                 android:id="@+id/comments"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+    			android:animateLayoutChanges="true"
                 android:orientation="vertical" >
                 
             </LinearLayout>
@@ -180,6 +190,7 @@
                 android:layout_marginBottom="5dp"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="30dp"
+    			android:animateLayoutChanges="true"
                 android:text="@string/coming_header"
                 android:textColor="@color/blue"
 	    		custom:fontName="Roboto-Light.ttf" />
@@ -188,6 +199,7 @@
                 android:id="@+id/coming"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+    			android:animateLayoutChanges="true"
                 android:orientation="vertical" >
                 
         	</LinearLayout>
@@ -199,6 +211,7 @@
                 android:layout_marginBottom="5dp"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="30dp"
+    			android:animateLayoutChanges="true"
                 android:text="@string/not_coming_header"
                 android:textColor="@color/blue"
                 android:visibility="gone"
@@ -209,6 +222,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="30dp"
+    			android:animateLayoutChanges="true"
                 android:orientation="vertical" >
 
             </LinearLayout>

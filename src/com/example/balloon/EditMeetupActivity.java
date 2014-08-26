@@ -23,6 +23,7 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
+//TODO fix rsvp deadline for editting after the rsvp deadline
 public class EditMeetupActivity extends NewInvitationActivity {
 
 	protected ParseObject meetup;
@@ -217,7 +218,7 @@ public class EditMeetupActivity extends NewInvitationActivity {
 			getActivity().findViewById(R.id.finalEditAgenda).setOnClickListener(null);
 			getActivity().findViewById(R.id.finalEditLimit).setOnClickListener(null);
 			
-			if ((new Date()).after(mStartDeadline))
+			if ((new Date()).after(changeToDate(mExpiresAtHour, mExpiresAtMinute)))
 				((TextView) getActivity().findViewById(R.id.finalEditDeadlineText)).setText("Expired");;
 		}
 	}
