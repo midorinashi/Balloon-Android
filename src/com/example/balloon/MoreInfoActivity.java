@@ -15,6 +15,7 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -549,17 +550,15 @@ public class MoreInfoActivity extends ProgressActivity
 						
 						mExpiresAt = meetup.getDate("expiresAt");
 						mStartsAt = meetup.getDate("startsAt");
-						if (mStartsAt != null)
+						TextView tv = (TextView) getActivity().findViewById(R.id.startsAt);
+						if (mStartsAt != null && tv != null)
 						{
-							TextView tv = (TextView) getActivity().findViewById(R.id.startsAt);
-							if (tv != null)
-							{
-								tv.setVisibility(View.VISIBLE);
-								Time t = new Time();
-								t.set(mStartsAt.getTime());
-								tv.setText("Starts at " + t.format("%a, %b %e %I:%M %p"));
-							}
+							Time t = new Time();
+							t.set(mStartsAt.getTime());
+							tv.setText("Starts at " + t.format("%a, %b %e %I:%M %p"));
 						}
+						else if (tv != null)
+							tv.setText(R.string.no_start_time);
 						mSpotsLeft = -1;
 						if (meetup.has("spotsLeft"))
 							mSpotsLeft = meetup.getInt("spotsLeft");
@@ -582,7 +581,8 @@ public class MoreInfoActivity extends ProgressActivity
 				
 				final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
 				final String STARTS_IN = getString(R.string.starts_in);
-				final int BLACK = getResources().getColor(R.color.black);
+				final ColorStateList BLACK = ((TextView) getActivity()
+						.findViewById(R.id.creator)).getTextColors();
 				final int RED = getResources().getColor(R.color.red);
 				
 				public void handleMessage(Message message)
@@ -646,9 +646,9 @@ public class MoreInfoActivity extends ProgressActivity
 							TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
 							if (mSpotsLeft > -1)
 								if (mSpotsLeft != 1)
-									mTimeToRSVP += ", " + mSpotsLeft + " spots left";
+									mTimeToRSVP += " (" + mSpotsLeft + " spots left)";
 								else
-									mTimeToRSVP += ", 1 spot left!";
+									mTimeToRSVP += " (1 spot left!)";
 							tv.setText(mTimeToRSVP);
 							tv.setTextColor(RED);
 							tv.invalidate();

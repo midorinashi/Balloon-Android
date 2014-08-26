@@ -11,6 +11,7 @@ import org.json.JSONException;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -180,7 +181,7 @@ public class RSVPEventsActivity extends Activity {
 					
 					for (int i = 0; i < upcoming.size(); i++)
 					{
-						View event = View.inflate(getActivity(), R.layout.list_item_plans, null);
+						final View event = View.inflate(getActivity(), R.layout.list_item_plans, null);
 						ParseObject meetup = (ParseObject) upcoming.get(i).get("meetup");
 						//invite.setVenuePhoto(event.getParseFile(key));
 						try {
@@ -216,7 +217,8 @@ public class RSVPEventsActivity extends Activity {
 								
 								final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
 								final String STARTS_IN = getString(R.string.starts_in);
-								final int BLACK = getResources().getColor(R.color.black);
+								final ColorStateList BLACK = ((TextView) event
+										.findViewById(R.id.creator)).getTextColors();
 								
 								public void handleMessage(Message message)
 								{

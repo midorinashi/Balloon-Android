@@ -393,7 +393,7 @@ public class NewContactListActivity extends ProgressActivity {
 		removeSpinner();
 		//Show message
 		Context context = getApplicationContext();
-		CharSequence text = "New Contact List Made!";
+		CharSequence text = "New Group Made!";
 		int duration = Toast.LENGTH_SHORT;
 
 		Toast toast = Toast.makeText(context, text, duration);

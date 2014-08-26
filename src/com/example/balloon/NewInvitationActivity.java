@@ -1771,34 +1771,36 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			SparseBooleanArray checked = ((ListView) context.findViewById(R.id.memberList))
 					.getCheckedItemPositions();
-			int count = ((ListView) context.findViewById(R.id.memberList)).getCount();
+			int count = ((ListView) context.findViewById(R.id.memberList)).getCheckedItemCount();
 			mMemberIds = new String[count];
 			mMembers = new JSONArray();
 			mMemberObjectIds = new JSONArray();
 			mPreviewName = null;
-			
-			for (int i = 0; i < count; i++)
+			System.out.println("Count is: " + count);
+			int j = 0;
+			for (int i = 0; i < checked.size(); i++)
 			{
 				int index = checked.indexOfKey(i);
 				if (checked.get(index))
 				{
+					System.out.println("Index is checked " + index);
 					if (mPreviewName == null)
 					{
 						mPreviewName = names[index];
 						if (mPreviewName.indexOf(' ') > -1)
 			        		mPreviewName = mPreviewName.substring(0, mPreviewName.indexOf(' '));
 					}
-					mMemberIds[i] = ids.get(index);
+					mMemberIds[j] = ids.get(index);
+					j++;
+					System.out.println(names[index]);
 					try {
 						mMembers.put(users.get(index));
 						mMemberObjectIds.put(ids.get(index));
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
-					System.out.println(mMemberIds[i]);
 				}
 			}
-			
 		}
 	}
 	
@@ -2120,6 +2122,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			View rootView = inflater.inflate(R.layout.fragment_start_time,
 					container, false);
 			mCurrentFragment = "StartTimeFragment";
+			mNext = getActivity().getString(R.string.save);
+			getActivity().invalidateOptionsMenu();
 			return rootView;
 		}
 		
@@ -2182,17 +2186,17 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			if (mPreviewName == null || mPreviewName == "")
 				mPreviewName = "1 person";
 			if (mMakeContactList)
-				if (mPhoneNumbers.length != 0)
+				if (mPhoneNumbers.length != 1)
 					tv.setText(mPhoneNumbers.length + " people");
 				else
 					tv.setText(mPreviewName);
 			else if (mMemberIds == null)
-				if (mMembers.length() != 0)
+				if (mMembers.length() != 1)
 					tv.setText(mListName + " (" + mMembers.length() + " people)");
 				else
 					tv.setText(mListName + " (" + mPreviewName + ")");
 			else
-				if (mMemberIds.length != 0)
+				if (mMemberIds.length != 1)
 					tv.setText(mListName + " (" + mMemberIds.length + " people)");
 				else
 					tv.setText(mListName + " (" + mPreviewName + ")");
@@ -2208,13 +2212,15 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				tv.setText(mVenuePhotoUrls.length() + " photos");
 			else if (photos == 1)
 				tv.setText("1 photo");
+			tv = (TextView) getActivity().findViewById(R.id.finalEditStartTimeText);
 			if (mStartDeadline != null)
 			{
-				tv = (TextView) getActivity().findViewById(R.id.finalEditStartTimeText);
 				Time t = new Time();
 				t.set(mStartDeadline.getTime());
 				tv.setText(t.format("%a, %b %e %I:%M %p"));
 			}
+			else
+				tv.setText(getActivity().getString(R.string.no_start_time));
 			tv = (TextView) getActivity().findViewById(R.id.finalEditLimitText);
 			if (mLimit == 0)
 				tv.setText(getActivity().getString(R.string.no_limit));
@@ -2461,8 +2467,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					int seconds = (int)(timeToRSVP/1000)%60;
 					if (seconds < 10)
 						time = time+ "0";
-					time = time + seconds;
-					mTimeToRSVPView.setText(time + " " + LEFT_TO_RSVP);
+					time = time + seconds + " " + LEFT_TO_RSVP;
+					if (mSpotsLeft == 1)
+						time += " (1 spot left!)";
+					else if (mSpotsLeft > 1)
+						time += " (" + mSpotsLeft + " spots left)";
+					mTimeToRSVPView.setText(time);
 					mTimeToRSVPView.invalidate();
 					mTimeToRSVPView.requestLayout();
 					//invalidate();

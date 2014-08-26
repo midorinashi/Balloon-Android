@@ -86,6 +86,7 @@
     <string name="no_internet">Oops! No internet.</string>
     <string name="no_invites"><b>No Invites</b></string>
     <string name="no_limit">No Limit</string>
+    <string name="no_start_time">No Start Time Set</string>
     <string name="no_plans"><b>No Plans</b></string>
     <string name="no_thanks"><b>No Thanks</b></string>
     <string name="no_time"></string>

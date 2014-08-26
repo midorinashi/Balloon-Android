@@ -136,7 +136,6 @@
                 android:paddingBottom="10dp"
     			android:animateLayoutChanges="true"
                 android:background="@color/white"
-                android:visibility="gone"
 	    		custom:fontName="Roboto-Light.ttf" />
             
             <com.example.balloon.TextBox

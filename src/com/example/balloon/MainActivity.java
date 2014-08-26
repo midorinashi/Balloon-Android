@@ -454,9 +454,9 @@ public class MainActivity extends ProgressActivity
 							time = time + seconds + " " + LEFT_TO_RSVP;
 							if (spotsLeft > -1)
 								if (spotsLeft == 1)
-									time += ", 1 spot left!";
+									time += " (1 spot left!)";
 								else
-									time += ", " + spotsLeft + " spots left";
+									time += " (" + spotsLeft + " spots left)";
 							//System.out.println(time);
 							mTimeToRSVPView.setText(time);
 							mTimeToRSVPView.invalidate();
@@ -761,9 +761,9 @@ public class MainActivity extends ProgressActivity
 									time = time + seconds + " " + LEFT_TO_RSVP;
 									if (spotsLeft > -1)
 										if (spotsLeft == 1)
-											time += ", 1 spot left!";
+											time += " (1 spot left!)";
 										else
-											time += ", " + spotsLeft + " spots left";
+											time += " (" + spotsLeft + " spots left)";
 									//System.out.println(time);
 									mTimeToRSVPView.setText(time);
 									mTimeToRSVPView.invalidate();
