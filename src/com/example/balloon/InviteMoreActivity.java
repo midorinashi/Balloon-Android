@@ -12,8 +12,6 @@ import android.os.Bundle;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.example.balloon.NewInvitationActivity.EditAgendaFragment;
-import com.example.balloon.NewInvitationActivity.SelectMembersFromContactsFragment;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
@@ -122,26 +120,32 @@ public class InviteMoreActivity extends EditMeetupActivity {
 		super.next();
 	}
 	
+	//oh my god so much of this code doesn't work and i don't even know why
 	public void removeAlreadyInvited()
 	{
 		onlyTo = new JSONArray();
-		mAlreadyInvited = meetup.getJSONArray("members");
+		mAlreadyInvited = meetup.getJSONArray("invitedUsers");
 		sendInvites = false;
 		mSelectedMembers = mMembers;
 		ArrayList<String> mAlreadyInvitedIds = new ArrayList<String>();
+		mAlreadyInvitedIds.add(meetup.getParseUser("creator").getObjectId());
+		System.out.println(mAlreadyInvited);
 		for (int i = 0; i < mAlreadyInvited.length(); i++)
 		{
 			try {
 				mAlreadyInvitedIds.add(mAlreadyInvited.getJSONObject(i).getString("objectId"));
+				System.out.println("Already invited: "+mAlreadyInvitedIds.get(mAlreadyInvitedIds.size() - 1));
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}
 		
+		System.out.println("Member ids = " + mMemberIds.length);
 		for (int i = 0; i < mMembers.length(); i++)
 		{
 			try {
-				String objectId = mMembers.getJSONObject(i).getString("objectId");
+				String objectId = ((ParseUser) mMembers.get(i)).getObjectId();
+				System.out.println("To invite: " + objectId);
 				//if we already invited this person, we don't need to put him 
 				//back into members again - kinda works dumbly but whatevs
 				if (mAlreadyInvitedIds.contains(objectId))
@@ -157,6 +161,8 @@ public class InviteMoreActivity extends EditMeetupActivity {
 			}
 		}
 		
+		//get rid of the creator first
+		mAlreadyInvitedIds.remove(0);
 		for (int i = 0; i < mAlreadyInvitedIds.size(); i++)
 		{
 			JSONObject member = new JSONObject();

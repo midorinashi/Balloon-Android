@@ -431,13 +431,13 @@ public class FirstPageActivity extends ProgressActivity {
 	public void signupFailure(ParseException e)
 	{
 		showParseException(e);
-		Toast.makeText(this, "Signup failed.", Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, "Signup failed.", Toast.LENGTH_SHORT).show();
 	}
 	
 	public void loginFailure(ParseException e)
 	{
 		showParseException(e);
-		Toast.makeText(this, "Invalid username or password.", Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, "Invalid username or password.", Toast.LENGTH_SHORT).show();
 	}
 	
 	public void startMainActivity()

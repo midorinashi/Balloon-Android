@@ -222,13 +222,11 @@ public class RSVPEventsActivity extends Activity {
 								{
 									Date now = new Date();
 									long timeToRSVP = expiresAt.getTime() - now.getTime();
-									System.out.println(startsAt);
 									if (timeToRSVP < 0)
 									{
 										if (startsAt != null)
 										{
 											timeToRSVP = startsAt.getTime() - now.getTime();
-											System.out.println(timeToRSVP);
 											if (timeToRSVP < 0)
 											{
 												mTimeToRSVPView.setText("");
