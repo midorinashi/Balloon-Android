@@ -18,7 +18,7 @@
             android:layout_marginBottom="20dp"
             android:background="@color/white" >
 
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/mobileNumberHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -21,14 +21,14 @@
             android:layout_marginBottom="20dp"
             android:background="@color/white" >
 
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/mobileNumberHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/settings_number"
                 custom:fontName="Roboto-Light.ttf" />
 
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/mobileNumber"
                 android:layout_width="0dip"
                 android:layout_height="wrap_content"
@@ -45,7 +45,7 @@
             android:layout_height="wrap_content" 
     		android:background="@color/white" >
 
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/firstNameHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -69,7 +69,7 @@
             android:layout_marginBottom="20dp"
             android:background="@color/white" >
 
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/lastNameHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -92,7 +92,7 @@
             android:layout_height="wrap_content"
     		android:background="@color/white"  >
 
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/setPasswordHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -116,7 +116,7 @@
             android:layout_marginBottom="20dp"
             android:background="@color/white" >
 
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/confirmPasswordHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -143,7 +143,7 @@
             android:paddingBottom="10dp"
             android:clickable="true" >
 
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/profilePhotoHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical" >
 
-        <com.example.balloon.TextBox
+        <com.j32productions.balloon.TextBox
             android:id="@+id/responder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -27,7 +27,7 @@
             android:text="@string/empty"
         	custom:fontName="Roboto-Light.ttf" />
 
-        <com.example.balloon.TextBox
+        <com.j32productions.balloon.TextBox
             android:id="@+id/responseRateHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -39,7 +39,7 @@
             android:textColor="@color/gray"
         	custom:fontName="Roboto-Light.ttf" />
 
-        <com.example.balloon.TextBox
+        <com.j32productions.balloon.TextBox
             android:id="@+id/responseRate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -14,7 +14,7 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp" />
     
-	<com.example.balloon.TextBox
+	<com.j32productions.balloon.TextBox
         android:id="@+id/arrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -28,7 +28,7 @@
         android:textSize="14sp"
 		custom:fontName="fontawesome-webfont.ttf" />
 	
-    <com.example.balloon.TextBox
+    <com.j32productions.balloon.TextBox
         android:id="@+id/creator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -38,7 +38,7 @@
         android:textSize="14sp"
 		custom:fontName="Roboto-Light.ttf" />
 
-    <com.example.balloon.TextBox
+    <com.j32productions.balloon.TextBox
         android:id="@+id/agenda"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
         android:textSize="14sp"
          />
 
-    <com.example.balloon.TextBox
+    <com.j32productions.balloon.TextBox
         android:id="@+id/timer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -68,7 +68,7 @@
         android:textSize="14sp"
 		custom:fontName="Roboto-Light.ttf" />
 
-    <com.example.balloon.TextBox
+    <com.j32productions.balloon.TextBox
         android:id="@+id/venueInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

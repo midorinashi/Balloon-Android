@@ -67,7 +67,7 @@
                     android:layout_height="75dp"
                     android:layout_marginRight="10dp" />
 
-                <com.example.balloon.TextBox
+                <com.j32productions.balloon.TextBox
                     android:id="@+id/creator"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -79,7 +79,7 @@
                     android:textSize="14sp"
 	   				custom:fontName="Roboto-Light.ttf" />
 
-                <com.example.balloon.TextBox
+                <com.j32productions.balloon.TextBox
                     android:id="@+id/agenda"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -98,7 +98,7 @@
 	   				custom:fontName="Roboto-Light.ttf" 
                      />
 
-                <com.example.balloon.TextBox
+                <com.j32productions.balloon.TextBox
                     android:id="@+id/timeToRSVP"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -111,7 +111,7 @@
                     android:textSize="14sp"
 				    custom:fontName="Roboto-Light.ttf" />
 
-                <com.example.balloon.TextBox
+                <com.j32productions.balloon.TextBox
                     android:id="@+id/venueInfo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -128,7 +128,7 @@
 
             </RelativeLayout>
             
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/startsAt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -138,7 +138,7 @@
                 android:background="@color/white"
 	    		custom:fontName="Roboto-Light.ttf" />
             
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/updatesHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -161,7 +161,7 @@
 
             </LinearLayout>
             
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/commentsHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -182,7 +182,7 @@
                 
             </LinearLayout>
 
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/comingHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -203,7 +203,7 @@
                 
         	</LinearLayout>
         	
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/notComingHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

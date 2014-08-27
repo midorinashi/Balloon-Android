@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
     android:background="@color/lightBlue"
-    tools:context="com.example.balloon.MoreInfoActivity"
+    tools:context="com.j32productions.balloon.MoreInfoActivity"
     tools:ignore="MergeRootFrame"  >
     
     <FrameLayout

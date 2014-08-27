@@ -44,7 +44,7 @@
                 android:layout_below="@id/edit"
                 android:background="@color/lightGray" />
 
-            <com.example.balloon.TextBox
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/listName"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
