@@ -525,7 +525,14 @@ public class MoreInfoActivity extends ProgressActivity
 						ParseUser creator = meetup.getParseUser("creator");
 						mCreator = creator.getString("firstName") + " " + creator.getString("lastName");
 						if (creator == ParseUser.getCurrentUser())
+						{
 							mIsCreator = true;
+							mMenu.findItem(R.id.action_edit).setVisible(true);
+							mMenu.findItem(R.id.action_update).setVisible(true);
+							mMenu.findItem(R.id.action_contact).setVisible(false);
+							mMenu.findItem(R.id.action_invite).setVisible(true);
+							mMenu.findItem(R.id.action_view_invitees).setVisible(true);
+						}
 						
 						mAgenda = meetup.getString("agenda");
 						
@@ -723,11 +730,9 @@ public class MoreInfoActivity extends ProgressActivity
 		public void makeCommentList(final List<ParseObject> comments)
 		{
 			LinearLayout commentList = (LinearLayout) getActivity().findViewById(R.id.comments);
-			LinearLayout updateList = (LinearLayout) getActivity().findViewById(R.id.updates);
 			if (commentList != null)
 			{
 				commentList.removeAllViews();
-				updateList.removeAllViews();
 				RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
 						.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 				for (int i = 0; i < comments.size(); i++)
@@ -741,19 +746,10 @@ public class MoreInfoActivity extends ProgressActivity
 					Picasso.with(getActivity()).load(commenter.getParseFile("profilePhoto")
 							.getUrl()).resize(100, 100).into((ImageView) comment
 							.findViewById(R.id.imageView1));
-					if (comments.get(i).getBoolean("isUpdate"))
-					{
-						getActivity().findViewById(R.id.updatesHeader).setVisibility(View.VISIBLE);
-						updateList.setVisibility(View.VISIBLE);
-						updateList.addView(comment, lp);
-					}
-					else
-						commentList.addView(comment, lp);
+					commentList.addView(comment, lp);
 				}
 				commentList.invalidate();
 				commentList.requestLayout();
-				updateList.invalidate();
-				updateList.requestLayout();
 			}
 			fetchComing();
 		}

@@ -137,27 +137,6 @@
     			android:animateLayoutChanges="true"
                 android:background="@color/white"
 	    		custom:fontName="Roboto-Light.ttf" />
-            
-            <com.j32productions.balloon.TextBox
-                android:id="@+id/updatesHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginTop="30dp"
-    			android:animateLayoutChanges="true"
-                android:text="@string/updates_header"
-                android:textColor="@color/blue"
-                android:visibility="gone"
-	    		custom:fontName="Roboto-Light.ttf" />
-
-            <LinearLayout
-                android:id="@+id/updates"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-    			android:animateLayoutChanges="true"
-                android:orientation="vertical" >
 
             </LinearLayout>
             

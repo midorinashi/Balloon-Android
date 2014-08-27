@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.j32productions.balloon"
-    android:versionCode="1"
+    android:versionCode="4"
     android:versionName="1.0" >
 
     <uses-sdk
@@ -68,7 +68,7 @@
             </intent-filter>
         </activity>
         <activity
-           	android:name="com.j32productions.balloon.MoreInfoActivityoreInfoActivity"
+           	android:name="com.j32productions.balloon.MoreInfoActivity"
             android:label="@string/title_activity_more_info"
             android:windowSoftInputMode="stateHidden" 
             android:parentActivityName="com.j32productions.balloon.MainActivity" >
@@ -88,8 +88,8 @@
 	            android:value="com.j32productions.balloon.MainActivity" />
         </activity>
         <activity
-            android:name="com.j32productions.balloon.NewInvitation"
-            android:label="@string/title_activity_new_invitation"
+            android:name="com.j32productions.balloon.EditMeetupActivity"
+            android:label="@string/title_activity_edit_meetup"
             android:windowSoftInputMode="stateHidden" 
             android:parentActivityName="com.j32productions.balloon.MainActivity" >
 	        <!-- Parent activity meta-data to support 4.0 and lower -->

@@ -1034,7 +1034,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			
 			ArrayList<ParseQuery<ParseObject>> queries = new ArrayList<ParseQuery<ParseObject>>();
 			queries.add(ownerQuery);
-			queries.add(memberQuery);
+			addMemberQueries(queries, memberQuery);
 			
 			ParseQuery<ParseObject> mainQuery = ParseQuery.or(queries);
 			mainQuery.orderByAscending("name");
@@ -1066,6 +1066,13 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 						showParseException(e);
 				}
 			});
+		}
+		
+		//so i can do stuff to it later
+		public void addMemberQueries(ArrayList<ParseQuery<ParseObject>> queries,
+				ParseQuery<ParseObject> query)
+		{
+			queries.add(query);
 		}
 		
 		public void checkForShellGroups(String name)
@@ -2715,6 +2722,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			View rootView = inflater.inflate(R.layout.fragment_contact_lists,
 					container, false);
 			popped = false;
+			mPlus = false;
 			mCurrentFragment = "ChooseFromExistingList";
 			getActivity().invalidateOptionsMenu();
 			return rootView;
@@ -2725,6 +2733,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_contact_list));
 			mCurrentFragment = "ChooseFromExistingList";
+		}
+		
+		//only groups that you're a creator for
+		public void addMemberQueries(ArrayList<ParseQuery<ParseObject>> queries,
+				ParseQuery<ParseObject> query)
+		{
 		}
 		
 		public void addListsToView()

@@ -13,8 +13,13 @@ public class ProgressActivity extends Activity {
 	public void showParseException(ParseException e)
 	{
 		removeSpinner();
-		Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-		e.printStackTrace();
+		if (e != null)
+		{
+			Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+			e.printStackTrace();
+		}
+		else
+			Toast.makeText(this, "Oops! An error has occured", Toast.LENGTH_LONG).show();
 	}
 	
 	public void showSpinner()
