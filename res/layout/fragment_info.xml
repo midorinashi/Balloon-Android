@@ -54,79 +54,86 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
                 android:background="@color/white"
+                android:orientation="horizontal"
                 android:padding="10dp" >
 
                 <ImageView
                     android:id="@+id/eventImage"
                     android:layout_width="75dp"
                     android:layout_height="75dp"
+	    			android:layout_gravity="center_vertical"
                     android:layout_marginRight="10dp" />
-
-                <com.j32productions.balloon.TextBox
-                    android:id="@+id/creator"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignTop="@+id/eventImage"
-                    android:layout_toRightOf="@+id/eventImage"
-    				android:animateLayoutChanges="true"
-                    android:text="@string/empty"
-                    android:textSize="14sp"
-	   				custom:fontName="Roboto-Light.ttf" />
-
-                <com.j32productions.balloon.TextBox
-                    android:id="@+id/agenda"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_above="@+id/venueInfo"
-                    android:layout_alignLeft="@+id/creator"
-                    android:layout_alignParentRight="true"
-                    android:layout_below="@+id/creator"
-                    android:ellipsize="end"
-                    android:gravity="center_vertical"
-                    android:lines="1"
-                    android:maxLines="1"
-    				android:animateLayoutChanges="true"
-                    android:text="@string/empty"
-                    android:textColor="@color/gray"
-                    android:textSize="14sp"
-	   				custom:fontName="Roboto-Light.ttf" 
-                     />
-
-                <com.j32productions.balloon.TextBox
-                    android:id="@+id/timeToRSVP"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignBottom="@+id/eventImage"
-                    android:layout_alignLeft="@+id/venueInfo"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-    				android:animateLayoutChanges="true"
-                    android:textColor="@color/red"
-                    android:textSize="14sp"
-				    custom:fontName="Roboto-Light.ttf" />
-
-                <com.j32productions.balloon.TextBox
-                    android:id="@+id/venueInfo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_above="@+id/timeToRSVP"
-                    android:layout_alignLeft="@+id/agenda"
-                    android:layout_alignParentRight="true"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-    				android:animateLayoutChanges="true"
-                    android:text="@string/empty"
-                    android:textColor="@color/blue"
-                    android:textSize="14sp" 
-				    custom:fontName="Roboto-Light.ttf" />
-
-            </RelativeLayout>
+                
+				<LinearLayout
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+	    			android:layout_gravity="center_vertical"
+				    android:orientation="vertical" >
+				    
+	                <com.j32productions.balloon.TextBox
+	                    android:id="@+id/creator"
+	                    android:layout_width="wrap_content"
+	                    android:layout_height="wrap_content"
+	    				android:animateLayoutChanges="true"
+	                    android:text="@string/empty"
+	                    android:textSize="14sp"
+		   				custom:fontName="Roboto-Light.ttf" />
+	
+	                <com.j32productions.balloon.TextBox
+	                    android:id="@+id/agenda"
+	                    android:layout_width="wrap_content"
+	                    android:layout_height="wrap_content"
+	                    android:ellipsize="end"
+	                    android:gravity="center_vertical"
+	                    android:lines="1"
+	                    android:maxLines="1"
+	    				android:animateLayoutChanges="true"
+	                    android:text="@string/empty"
+	                    android:textColor="@color/gray"
+	                    android:textSize="14sp"
+		   				custom:fontName="Roboto-Light.ttf"  />
+	
+	                <com.j32productions.balloon.TextBox
+	                    android:id="@+id/venueInfo"
+	                    android:layout_width="wrap_content"
+	                    android:layout_height="wrap_content"
+	                    android:ellipsize="end"
+	                    android:maxLines="1"
+	    				android:animateLayoutChanges="true"
+	                    android:text="@string/empty"
+	                    android:textColor="@color/blue"
+	                    android:textSize="14sp" 
+					    custom:fontName="Roboto-Light.ttf" />
+	
+	                <com.j32productions.balloon.TextBox
+	                    android:id="@+id/timeToRSVP"
+	                    android:layout_width="wrap_content"
+	                    android:layout_height="wrap_content"
+	                    android:ellipsize="end"
+	                    android:maxLines="1"
+	    				android:animateLayoutChanges="true"
+	                    android:textColor="@color/red"
+	                    android:textSize="14sp"
+					    custom:fontName="Roboto-Light.ttf" />
+	                
+				    <com.j32productions.balloon.TextBox
+				        android:id="@+id/spotsLeft"
+				        android:layout_width="wrap_content"
+				        android:layout_height="wrap_content"
+				        android:ellipsize="end"
+				        android:maxLines="1"
+				        android:textSize="14sp"
+				        android:visibility="gone"
+						custom:fontName="Roboto-Light.ttf" />
+			    
+				</LinearLayout>
+				
+            </LinearLayout>
             
             <com.j32productions.balloon.TextBox
                 android:id="@+id/startsAt"
@@ -137,8 +144,6 @@
     			android:animateLayoutChanges="true"
                 android:background="@color/white"
 	    		custom:fontName="Roboto-Light.ttf" />
-
-            </LinearLayout>
             
             <com.j32productions.balloon.TextBox
                 android:id="@+id/commentsHeader"

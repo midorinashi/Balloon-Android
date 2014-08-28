@@ -4,9 +4,8 @@
     
     <item
         android:id="@+id/action_plus"
-        android:icon="@android:drawable/ic_input_add"
         android:orderInCategory="1"
-        android:title="@string/action_new_invitation"
+        android:title="@string/skip"
         android:visible="true"
         android:showAsAction="always"
         />

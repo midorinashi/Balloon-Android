@@ -56,11 +56,11 @@ public class MainActivity extends ProgressActivity
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
-		super.onCreate(savedInstanceState);
-		//initialize parse
 		Parse.initialize(this, "iXEPNEZfJXoEOIayxLgBBgpShMZBTj7ReVoi1eqn",
 				"GHtE0svPk0epFG4olYnFTnnDtmARHtENXxXuHoXp");
 		PushService.setDefaultPushCallback(this, MainActivity.class);
+		super.onCreate(savedInstanceState);
+		//initialize parse
 		
 		String Mao = "+18007580051";
 		/*
@@ -310,6 +310,7 @@ public class MainActivity extends ProgressActivity
 			}
 			query.whereNotContainedIn("objectId", ids);
 			query.include("creator");
+			query.whereEqualTo("isFull", false);
 			
 			query.findInBackground(new FindCallback<ParseObject>(){
 				public void done(List<ParseObject> eventList, ParseException e) {
@@ -453,10 +454,8 @@ public class MainActivity extends ProgressActivity
 								time = time+ "0";
 							time = time + seconds + " " + LEFT_TO_RSVP;
 							if (spotsLeft > -1)
-								if (spotsLeft == 1)
-									time += " (1 spot left!)";
-								else
-									time += " (" + spotsLeft + " spots left)";
+								time += " (" + getResources().getQuantityString(R.plurals.spotsLeft,
+									spotsLeft, spotsLeft) + ")";
 							//System.out.println(time);
 							mTimeToRSVPView.setText(time);
 							mTimeToRSVPView.invalidate();
@@ -760,10 +759,8 @@ public class MainActivity extends ProgressActivity
 										time = time+ "0";
 									time = time + seconds + " " + LEFT_TO_RSVP;
 									if (spotsLeft > -1)
-										if (spotsLeft == 1)
-											time += " (1 spot left!)";
-										else
-											time += " (" + spotsLeft + " spots left)";
+										time += " (" + getResources().getQuantityString(R.plurals.spotsLeft,
+												spotsLeft, spotsLeft) + ")";
 									//System.out.println(time);
 									mTimeToRSVPView.setText(time);
 									mTimeToRSVPView.invalidate();

@@ -587,6 +587,7 @@ public class MoreInfoActivity extends ProgressActivity
 			mHandler = new Handler() {
 				
 				final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
+				final String TO_CHANGE_RESPONSE = getString(R.string.to_change_response);
 				final String STARTS_IN = getString(R.string.starts_in);
 				final ColorStateList BLACK = ((TextView) getActivity()
 						.findViewById(R.id.creator)).getTextColors();
@@ -603,7 +604,8 @@ public class MoreInfoActivity extends ProgressActivity
 							timeToRSVP = mStartsAt.getTime() - now.getTime();
 							if (timeToRSVP < 0)
 							{
-								((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText("");
+								((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText(
+										getString(R.string.started));
 								mTimer.cancel();
 								mTimer.purge();
 							}
@@ -632,7 +634,8 @@ public class MoreInfoActivity extends ProgressActivity
 						else
 						{
 							if (getActivity() != null && getActivity().findViewById(R.id.timeToRSVP) != null)
-								((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText("");
+								((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText(
+										getString(R.string.no_start_time));
 							mTimer.cancel();
 							mTimer.purge();
 						}
@@ -647,15 +650,11 @@ public class MoreInfoActivity extends ProgressActivity
 						int seconds = (int)(timeToRSVP/1000)%60;
 						if (seconds < 10)
 							mTimeToRSVP = mTimeToRSVP+ "0";
-						mTimeToRSVP = mTimeToRSVP + seconds + " " + LEFT_TO_RSVP;
+						mTimeToRSVP = mTimeToRSVP + seconds + " ";
+						mTimeToRSVP += mHasResponded ? TO_CHANGE_RESPONSE : LEFT_TO_RSVP;
 						if (getActivity() != null && getActivity().findViewById(R.id.timeToRSVP) != null)
 						{
 							TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
-							if (mSpotsLeft > -1)
-								if (mSpotsLeft != 1)
-									mTimeToRSVP += " (" + mSpotsLeft + " spots left)";
-								else
-									mTimeToRSVP += " (1 spot left!)";
 							tv.setText(mTimeToRSVP);
 							tv.setTextColor(RED);
 							tv.invalidate();
@@ -666,7 +665,14 @@ public class MoreInfoActivity extends ProgressActivity
 			};
 			mTimer = new Timer();
 			mTimer.schedule(new RSVPTimerTask(), 0, 1000);
-			
+
+			if (mSpotsLeft > -1)
+			{
+				TextView tv = (TextView) getActivity().findViewById(R.id.spotsLeft);
+				tv.setText(getResources().getQuantityString(R.plurals.spotsLeft,
+						mSpotsLeft, mSpotsLeft));
+				tv.setVisibility(View.VISIBLE);
+			}
 			
 			Button button = (Button) getActivity().findViewById(R.id.no);
 			button.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),
@@ -711,7 +717,7 @@ public class MoreInfoActivity extends ProgressActivity
 			ParseQuery<ParseObject> commentQuery = new ParseQuery<ParseObject>("Comment");
 			commentQuery.whereEqualTo("meetup", mMeetup);
 			commentQuery.include("commenter");
-			commentQuery.orderByDescending("createdAt");
+			commentQuery.orderByAscending("createdAt");
 			commentQuery.findInBackground(new FindCallback<ParseObject>() {
 
 				@Override

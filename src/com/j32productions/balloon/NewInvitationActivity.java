@@ -1035,6 +1035,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			ArrayList<ParseQuery<ParseObject>> queries = new ArrayList<ParseQuery<ParseObject>>();
 			queries.add(ownerQuery);
 			addMemberQueries(queries, memberQuery);
+			System.out.println("queries size " + queries.size());
 			
 			ParseQuery<ParseObject> mainQuery = ParseQuery.or(queries);
 			mainQuery.orderByAscending("name");
@@ -2475,10 +2476,9 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					if (seconds < 10)
 						time = time+ "0";
 					time = time + seconds + " " + LEFT_TO_RSVP;
-					if (mSpotsLeft == 1)
-						time += " (1 spot left!)";
-					else if (mSpotsLeft > 1)
-						time += " (" + mSpotsLeft + " spots left)";
+					if (mLimit > 0)
+						time += " (" + getResources().getQuantityString(R.plurals.spotsLeft,
+								mSpotsLeft, mSpotsLeft) + ")";
 					mTimeToRSVPView.setText(time);
 					mTimeToRSVPView.invalidate();
 					mTimeToRSVPView.requestLayout();

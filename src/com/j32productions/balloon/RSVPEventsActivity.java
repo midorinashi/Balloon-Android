@@ -24,17 +24,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.ViewAnimator;
 
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
-import com.handmark.pulltorefresh.library.PullToRefreshScrollView;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
+import com.handmark.pulltorefresh.library.PullToRefreshScrollView;
 import com.parse.FunctionCallback;
+import com.parse.GetCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.squareup.picasso.Picasso;
 
@@ -178,11 +181,32 @@ public class RSVPEventsActivity extends Activity {
 					System.out.println(lin);
 					//removes all the views for now because EFFICIENCY WHAT
 					lin.removeAllViews();
+					LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, 1);
+					View line = new View(getActivity());
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setLayoutParams(lp);
+					lin.addView(line);
 					
 					for (int i = 0; i < upcoming.size(); i++)
 					{
 						final View event = View.inflate(getActivity(), R.layout.list_item_plans, null);
 						ParseObject meetup = (ParseObject) upcoming.get(i).get("meetup");
+						ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Response");
+						query.whereEqualTo("meetup", meetup);
+						query.whereEqualTo("responder", ParseUser.getCurrentUser());
+						query.getFirstInBackground(new GetCallback<ParseObject>() {
+							@Override
+							public void done(ParseObject response,
+									ParseException e) {
+								if (response != null)
+								{
+									int color = response.getBoolean("isAttending") ?
+											getActivity().getResources().getColor(R.color.darkGreen) :
+											getActivity().getResources().getColor(R.color.red);
+									event.findViewById(R.id.RSVP).setBackgroundColor(color);
+								}
+							}
+						});
 						//invite.setVenuePhoto(event.getParseFile(key));
 						try {
 							((TextView) event.findViewById(R.id.creator)).setText(meetup
@@ -206,17 +230,21 @@ public class RSVPEventsActivity extends Activity {
 							timers.add(timer);
 							final Date expiresAt = meetup.getDate("expiresAt");
 							final Date startsAt = meetup.getDate("startsAt");
-							final int spotsLeft;
 							if (meetup.has("spotsLeft"))
-								spotsLeft = meetup.getInt("spotsLeft");
-							else
-								spotsLeft = -1;
+							{
+								int spotsLeft = meetup.getInt("spotsLeft");
+								TextView tv = (TextView) event.findViewById(R.id.spotsLeft);
+								tv.setText(getResources().getQuantityString(R.plurals.spotsLeft,
+										spotsLeft, spotsLeft));
+								tv.setVisibility(View.VISIBLE);
+							}
 							final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
 							//Handles changing the RSVP time every second with the timer
 							Handler handler = new Handler() {
 								
-								final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
+								final String TO_CHANGE_RESPONSE = getString(R.string.to_change_response);
 								final String STARTS_IN = getString(R.string.starts_in);
+								final String STARTED = getString(R.string.started);
 								final ColorStateList BLACK = ((TextView) event
 										.findViewById(R.id.creator)).getTextColors();
 								
@@ -231,7 +259,7 @@ public class RSVPEventsActivity extends Activity {
 											timeToRSVP = startsAt.getTime() - now.getTime();
 											if (timeToRSVP < 0)
 											{
-												mTimeToRSVPView.setText("");
+												mTimeToRSVPView.setText(STARTED);
 												// I want to cancel the handler, timer, and view
 												int index = handlers.indexOf(this);
 												timers.get(index).cancel();
@@ -256,7 +284,7 @@ public class RSVPEventsActivity extends Activity {
 										}
 										else
 										{
-											mTimeToRSVPView.setText("");
+											mTimeToRSVPView.setText(getString(R.string.no_start_time));
 											// I want to cancel the handler, timer, and view
 											int index = handlers.indexOf(this);
 											timers.get(index).cancel();
@@ -274,12 +302,7 @@ public class RSVPEventsActivity extends Activity {
 											time = time+ "0";
 										time = time + seconds;
 										//System.out.println(time);
-										String str = time + " " + LEFT_TO_RSVP;
-										if (spotsLeft > -1)
-											if (spotsLeft != 1)
-												str += " (" + spotsLeft + " spots left)";
-											else
-												str += " (1 spot left!)";
+										String str = time + " " + TO_CHANGE_RESPONSE;
 										mTimeToRSVPView.setText(str);
 										mTimeToRSVPView.invalidate();
 										mTimeToRSVPView.requestLayout();
@@ -319,6 +342,11 @@ public class RSVPEventsActivity extends Activity {
 							e.printStackTrace();
 						}
 						lin.addView(event);
+						line = new View(getActivity());
+						line.setBackgroundColor(getActivity().getResources()
+								.getColor(R.color.lightGray));
+						line.setLayoutParams(lp);
+						lin.addView(line);
 					}
 					lin.invalidate();
 					lin.requestLayout();

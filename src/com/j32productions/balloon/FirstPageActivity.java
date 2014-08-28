@@ -41,7 +41,6 @@ import com.parse.LogInCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseFile;
-import com.parse.ParseImageView;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
@@ -144,7 +143,6 @@ public class FirstPageActivity extends ProgressActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
         	showSpinner();
-        	System.out.println("hi");
         	// if it came from the camera
 			Uri uri;
 			Bitmap bm = null;
@@ -167,8 +165,6 @@ public class FirstPageActivity extends ProgressActivity {
         	System.out.println("canceled");
             // User cancelled the image capture
         } else {
-        	System.out.println("dedd");
-
 			CharSequence text = "Image capture failed.";
 			int duration = Toast.LENGTH_SHORT;
 
@@ -456,6 +452,12 @@ public class FirstPageActivity extends ProgressActivity {
 			View rootView = inflater.inflate(R.layout.fragment_first_page, container,
 					false);
 			return rootView;
+		}
+		
+		public void onResume()
+		{
+			super.onResume();
+			image = null;
 		}
 	}
 

@@ -115,6 +115,7 @@ public class EditMeetupActivity extends NewInvitationActivity {
 			mLimit = meetup.getInt("maxAttendees");
 			mSpotsLeft = meetup.getInt("spotsLeft");
 			mIsFull = meetup.getBoolean("isFull");
+			System.out.println("Spots left " + mSpotsLeft);
 		}
 		else
 		{
@@ -161,7 +162,7 @@ public class EditMeetupActivity extends NewInvitationActivity {
 				}
 			});
 		}
-		else if (!mOldStartTime.equals(mStartDeadline))
+		else if (mStartDeadline != null && !mStartDeadline.equals(mOldStartTime))
 		{
 			HashMap<String, Object> params = new HashMap<String, Object>();
 			params.put("meetupId", meetup.getObjectId());

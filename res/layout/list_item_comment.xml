@@ -23,7 +23,6 @@
         android:layout_alignTop="@+id/imageView1"
         android:layout_toRightOf="@+id/imageView1"
         android:gravity="center|left"
-        android:text="TextView"
 	    custom:fontName="Roboto-Light.ttf" />
 
     <com.j32productions.balloon.TextBox
@@ -32,8 +31,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/comment"
         android:layout_toRightOf="@+id/imageView1"
-        android:text="TextView"
-        
         android:textColor="@color/gray"
 	    custom:fontName="Roboto-Light.ttf" />
 

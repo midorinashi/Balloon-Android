@@ -14,6 +14,7 @@
         android:button="@null"
         android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
         android:onClick="selectAll"
+        android:checked="true"
         android:padding="10dp"
         android:paddingTop="15dp"
         android:text="@string/select_all" />
