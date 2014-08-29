@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="10dp" >
 
-    <TextView
+    <com.j32productions.balloon.TextBox
         android:id="@+id/mobileHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -13,9 +14,10 @@
         android:layout_alignParentTop="true"
         android:layout_marginTop="40dp"
         android:text="@string/settings_number"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        custom:fontName="Roboto-Light.ttf" />
 
-    <EditText
+    <com.j32productions.balloon.EditBox
         android:id="@+id/mobile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -29,7 +31,7 @@
         android:inputType="phone"
         android:textColor="@color/gray" />
 
-    <TextView
+    <com.j32productions.balloon.TextBox
         android:id="@+id/passwordHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -37,9 +39,10 @@
         android:layout_alignBottom="@id/password"
         android:layout_alignLeft="@+id/mobileHeader"
         android:text="@string/password"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        custom:fontName="Roboto-Light.ttf" />
     
-    <EditText
+    <com.j32productions.balloon.EditBox
         android:id="@id/password"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

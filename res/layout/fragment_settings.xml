@@ -16,8 +16,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
+            android:padding="8dp"
             android:layout_marginBottom="20dp"
             android:background="@color/white" >
 
@@ -43,6 +42,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content" 
+            android:paddingLeft="8dp"
     		android:background="@color/white" >
 
             <com.j32productions.balloon.TextBox
@@ -52,7 +52,7 @@
                 android:text="@string/settings_name_first"
                 custom:fontName="Roboto-Light.ttf" />
 
-            <EditText
+            <com.j32productions.balloon.EditBox
                 android:id="@+id/firstName"
                 android:layout_width="0dip"
                 android:layout_height="wrap_content"
@@ -67,6 +67,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
+            android:paddingLeft="8dp"
             android:background="@color/white" >
 
             <com.j32productions.balloon.TextBox
@@ -76,7 +77,7 @@
                 android:text="@string/settings_name_last"
                 custom:fontName="Roboto-Light.ttf" />
 
-            <EditText
+            <com.j32productions.balloon.EditBox
                 android:id="@+id/lastName"
                 android:layout_width="0dip"
                 android:layout_height="wrap_content"
@@ -90,6 +91,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingLeft="8dp"
     		android:background="@color/white"  >
 
             <com.j32productions.balloon.TextBox
@@ -99,7 +101,7 @@
                 android:text="@string/settings_password_set"
                 custom:fontName="Roboto-Light.ttf" />
 
-            <EditText
+            <com.j32productions.balloon.EditBox
                 android:id="@+id/setPassword"
                 android:layout_width="0dip"
                 android:layout_height="wrap_content"
@@ -114,6 +116,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
+            android:paddingLeft="8dp"
             android:background="@color/white" >
 
             <com.j32productions.balloon.TextBox
@@ -123,7 +126,7 @@
                 android:text="@string/settings_password_confirm"
                 custom:fontName="Roboto-Light.ttf" />
 
-            <EditText
+            <com.j32productions.balloon.EditBox
                 android:id="@+id/confirmPassword"
                 android:layout_width="0dip"
                 android:layout_height="wrap_content"
@@ -141,6 +144,8 @@
             android:background="@color/white"
             android:paddingTop="10dp"
             android:paddingBottom="10dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
             android:clickable="true" >
 
             <com.j32productions.balloon.TextBox

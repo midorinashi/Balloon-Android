@@ -741,14 +741,39 @@ public class MoreInfoActivity extends ProgressActivity
 				commentList.removeAllViews();
 				RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
 						.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+				long now = (new Date()).getTime();
 				for (int i = 0; i < comments.size(); i++)
 				{
 					View comment = View.inflate(getActivity(), R.layout.list_item_comment, null);
 					((TextView) comment.findViewById(R.id.comment)).setText(comments.get(i)
 							.getString("comment"));
 					ParseUser commenter = comments.get(i).getParseUser("commenter");
+					String timestamp;
+					long diff = now - comments.get(i).getCreatedAt().getTime();
+					int quantity;
+					if (diff > 24*60*60*1000)
+					{
+						quantity = (int) (diff/24/60/60/1000);
+						timestamp = getResources().getQuantityString(R.plurals.daysAgo,
+								quantity, quantity);
+					}
+					else if (diff > 60*60*1000)
+					{
+						quantity = (int) (diff/60/60/1000);
+						timestamp = getResources().getQuantityString(R.plurals.hoursAgo,
+								quantity, quantity);
+					}
+					else if (diff > 60*1000)
+					{
+						quantity = (int) (diff/60/1000);
+						timestamp = getResources().getQuantityString(R.plurals.minutesAgo,
+								quantity, quantity);
+					}
+					else
+						timestamp = getString(R.string.less_than_a_minute);
 					((TextView) comment.findViewById(R.id.commenter)).setText(commenter
-							.getString("firstName") + " " + commenter.getString("lastName"));
+							.getString("firstName") + " " + commenter.getString("lastName")
+							+ " " + timestamp);
 					Picasso.with(getActivity()).load(commenter.getParseFile("profilePhoto")
 							.getUrl()).resize(100, 100).into((ImageView) comment
 							.findViewById(R.id.imageView1));

@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <EditText
+    <com.j32productions.balloon.EditBox
         android:id="@+id/changeName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -12,6 +12,6 @@
         android:maxLines="1" >
 
         <requestFocus />
-    </EditText>
+    </com.j32productions.balloon.EditBox>
 
 </LinearLayout>

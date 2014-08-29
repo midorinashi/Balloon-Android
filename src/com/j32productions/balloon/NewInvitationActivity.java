@@ -323,7 +323,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			else
 				transaction.replace(R.id.container, new FinalEditFragment());
 		}
-		else if (mCurrentFragment.equals("FinalEditFragment"))
+		else if (mCurrentFragment.equals("FinalEditFragment") ||
+				mCurrentFragment.equals("PreviewFragment"))
 		{
 			makeMeetup(null);
 			return;
@@ -630,7 +631,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			meetup.put("creator", ParseUser.getCurrentUser());
 		else
 			meetup.put("creator", meetup.getParseUser("creator"));
-		meetup.put("expiresAt", changeToDate(mExpiresAtHour, mExpiresAtMinute));
+		setDeadline(meetup);
 		meetup.put("invitedUsers", mMembers);
 		if (mStartDeadline != null)
 			meetup.put("startsAt", mStartDeadline);
@@ -657,6 +658,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			}
 			
 		});
+	}
+	
+	//so when we edit, we don't have to auto set this
+	public void setDeadline(ParseObject meetup)
+	{
+		meetup.put("expiresAt", changeToDate(mExpiresAtHour, mExpiresAtMinute));
 	}
 	
 	public void sendInvite(final ParseObject meetup)
@@ -2200,9 +2207,9 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					tv.setText(mPreviewName);
 			else if (mMemberIds == null)
 				if (mMembers.length() != 1)
-					tv.setText(mListName + " (" + mMembers.length() + " people)");
+					tv.setText(mMembers.length() + " people");
 				else
-					tv.setText(mListName + " (" + mPreviewName + ")");
+					tv.setText(mPreviewName);
 			else
 				if (mMemberIds.length != 1)
 					tv.setText(mListName + " (" + mMemberIds.length + " people)");
@@ -2427,7 +2434,6 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					container, false);
 			getActivity().setTitle(getActivity().getString(R.string.preview));
 			mCurrentFragment = "PreviewFragment";
-			getActivity().invalidateOptionsMenu();
 			return rootView;
 		}
 		
@@ -2463,6 +2469,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
 			mHandler = new Handler() {
 				final String LEFT_TO_RSVP = getActivity().getString(R.string.leftToRSVP);
+				final String SPOTS_LEFT = " (" + getResources().getQuantityString(
+						R.plurals.spotsLeft, mSpotsLeft, mSpotsLeft) + ")";
 				public void handleMessage(Message message)
 				{
 					Date now = new Date();
@@ -2477,8 +2485,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 						time = time+ "0";
 					time = time + seconds + " " + LEFT_TO_RSVP;
 					if (mLimit > 0)
-						time += " (" + getResources().getQuantityString(R.plurals.spotsLeft,
-								mSpotsLeft, mSpotsLeft) + ")";
+						time += SPOTS_LEFT;
 					mTimeToRSVPView.setText(time);
 					mTimeToRSVPView.invalidate();
 					mTimeToRSVPView.requestLayout();

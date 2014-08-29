@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <EditText
+    <com.j32productions.balloon.EditBox
         android:id="@+id/editAgenda"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -15,7 +15,7 @@
         android:inputType="textMultiLine" >
 
         <requestFocus />
-    </EditText>
+    </com.j32productions.balloon.EditBox>
 
     <ImageButton
         android:id="@+id/add"

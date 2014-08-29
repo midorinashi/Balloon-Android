@@ -36,6 +36,7 @@
         android:allowBackup="true"
         android:icon="@drawable/balloon"
         android:label="@string/app_name"
+        android:name="com.j32productions.balloon.BalloonApplication"
         android:theme="@style/AppBaseTheme" >
         
         <service android:name="com.parse.PushService" />

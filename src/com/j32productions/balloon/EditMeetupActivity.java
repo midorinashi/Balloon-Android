@@ -29,12 +29,14 @@ public class EditMeetupActivity extends NewInvitationActivity {
 	protected ParseObject meetup;
 	protected JSONObject mOldVenue;
 	protected Date mOldStartTime;
+	protected boolean mDeadlineChanged;
 	
 	//erase all static fields
 	@Override
 	protected void defaultInfo(final Bundle savedInstanceState)
 	{
 		mCurrentFragment = "FinalEditFragment";
+		mDeadlineChanged = false;
 		ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Meetup");
 		query.whereEqualTo("objectId", getIntent().getExtras().getString("objectId"));
 		query.include("creator");
@@ -136,11 +138,25 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		}
 	}
 	
+	public void next()
+	{
+		if (mCurrentFragment.equals("SetDeadlineFragment"))
+			mDeadlineChanged = true;
+		super.next();
+	}
+	
 	//don't make a new meetup
 	@Override
 	public void makeMeetup(final View view)
 	{
 		saveMeetup(meetup);
+	}
+	
+	@Override
+	public void setDeadline(ParseObject meetup)
+	{
+		if (mDeadlineChanged)
+			meetup.put("expiresAt", changeToDate(mExpiresAtHour, mExpiresAtMinute));
 	}
 	
 	@Override

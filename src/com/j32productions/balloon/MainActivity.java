@@ -56,9 +56,6 @@ public class MainActivity extends ProgressActivity
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
-		Parse.initialize(this, "iXEPNEZfJXoEOIayxLgBBgpShMZBTj7ReVoi1eqn",
-				"GHtE0svPk0epFG4olYnFTnnDtmARHtENXxXuHoXp");
-		PushService.setDefaultPushCallback(this, MainActivity.class);
 		super.onCreate(savedInstanceState);
 		//initialize parse
 		
@@ -429,13 +426,16 @@ public class MainActivity extends ProgressActivity
 				//Handles changing the RSVP time every second with the timer
 				Handler handler = new Handler() {
 					final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
+					final String SPOTS_LEFT = " (" + getResources().getQuantityString(
+							R.plurals.spotsLeft, spotsLeft, spotsLeft) + ")";
 					public void handleMessage(Message message)
 					{
 						Date now = new Date();
 						long timeToRSVP = expiresAt.getTime() - now.getTime();
 						if (timeToRSVP < 0)
 						{
-							mTimeToRSVPView.setText("");
+							((LinearLayout) mTimeToRSVPView.getParent().getParent())
+								.removeView((View) mTimeToRSVPView.getParent());
 							// I want to cancel the handler, timer, and view
 							int index = handlers.indexOf(this);
 							timers.get(index).cancel();
@@ -454,8 +454,7 @@ public class MainActivity extends ProgressActivity
 								time = time+ "0";
 							time = time + seconds + " " + LEFT_TO_RSVP;
 							if (spotsLeft > -1)
-								time += " (" + getResources().getQuantityString(R.plurals.spotsLeft,
-									spotsLeft, spotsLeft) + ")";
+								time += SPOTS_LEFT;
 							//System.out.println(time);
 							mTimeToRSVPView.setText(time);
 							mTimeToRSVPView.invalidate();
@@ -583,10 +582,12 @@ public class MainActivity extends ProgressActivity
 		
 		public void noPlans()
 		{
+			System.out.println("no Plans D: ");
 			ParseCloud.callFunctionInBackground("hasPlans", new HashMap<String, Object>(), 
 					new FunctionCallback<HashMap<String, Boolean>>() {
 				@Override
 				public void done(HashMap<String, Boolean> hasPlans, ParseException e) {
+					System.out.println("done");
 					if (e != null)
 						showParseException(e);
 					else if (hasPlans.get("hasPlans"))
@@ -657,6 +658,12 @@ public class MainActivity extends ProgressActivity
 				public void done(ParseObject meetup, ParseException e) {
 					if (e == null)
 					{
+						if (meetup.containsKey("isFull") && meetup.getBoolean("isFull"))
+						{
+							Toast.makeText(getActivity(), "Oops! This meetup is full.", Toast.LENGTH_LONG)
+								.show();
+							getActivity().getFragmentManager().popBackStack();
+						}
 						View event = View.inflate(getActivity(), R.layout.invite_card, null);
 						TextView tv;
 						//event.setObjectId(meetup.getObjectId());
@@ -737,6 +744,8 @@ public class MainActivity extends ProgressActivity
 						//Handles changing the RSVP time every second with the timer
 						handler = new Handler() {
 							final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
+							final String SPOTS_LEFT = " (" + getResources().getQuantityString(
+									R.plurals.spotsLeft, spotsLeft, spotsLeft) + ")";
 							public void handleMessage(Message message)
 							{
 								Date now = new Date();
@@ -759,8 +768,7 @@ public class MainActivity extends ProgressActivity
 										time = time+ "0";
 									time = time + seconds + " " + LEFT_TO_RSVP;
 									if (spotsLeft > -1)
-										time += " (" + getResources().getQuantityString(R.plurals.spotsLeft,
-												spotsLeft, spotsLeft) + ")";
+										time += SPOTS_LEFT;
 									//System.out.println(time);
 									mTimeToRSVPView.setText(time);
 									mTimeToRSVPView.invalidate();

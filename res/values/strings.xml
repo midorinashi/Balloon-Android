@@ -31,6 +31,7 @@
     <string name="add_members_to">Add Members</string>
     <string name="agenda_empty">No plan :C</string>
     <string name="agenda_edit">What\'s the plan?\n\n(e.g. Let\'s go to Shake Shack at 8PM)</string>
+    <string name="allowed_to_invite_more">Invitees allowed to invite more:</string>
     <string name="already_have_account">Already have an account? <u>Login</u></string>
     <string name="ask_to_save_group">Save Invitees to a Group?</string>
     <string name="balloon">Balloon</string>
@@ -73,6 +74,7 @@
     <string name="invite">Invite</string>
     <string name="image_content_description">The Image</string>
     <string name="leftToRSVP"> left to RSVP</string>
+    <string name="less_than_a_minute">(Less than a minute ago)</string>
     <string name="limit">Limit:</string>
     <string name="limit_question">How many other\npeople can\nattend?</string>
     <string name="login">Login</string>

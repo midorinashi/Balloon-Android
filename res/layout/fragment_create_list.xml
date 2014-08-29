@@ -10,7 +10,7 @@
 	    android:orientation="vertical"
 	    android:padding="10dp" >
 	
-	    <EditText
+	    <com.j32productions.balloon.EditBox
 	        android:id="@+id/editContactListName"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
@@ -23,7 +23,7 @@
 	        android:textAppearance="?android:attr/textAppearance" >
 	
 	        <requestFocus />
-	    </EditText>
+	    </com.j32productions.balloon.EditBox>
 
 	    <RelativeLayout
 	        android:layout_width="wrap_content"
@@ -41,7 +41,7 @@
 	            android:padding="5dp"
 	            android:src="@color/white" />
 
-	        <TextView
+	        <com.j32productions.balloon.TextBox
 	            android:id="@+id/addPhoto"
 	            android:layout_width="130dp"
 	            android:layout_height="130dp"

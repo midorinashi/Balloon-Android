@@ -1,4 +1,5 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -27,14 +28,15 @@
             android:gravity="bottom"
             android:visibility="gone" >
 
-            <TextView
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/edit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
                 android:padding="10dp"
-                android:text="@string/edit_group" />
+                android:text="@string/edit_group"
+                custom:fontName="Roboto-Light.ttf" />
 
             <View
                 android:id="@+id/view1"
@@ -57,7 +59,8 @@
                 android:maxLines="1"
                 android:onClick="changeName"
                 android:paddingLeft="15dp"
-                android:paddingTop="26dp" />
+                android:paddingTop="26dp"
+                custom:fontName="Roboto-Light.ttf" />
 
             <View
                 android:layout_width="fill_parent"
@@ -83,7 +86,7 @@
                 android:paddingTop="15dp" />
 
 
-            <TextView
+            <com.j32productions.balloon.TextBox
                 android:id="@+id/textView1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -93,7 +96,8 @@
                 android:gravity="center"
                 android:paddingLeft="10dp"
                 android:paddingTop="26dp"
-                android:text="@string/share_group" />
+                android:text="@string/share_group"
+                custom:fontName="Roboto-Light.ttf" />
 
             <ImageView
                 android:id="@+id/imageView1"

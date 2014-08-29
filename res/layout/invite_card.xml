@@ -105,23 +105,16 @@
 	    
 	</LinearLayout>
 	
-    <LinearLayout 
-	    android:id="@+id/timeToRSVP"
-	    android:layout_width="wrap_content"
+    <com.j32productions.balloon.TextBox
+        android:id="@+id/timer"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/venue"
-        android:layout_centerHorizontal="true" >
-
-        <com.j32productions.balloon.TextBox
-            android:id="@+id/timer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="5dp"
-            android:text="@string/no_time"
-            android:textColor="@color/red"
-	    	custom:fontName="Roboto-Light.ttf" />
-	    
-    </LinearLayout>
+        android:layout_marginRight="5dp"
+    	android:layout_below="@+id/venue"
+    	android:layout_centerHorizontal="true"
+        android:text="@string/no_time"
+        android:textColor="@color/red"
+ 		custom:fontName="Roboto-Light.ttf" />
 
     <com.j32productions.balloon.TextBox
         android:id="@+id/empty"
@@ -152,7 +145,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/timeToRSVP"
+        android:layout_below="@+id/timer"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="10dp"

@@ -5,15 +5,15 @@
         <item quantity="other">%d spots left</item>
     </plurals>
     <plurals name="minutesAgo">
-        <item quantity="one">1 minute ago</item>
-        <item quantity="other">%d minutes ago</item>
+        <item quantity="one">(1 minute ago)</item>
+        <item quantity="other">(%d minutes ago)</item>
     </plurals>
     <plurals name="hoursAgo">
         <item quantity="one">1 hour ago</item>
-        <item quantity="other">%d hours ago</item>
+        <item quantity="other">(%d hours ago)</item>
     </plurals>
     <plurals name="daysAgo">
         <item quantity="one">1 day ago</item>
-        <item quantity="other">%d days ago</item>
+        <item quantity="other">(%d days ago)</item>
     </plurals>
 </resources>
