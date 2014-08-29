@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 public class ProgressCircleFragment extends Fragment {
-	/*TODO for testing turned off the spinner
+	/*TODO for testing turned off the spinner*/
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.fragment_progress, container,
@@ -24,5 +24,5 @@ public class ProgressCircleFragment extends Fragment {
 			.setColorFilter(getResources().getColor(R.color.white),
 			android.graphics.PorterDuff.Mode.SRC_ATOP);
 	}
-	*/
+	
 }

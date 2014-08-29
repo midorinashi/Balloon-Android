@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -703,8 +704,26 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 					((TextView) member.findViewById(R.id.name)).setText(names[i]);
 					((TextView) member.findViewById(R.id.responseRate)).setText("" + 
 							(Math.round(responseRates[i]*1000)/10.0) + "%");
-					Picasso.with(getActivity()).load(photoURLs[i]).resize(140, 140)
-		        		.into((ImageView) member.findViewById(R.id.imageView1));
+					if (photoURLs[i] == null)
+					{
+						Uri uri = Uri.parse("android.resource://com.j32productions.balloon"
+								+ "/drawable/user280");
+			        	try {
+							InputStream stream = getActivity().getContentResolver().openInputStream(uri);
+					        Picasso.with(getActivity()).load(uri).resize(140, 140)
+				        		.into((ImageView) member.findViewById(R.id.imageView1));
+					        stream.close();
+						} catch (FileNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					else
+						Picasso.with(getActivity()).load(photoURLs[i]).resize(140, 140)
+		        			.into((ImageView) member.findViewById(R.id.imageView1));
 					if (mIsOwner && i > 0)
 					{
 						//need to offset for the owner

@@ -307,7 +307,6 @@ public class MainActivity extends ProgressActivity
 			}
 			query.whereNotContainedIn("objectId", ids);
 			query.include("creator");
-			query.whereEqualTo("isFull", false);
 			
 			query.findInBackground(new FindCallback<ParseObject>(){
 				public void done(List<ParseObject> eventList, ParseException e) {
@@ -318,10 +317,8 @@ public class MainActivity extends ProgressActivity
 						List<ParseObject> list = new ArrayList<ParseObject>();
 						System.out.println("eventList size is "+eventList.size());
 						for (ParseObject event : eventList)
-						{
-							list.add(event);
-							System.out.println("event added");
-						}
+							if (!event.containsKey("isFull") || !event.getBoolean("isFull"))
+								list.add(event);
 						if (list.size() == 0)
 							noPlans();
 						else
@@ -525,9 +522,48 @@ public class MainActivity extends ProgressActivity
 				button.setOnClickListener(new OnClickListener(){
 					@Override
 					public void onClick(final View v) {
-						System.out.println("no");
 						v.setBackgroundColor(getResources().getColor(R.color.green));
 						showSpinner();
+						if (spotsLeft > -1)
+						{
+							meetup.fetchInBackground(new GetCallback<ParseObject>() {
+								@Override
+								public void done(ParseObject meetup, ParseException e) {
+									if (e == null)
+									{
+										int spots = meetup.getInt("spotsLeft");
+										if (spots == 0)
+										{
+											Toast.makeText(getActivity(),
+												"Oops! This meetup has filled up!",
+												Toast.LENGTH_SHORT).show();
+											v.setBackgroundColor(getResources().getColor
+												(R.color.buttonBlue));
+											timers.get(index).cancel();
+											((LinearLayout) v.getParent().getParent())
+												.removeView((View) v.getParent());
+											removeSpinner();
+											if (subtractViewCount() <= 0)
+												noPlans();
+										}
+										else
+											finishResponding(v);
+									}
+									else
+									{
+										showParseException(e);
+										v.setBackgroundColor(getResources().getColor
+												(R.color.buttonBlue));
+									}
+								}
+							});
+						}
+						else
+							finishResponding(v);
+					}
+					
+					public void finishResponding(final View v)
+					{
 						HashMap<String, Object> params = new HashMap<String, Object>();
 						params.put("meetupId", objectId);
 						params.put("responder", ParseUser.getCurrentUser().getObjectId());
@@ -548,11 +584,13 @@ public class MainActivity extends ProgressActivity
 								else
 								{
 									showParseException(e);
-									v.setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+									v.setBackgroundColor(getResources().getColor
+											(R.color.buttonBlue));
 								}
 							}
 						});
 					}
+				
 				});
 				
 				LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
@@ -655,7 +693,7 @@ public class MainActivity extends ProgressActivity
 			query.include("creator");
 			query.getFirstInBackground(new GetCallback<ParseObject>() {
 				@Override
-				public void done(ParseObject meetup, ParseException e) {
+				public void done(final ParseObject meetup, ParseException e) {
 					if (e == null)
 					{
 						if (meetup.containsKey("isFull") && meetup.getBoolean("isFull"))
@@ -734,7 +772,7 @@ public class MainActivity extends ProgressActivity
 								Picasso.with(getActivity()).load(R.drawable.logo).into(v);
 						} catch (JSONException e1) {
 							// Auto-generated catch block
-							e.printStackTrace();
+							e1.printStackTrace();
 						}
 
 						timer = new Timer("RSVPTimer");
@@ -836,9 +874,43 @@ public class MainActivity extends ProgressActivity
 						button.setOnClickListener(new OnClickListener(){
 							@Override
 							public void onClick(final View v) {
-								System.out.println("no");
 								v.setBackgroundColor(getResources().getColor(R.color.green));
 								showSpinner();
+								if (spotsLeft > -1)
+								{
+									meetup.fetchInBackground(new GetCallback<ParseObject>() {
+										@Override
+										public void done(ParseObject meetup, ParseException e) {
+											if (e == null)
+											{
+												int spots = meetup.getInt("spotsLeft");
+												if (spots == 0)
+												{
+													v.setBackgroundColor(getResources().getColor
+															(R.color.buttonBlue));
+													Toast.makeText(getActivity(),
+														"Oops! This meetup has filled up!",
+														Toast.LENGTH_SHORT).show();
+													getActivity().getFragmentManager().popBackStack();
+												}
+												else
+													finishResponding(v);
+											}
+											else
+											{
+												showParseException(e);
+												v.setBackgroundColor(getResources().getColor
+														(R.color.buttonBlue));
+											}
+										}
+									});
+								}
+								else
+									finishResponding(v);
+							}
+							
+							public void finishResponding(final View v)
+							{
 								HashMap<String, Object> params = new HashMap<String, Object>();
 								params.put("meetupId", objectId);
 								params.put("responder", ParseUser.getCurrentUser().getObjectId());
@@ -859,7 +931,8 @@ public class MainActivity extends ProgressActivity
 										else
 										{
 											showParseException(e);
-											v.setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+											v.setBackgroundColor(getResources().getColor
+													(R.color.buttonBlue));
 										}
 									}
 								});

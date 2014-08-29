@@ -247,8 +247,6 @@ public class MoreInfoActivity extends ProgressActivity
 	{
 		showSpinner();
 		HashMap<String, Object> params = new HashMap<String, Object>();
-		mHasResponded = true;
-		mWillAttend = false;
 		params.put("meetupId", mObjectId);
 		params.put("responder", ParseUser.getCurrentUser().getObjectId());
 		params.put("willAttend", false);
@@ -257,7 +255,16 @@ public class MoreInfoActivity extends ProgressActivity
 			public void done(Object o, ParseException e) {
 				if (e == null)
 				{
-					fetchComing();
+					if (mSpotsLeft > -1 && (!mHasResponded || mWillAttend) && !mIsCreator)
+					{
+						mSpotsLeft++;
+						TextView tv = (TextView) findViewById(R.id.spotsLeft);
+						if (tv != null)
+							tv.setText(getResources().getQuantityString(R.plurals.spotsLeft,
+								mSpotsLeft, mSpotsLeft));
+					}
+					mHasResponded = true;
+					mWillAttend = false;
 					findViewById(R.id.yes).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
 				}
 				else
@@ -272,9 +279,39 @@ public class MoreInfoActivity extends ProgressActivity
 	public void respondYes(final View view)
 	{
 		showSpinner();
+		//have to double check that limit
+		if (mSpotsLeft > -1 && !mIsCreator)
+		{
+			final ProgressActivity context = this;
+			mMeetup.fetchInBackground(new GetCallback<ParseObject>() {
+				@Override
+				public void done(ParseObject meetup, ParseException e) {
+					if (e == null)
+					{
+						mSpotsLeft = mMeetup.getInt("spotsLeft");
+						System.out.println("Spots left " + mSpotsLeft);
+						TextView tv = (TextView) findViewById(R.id.spotsLeft);
+						if (tv != null)
+							tv.setText(context.getResources().getQuantityString(R.plurals.spotsLeft,
+								mSpotsLeft, mSpotsLeft));
+						if (mSpotsLeft == 0)
+							Toast.makeText(context, "Oops! This meetup is full!",
+									Toast.LENGTH_SHORT).show();
+						else
+							finishRespondingYes(view);
+					}
+					else
+						showParseException(e);
+				}
+			});
+		}
+		else
+			finishRespondingYes(view);
+	}
+	
+	public void finishRespondingYes(final View view)
+	{
 		HashMap<String, Object> params = new HashMap<String, Object>();
-		mHasResponded = true;
-		mWillAttend = true;
 		params.put("meetupId", mObjectId);
 		params.put("responder", ParseUser.getCurrentUser().getObjectId());
 		params.put("willAttend", true);
@@ -283,8 +320,19 @@ public class MoreInfoActivity extends ProgressActivity
 			public void done(Object o, ParseException e) {
 				if (e == null)
 				{
+					if (mSpotsLeft > -1 && (!mHasResponded || !mWillAttend) && !mIsCreator)
+					{
+						mSpotsLeft--;
+						TextView tv = (TextView) findViewById(R.id.spotsLeft);
+						if (tv != null)
+							tv.setText(getResources().getQuantityString(R.plurals.spotsLeft,
+								mSpotsLeft, mSpotsLeft));
+					}
+					mHasResponded = true;
+					mWillAttend = true;
 					fetchComing();
-					findViewById(R.id.no).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+					findViewById(R.id.no).setBackgroundColor(getResources()
+							.getColor(R.color.buttonBlue));
 				}
 				else
 				{
@@ -298,7 +346,6 @@ public class MoreInfoActivity extends ProgressActivity
 	public void fetchComing()
 	{
 		//this will get who's coming, starting with all the responses
-		//TODO Look into using include?? I can't seem to get first names tho
 		ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
 		comingQuery.whereEqualTo("meetup", mMeetup);
 		if (!mIsCreator)
@@ -774,9 +821,16 @@ public class MoreInfoActivity extends ProgressActivity
 					((TextView) comment.findViewById(R.id.commenter)).setText(commenter
 							.getString("firstName") + " " + commenter.getString("lastName")
 							+ " " + timestamp);
-					Picasso.with(getActivity()).load(commenter.getParseFile("profilePhoto")
-							.getUrl()).resize(100, 100).into((ImageView) comment
-							.findViewById(R.id.imageView1));
+					if (commenter.has("profilePhoto"))
+						Picasso.with(getActivity()).load(commenter.getParseFile("profilePhoto")
+								.getUrl()).resize(100, 100).into((ImageView) comment
+								.findViewById(R.id.imageView1));
+					else
+					{
+						Uri uri = Uri.parse("android.resource://com.j32productions.balloon/drawable/user200");
+				        Picasso.with(getActivity()).load(uri).resize(140, 140)
+			        		.into((ImageView) comment.findViewById(R.id.imageView1));
+					}
 					commentList.addView(comment, lp);
 				}
 				commentList.invalidate();
@@ -835,6 +889,12 @@ public class MoreInfoActivity extends ProgressActivity
 						Picasso.with(getActivity()).load(user.getParseFile("profilePhoto")
 							.getUrl()).resize(100, 100).into((ImageView) response.findViewById
 							(R.id.profilePhoto));
+					else
+					{
+						Uri uri = Uri.parse("android.resource://com.j32productions.balloon/drawable/user200");
+				        Picasso.with(getActivity()).load(uri).resize(140, 140)
+			        		.into((ImageView) response.findViewById(R.id.profilePhoto));
+					}
 					if (responses.get(i).getBoolean("isAttending"))
 						comingList.addView(response, lp);
 					else

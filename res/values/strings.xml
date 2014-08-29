@@ -55,7 +55,7 @@
     <string name="empty"></string>
     <string name="enter_code">Enter Code</string>
     <string name="enter_verification_code">Enter Verification Code</string>
-    <string name="go_to_plans">Go to Plans</string>
+    <string name="go_to_plans"><b>Go to Plans</b></string>
     <string name="fa_check"><node>&#xf00c;</node></string>
     <string name="fa_chevron"><node>&#xf054;</node></string>
     <string name="fa_info"><node>&#xf129;</node></string>
@@ -63,6 +63,7 @@
     <string name="fa_quote_left"><node>&#xf10d;</node></string>
     <string name="fa_quote_right"><node>&#xf10e;</node></string>
     <string name="fa_times"><node>&#xf00d;</node></string>
+    <string name="fa_user"><node>&#xf007;</node></string>
     <string name="final_edit_agenda">Plan:</string>
     <string name="final_edit_deadline">Balloon pops at:</string>
     <string name="final_edit_location">Location:</string>
@@ -109,7 +110,7 @@
     <string name="search_location">Search</string>
     <string name="send">Send</string>
     <string name="select_all">Select All:</string>
-    <string name="select_group">Select a Group</string>
+    <string name="select_group"><b>Select a Group</b></string>
     <string name="settings_name_first">First Name</string>
     <string name="settings_name_last">Last Name</string>
     <string name="settings_number">Mobile Number</string>
