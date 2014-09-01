@@ -47,13 +47,14 @@ public class AccessFoursquareVenues extends AccessFoursquare implements Location
     	
     	if (location != null)
 	    	urlString += "%20&ll=" + location.getLatitude() + "," + location.getLongitude();
-    	
+    	else //no gps, don't waste our time
+    		return array;
     	//make sure we have a query
     	if (strings.length != 0 && strings[0].trim().compareTo("") != 0)
     		urlString += "%20&query=" + strings[0].replaceAll(" ", "%20") + "%20&limit=100" + "%20&radius=50000";
     	//we want to make query-less queries fast
     	else
-    		urlString+= "%20&limit=10" + "%20&radius=500";
+    		urlString+= "%20&limit=10" + "%20&radius=5000";
     	System.out.println(urlString);
     	// for explore, we can add "%20&time=any%20&day=any"
     	
@@ -70,10 +71,10 @@ public class AccessFoursquareVenues extends AccessFoursquare implements Location
         	while ((line = rd.readLine()) != null)
         		sb.append(line + '\n');
         	str =  sb.toString();
-				array = (new JSONObject(str)).getJSONObject("response").getJSONArray("venues");
-				System.out.println(array.length());
-				System.out.println(array.getJSONObject(0).getString("name"));
-				System.out.println("Got array!");
+			array = (new JSONObject(str)).getJSONObject("response").getJSONArray("venues");
+			/*System.out.println(array.length());
+			System.out.println(array.getJSONObject(0).getString("name"));
+			System.out.println("Got array!");*/
 			
          } catch (IOException e) {
              e.printStackTrace();

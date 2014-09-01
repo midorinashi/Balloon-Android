@@ -28,6 +28,7 @@ public class NewInvitationFromGroupActivity extends NewInvitationActivity {
 		mPhoneNumbers = null;
 		//same for makeContactList, but consistency
 		mMakeContactList = false;
+		mIsShellGroup = false;
 		mFinishSavingMeetup = false;
 		mMemberIds = null;
 		mMembers = null;

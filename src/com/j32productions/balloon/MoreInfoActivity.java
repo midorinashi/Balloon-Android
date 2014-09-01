@@ -40,6 +40,7 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.LinearLayout.LayoutParams;
 
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
@@ -266,6 +267,7 @@ public class MoreInfoActivity extends ProgressActivity
 					mHasResponded = true;
 					mWillAttend = false;
 					findViewById(R.id.yes).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+					fetchComing();
 				}
 				else
 				{
@@ -368,6 +370,9 @@ public class MoreInfoActivity extends ProgressActivity
 		System.out.println("makeComingList activated");
 		LinearLayout comingList = (LinearLayout) findViewById(R.id.coming);
 		LinearLayout notComingList = (LinearLayout) findViewById(R.id.notComing);
+	    //so we know to put that line at the bottom of the list
+	    boolean someoneComing = false;
+	    boolean someoneNotComing = false;
 		
 	    if (comingList != null)
 	    {
@@ -375,8 +380,13 @@ public class MoreInfoActivity extends ProgressActivity
 	    	notComingList.removeAllViews();
 		    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
 					.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+			LayoutParams linelp = new LayoutParams(LayoutParams.MATCH_PARENT, 1);
 		    for (int i = 0; i < responses.size(); i++)
 		    {
+				View line = new View(this);
+				line.setBackgroundColor(getResources().getColor(R.color.lightGray));
+				line.setLayoutParams(linelp);
+				
 				View response = View.inflate(this, R.layout.list_item_coming, null);
 				ParseUser user = responses.get(i).getParseUser("responder");
 				((TextView) response.findViewById(R.id.responder)).setText(user
@@ -388,9 +398,31 @@ public class MoreInfoActivity extends ProgressActivity
 						.getUrl()).resize(100, 100).into((ImageView) response.findViewById
 						(R.id.profilePhoto));
 				if (responses.get(i).getBoolean("isAttending"))
+				{
+					comingList.addView(line);
 					comingList.addView(response, lp);
+					someoneComing = true;
+				}
 				else
+				{
+					notComingList.addView(line);
 					notComingList.addView(response, lp);
+					someoneNotComing = true;
+				}
+		    }
+		    if (someoneComing)
+		    {
+		    	View line = new View(this);
+				line.setBackgroundColor(getResources().getColor(R.color.lightGray));
+				line.setLayoutParams(linelp);
+				comingList.addView(line);
+		    }
+		    if (someoneNotComing)
+		    {
+		    	View line = new View(this);
+				line.setBackgroundColor(getResources().getColor(R.color.lightGray));
+				line.setLayoutParams(linelp);
+				notComingList.addView(line);
 		    }
 	    }
 		removeSpinner();
@@ -681,8 +713,11 @@ public class MoreInfoActivity extends ProgressActivity
 						else
 						{
 							if (getActivity() != null && getActivity().findViewById(R.id.timeToRSVP) != null)
-								((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText(
-										getString(R.string.no_start_time));
+							{
+								TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
+								tv.setTextColor(BLACK);
+								tv.setText(getString(R.string.no_start_time));
+							}
 							mTimer.cancel();
 							mTimer.purge();
 						}
@@ -789,6 +824,14 @@ public class MoreInfoActivity extends ProgressActivity
 				RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
 						.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 				long now = (new Date()).getTime();
+				LayoutParams linelp = new LayoutParams(LayoutParams.MATCH_PARENT, 1);
+				if (comments.size() > 0)
+				{
+					View line = new View(getActivity());
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setLayoutParams(linelp);
+					commentList.addView(line);
+				}
 				for (int i = 0; i < comments.size(); i++)
 				{
 					View comment = View.inflate(getActivity(), R.layout.list_item_comment, null);
@@ -832,6 +875,10 @@ public class MoreInfoActivity extends ProgressActivity
 			        		.into((ImageView) comment.findViewById(R.id.imageView1));
 					}
 					commentList.addView(comment, lp);
+					View line = new View(getActivity());
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setLayoutParams(linelp);
+					commentList.addView(line);
 				}
 				commentList.invalidate();
 				commentList.requestLayout();
@@ -865,6 +912,9 @@ public class MoreInfoActivity extends ProgressActivity
 			System.out.println("makeComingList activated");
 		    LinearLayout comingList = null;
 		    LinearLayout notComingList = null;
+		    //so we know to put that line at the bottom of the list
+		    boolean someoneComing = false;
+		    boolean someoneNotComing = false;
 			if (getActivity() != null)
 			{
 				comingList = (LinearLayout) getActivity().findViewById(R.id.coming);
@@ -877,8 +927,13 @@ public class MoreInfoActivity extends ProgressActivity
 		    	notComingList.removeAllViews();
 			    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
 						.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+				LayoutParams linelp = new LayoutParams(LayoutParams.MATCH_PARENT, 1);
 			    for (int i = 0; i < responses.size(); i++)
 			    {
+					View line = new View(getActivity());
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setLayoutParams(linelp);
+					
 					View response = View.inflate(getActivity(), R.layout.list_item_coming, null);
 					ParseUser user = responses.get(i).getParseUser("responder");
 					((TextView) response.findViewById(R.id.responder)).setText(user
@@ -896,9 +951,31 @@ public class MoreInfoActivity extends ProgressActivity
 			        		.into((ImageView) response.findViewById(R.id.profilePhoto));
 					}
 					if (responses.get(i).getBoolean("isAttending"))
+					{
+						comingList.addView(line);
 						comingList.addView(response, lp);
+						someoneComing = true;
+					}
 					else
+					{
+						notComingList.addView(line);
 						notComingList.addView(response, lp);
+						someoneNotComing = true;
+					}
+			    }
+			    if (someoneComing)
+			    {
+			    	View line = new View(getActivity());
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setLayoutParams(linelp);
+					comingList.addView(line);
+			    }
+			    if (someoneNotComing)
+			    {
+			    	View line = new View(getActivity());
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setLayoutParams(linelp);
+					notComingList.addView(line);
 			    }
 		    }
 		    removeSpinner();
@@ -985,7 +1062,7 @@ public class MoreInfoActivity extends ProgressActivity
 				Bundle savedInstanceState)
 		{
 			showSpinner();
-			final View rootView = inflater.inflate(R.layout.fragment_select_list,
+			final View rootView = inflater.inflate(R.layout.fragment_invited_list,
 					container, false);
 			rootView.setBackgroundColor(getResources().getColor(R.color.white));
 			ArrayList<ParseQuery<ParseUser>> queries = new ArrayList<ParseQuery<ParseUser>>();

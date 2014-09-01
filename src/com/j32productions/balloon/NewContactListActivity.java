@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -536,6 +537,21 @@ public class NewContactListActivity extends ProgressActivity {
 				if (user.containsKey("profilePhoto"))
 					Picasso.with(getActivity()).load(user.getParseFile("profilePhoto").getUrl())
 						.resize(140, 140).into((ImageView) member.findViewById(R.id.imageView1));
+				else
+				{
+					Uri uri = Uri.parse("android.resource://com.j32productions.balloon"
+							+ "/drawable/user280");
+		        	try {
+						InputStream stream = getActivity().getContentResolver().openInputStream(uri);
+				        Picasso.with(getActivity()).load(uri).resize(140, 140)
+			        		.into((ImageView) member.findViewById(R.id.imageView1));
+				        stream.close();
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 				ll.addView(member, 2*i + 2);
 				line = new View(getActivity());
 				line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
@@ -571,11 +587,12 @@ public class NewContactListActivity extends ProgressActivity {
 	                   public void onClick(DialogInterface d, int id) {
 	                	   String str = ((EditText) dialog.findViewById(R.id.changeName))
 	                			   .getText().toString();
-	                	   if (!str.replaceAll("\\s+", "").equals(""))
+	                	   if (!str.replaceAll("[\\W]", "").equals(""))
 	                	   {
 	                		   mListName = str;
 		                	   ((TextView) getActivity().findViewById(R.id.listName)).setText(mListName);
 		                	   hasChangedName = true;
+		                	   System.out.println(mListName);
 	                	   }
 	                   }
 	               });

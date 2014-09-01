@@ -99,6 +99,7 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		//do i need these fields??
 		mPhoneNumbers = null;
 		mMakeContactList = false;
+		mIsShellGroup = false;
 		mFinishSavingMeetup = false;
 		mMemberIds = null;
 		mMemberFirstNames = null;

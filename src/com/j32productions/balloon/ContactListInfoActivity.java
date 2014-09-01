@@ -714,10 +714,8 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 				        		.into((ImageView) member.findViewById(R.id.imageView1));
 					        stream.close();
 						} catch (FileNotFoundException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}

@@ -54,6 +54,11 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:background="@color/lightGray" />
+            
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -134,16 +139,27 @@
 				</LinearLayout>
 				
             </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:background="@color/lightGray" />
             
             <com.j32productions.balloon.TextBox
                 android:id="@+id/startsAt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingLeft="10dp"
+                android:paddingTop="10dp"
                 android:paddingBottom="10dp"
     			android:animateLayoutChanges="true"
                 android:background="@color/white"
 	    		custom:fontName="Roboto-Light.ttf" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:background="@color/lightGray" />
             
             <com.j32productions.balloon.TextBox
                 android:id="@+id/commentsHeader"

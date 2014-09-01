@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -113,6 +114,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	protected static String[] mMemberLastNames;
 	protected static boolean mMakeContactList;
 	protected static boolean mFinishSavingMeetup;
+	protected static boolean mIsShellGroup;
 	protected static String[] mMemberIds;
 	protected static JSONArray mMembers;
 	protected static String mPreviewName;
@@ -167,6 +169,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		//same for makeContactList, but consistency
 		mMakeContactList = false;
 		mFinishSavingMeetup = false;
+		mIsShellGroup = false;
 		mMemberIds = null;
 		mMembers = null;
 		mMemberFirstNames = null;
@@ -226,6 +229,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    }
 		else if (id == R.id.action_plus)
 		{
+			mMakeContactList = true;
+			mIsShellGroup = false;
 			FragmentTransaction transaction = getFragmentManager().beginTransaction();
 			transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
 			transaction.addToBackStack(null);
@@ -247,19 +252,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		FragmentTransaction transaction = getFragmentManager().beginTransaction();
 		if (mCurrentFragment.equals("SelectListFragment"))
 			transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
-		else if (mCurrentFragment.equals("CreateListFragment"))
-		{
-			if (((EditText) findViewById(R.id.editContactListName)).length() != 0)
-				transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
-			else
-				Toast.makeText(this, "Please name the contact list.", Toast.LENGTH_SHORT).show();
-		}
 		else if (mCurrentFragment.equals("SelectMembersFromContactsFragment"))
 		{
 			if (((ListView) findViewById(R.id.contactsList)).getCheckedItemCount() != 0)
 			{
 				SelectMembersFromContactsFragment.saveContacts();
-				mMakeContactList = true;
 				if (mAfterFinalEdit)
 				{
 					getFragmentManager().popBackStack();
@@ -277,7 +274,6 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			if (((ListView) findViewById(R.id.memberList)).getCheckedItemCount() != 0)
 			{
 				SelectMembersFromListFragment.saveMembers();
-				mMakeContactList = false;
 				if (mAfterFinalEdit)
 				{
 					getFragmentManager().popBackStack();
@@ -353,7 +349,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			return;
 		}
 		else
+		{
+			Toast.makeText(this, "Invalid Fragment", Toast.LENGTH_SHORT).show();
 			return;
+		}
 		transaction.addToBackStack(null);
 		transaction.commit();
 	}
@@ -707,8 +706,15 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					Toast.makeText(context, "Sent!", Toast.LENGTH_SHORT).show();
 					if (mMakeContactList)
 					{
-						DialogFragment dialog = new AskToSaveListFragment();
-				        dialog.show(getFragmentManager(), "NoticeDialogFragment");
+						if (mIsShellGroup)
+						{
+							saveNewContactList();
+						}
+						else
+						{
+							DialogFragment dialog = new AskToSaveListFragment();
+					        dialog.show(getFragmentManager(), "NoticeDialogFragment");
+						}
 					}
 					else
 						end();
@@ -959,7 +965,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		ParseObject contactList = new ParseObject("ContactList");
 		contactList.put("name", mListName);
 		contactList.put("owner", ParseUser.getCurrentUser());
-		contactList.put("isVisibleToMembers", ((Checkable) findViewById(R.id.checkBox1)).isChecked());
+		Checkable check = (Checkable) findViewById(R.id.checkBox1);
+		if (check != null)
+			contactList.put("isVisibleToMembers", check.isChecked());
+		else
+			contactList.put("isVisibleToMembers", false);
 		if (mContactListImage != null)
 			contactList.put("photo", mContactListImage);
 		contactList.put("members", mMembers);
@@ -969,7 +979,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				if (e == null)
 				{
 					removeSpinner();
-					Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show();
+					Toast.makeText(context, "Contact group saved!", Toast.LENGTH_SHORT).show();
 				}
 				else
 				{
@@ -984,6 +994,13 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		});
 	}
 	
+	public void changeName(View view)
+	{
+	    DialogFragment newFragment = new ChangeNameFragment();
+	    newFragment.show(getFragmentManager(), null);
+	}
+
+	
 	public static class SelectListFragment extends ProgressFragment {
 
 		protected String[] lists;
@@ -992,6 +1009,9 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		protected ArrayList<Boolean> mShellGroups;
 		protected OnMemberListSelectedListener mListener;
 		protected List<ParseObject> mMemberLists;
+
+		protected final String[] SHELL_GROUP_NAMES = {"Co-workers", "College Friends", "Family", 
+				"Fraternity/Sorority", "High School", "Roommates"};
 		
 		public void onAttach(Activity activity) {
 	        super.onAttach(activity);
@@ -1005,7 +1025,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_select_list,
+			View rootView = inflater.inflate(R.layout.fragment_contact_lists,
 					container, false);
 			return rootView;
 		}
@@ -1102,24 +1122,90 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		
 		public void addListsToView()
 		{
-			if (mCurrentFragment.equals("SelectListFragment"))
-			{
-				GroupAdapter adapter = new GroupAdapter(getActivity(), R.layout.list_group,
-						lists, photoURLs);
-		        ListView lv = (ListView) getActivity().findViewById(R.id.groupList);
-		        lv.setAdapter(adapter);
-		        lv.setOnItemClickListener(new OnItemClickListener() {
-					public void onItemClick(AdapterView<?> a, View v, int position, long id) {
-						System.out.println(mListId);
+	        LinearLayout ll = (LinearLayout) getActivity().findViewById(R.id.groupList);
+	        ll.removeAllViews();
+	        LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT,
+	        		LayoutParams.WRAP_CONTENT);
+	        LayoutInflater inflater = getActivity().getLayoutInflater();
+	        for (int i = 0; i < lists.length; i++)
+	        {
+	        	View vi = inflater.inflate(R.layout.list_group, null);
+	        	((TextView) vi.findViewById(R.id.name)).setText(lists[i]);
+	            //if we give it a resource id, then make it an int resource, not a string url
+	            if (photoURLs[i] != null && photoURLs[i].indexOf('.') == -1)
+	    	        Picasso.with(getActivity()).load(Integer.parseInt(photoURLs[i]))
+	    	        	.resize(140, 140).into((ImageView) vi.findViewById(R.id.imageView1));
+	            else
+	    	        Picasso.with(getActivity()).load(photoURLs[i]).resize(140, 140)
+	    	        	.into((ImageView) vi.findViewById(R.id.imageView1));
+	            final int position = i;
+	            vi.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						mMakeContactList = false;
+						mIsShellGroup = false;
 						mListName = lists[position];
 						if (mListId != ids[position])
 							mMemberIds = null;
 						mListId = ids[position];
 						mListener.onMemberListSelected();
 					}
-		        });
-			}
-			removeSpinner();
+	            });
+	            vi.setLayoutParams(lp);
+	            ll.addView(vi);
+    			ll.addView(makeDivider());
+	        }
+	        
+	        //now deal with shell groups
+	        System.out.println(mShellGroups.contains(false));
+	        if (mShellGroups.contains(false))
+	        {
+	        	View vi = new View(getActivity());
+	        	vi.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, (int)
+    					TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, 
+    					getResources().getDisplayMetrics())));
+	        	ll.addView(vi);
+	        	for (int i = 0; i < mShellGroups.size(); i++)
+	        	{
+	        		//if we don't have this shell group, add it
+	        		if (!mShellGroups.get(i))
+	        		{
+	        			ll.addView(makeDivider());
+	        			vi = inflater.inflate(R.layout.list_group, null);
+	        			vi.setLayoutParams(lp);
+	        			((TextView) vi.findViewById(R.id.name)).setText(SHELL_GROUP_NAMES[i]);
+	        			vi.findViewById(R.id.imageView1).setVisibility(View.GONE);
+	        			vi.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, (int)
+	        					TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, 
+	        					getResources().getDisplayMetrics())));
+	        			final int position = i;
+	        			vi.setOnClickListener(new OnClickListener() {
+	    					@Override
+	    					public void onClick(View v) {
+	    						mListName = SHELL_GROUP_NAMES[position];
+	    						mMakeContactList = true;
+	    						mIsShellGroup = true;
+	    						FragmentTransaction transaction = getActivity().getFragmentManager()
+	    								.beginTransaction();
+	    						transaction.replace(R.id.container,
+	    								new SelectMembersFromContactsFragment());
+	    						transaction.addToBackStack(null);
+	    						transaction.commit();
+	    					}
+	    	            });
+	        			ll.addView(vi);
+	        		}
+	        	}
+	        }
+	        removeSpinner();
+		}
+		
+		public View makeDivider()
+		{
+			View view = new View(getActivity());
+			view.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, 1));
+			view.setBackgroundColor(getResources().getColor(R.color.lightGray));
+			return view;
 		}
 		
 		public void onPause()
@@ -1201,7 +1287,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		}
 	}
 	
-	public static class SelectMembersFromContactsFragment extends Fragment implements OnQueryTextListener {
+	public static class SelectMembersFromContactsFragment extends ProgressFragment implements OnQueryTextListener {
 
 		// Following code mostly from http://stackoverflow.com/questions/18199359/how-to-display-contacts-in-a-listview-in-android-for-android-api-11
 	    private ContactAdapter adapter;
@@ -1434,7 +1520,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			
 			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_contacts));
 			if (getActivity() instanceof NewInvitationActivity)
+			{
 				mCurrentFragment = "SelectMembersFromContactsFragment";
+				removeSpinner();
+			}
 		}
 	    /*
 	    private TextWatcher filterTextWatcher = new TextWatcher() {
@@ -1899,6 +1988,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		public static void makeList(final JSONArray array) {
 
 			final String[] names;
+			if (search == "" && array.length() == 0)
+			{
+				Toast.makeText(context, context.getString(R.string.no_locations), Toast.LENGTH_LONG).show();
+				return;
+			}
 			//array won't show last spot of the searched array because of create new location
 			if (search == "")
 				names = new String[array.length()];
@@ -2190,6 +2284,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		public void onResume()
 		{
 			super.onResume();
+			System.out.println("ContactList? " + mMakeContactList);
+			System.out.println(mMembers);
 			getActivity().setTitle(getResources().getString(R.string.title_final_edit));
 			mCurrentFragment = "FinalEditFragment";
 			mAfterFinalEdit = false;
@@ -2200,21 +2296,25 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			TextView tv = (TextView) getActivity().findViewById(R.id.finalEditToText);
 			if (mPreviewName == null || mPreviewName == "")
 				mPreviewName = "1 person";
+
+			String str = "";
+			if (mListName != null)
+				str += mListName + " (";
+			int people;
 			if (mMakeContactList)
-				if (mPhoneNumbers.length != 1)
-					tv.setText(mPhoneNumbers.length + " people");
-				else
-					tv.setText(mPreviewName);
-			else if (mMemberIds == null)
-				if (mMembers.length() != 1)
-					tv.setText(mMembers.length() + " people");
-				else
-					tv.setText(mPreviewName);
+				people = mPhoneNumbers.length;
+			else if (mMembers != null)
+				people = mMembers.length();
 			else
-				if (mMemberIds.length != 1)
-					tv.setText(mListName + " (" + mMemberIds.length + " people)");
-				else
-					tv.setText(mListName + " (" + mPreviewName + ")");
+				people = mMemberIds.length;
+			if (people == 1)
+				str += mPreviewName;
+			else
+				str += people + " people";
+			if (mListName != null)
+				str += ")";
+			tv.setText(str);
+			
 			tv = (TextView) getActivity().findViewById(R.id.finalEditAgendaText);
 			tv.setText(mAgenda);
 			tv = (TextView) getActivity().findViewById(R.id.finalEditLocationText);
@@ -2643,6 +2743,21 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				if (user.containsKey("profilePhoto"))
 					Picasso.with(getActivity()).load(user.getParseFile("profilePhoto").getUrl())
 						.resize(140, 140).into((ImageView) member.findViewById(R.id.imageView1));
+				else
+				{
+					Uri uri = Uri.parse("android.resource://com.j32productions.balloon"
+							+ "/drawable/user280");
+		        	try {
+						InputStream stream = getActivity().getContentResolver().openInputStream(uri);
+				        Picasso.with(getActivity()).load(uri).resize(140, 140)
+			        		.into((ImageView) member.findViewById(R.id.imageView1));
+				        stream.close();
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}	
 				ll.addView(member, 2*i + 2);
 				line = new View(getActivity());
 				line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
@@ -2689,7 +2804,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	                   public void onClick(DialogInterface d, int id) {
 	                	   String str = ((EditText) dialog.findViewById(R.id.changeName))
 	                			   .getText().toString();
-	                	   if (str.replaceAll("\\s+", "").equals(""))
+	                	   if (!str.replaceAll("[\\W]", "").equals(""))
 	                	   {
 	                		   mListName = str;
 		                	   ((TextView) getActivity().findViewById(R.id.listName)).setText(mListName);
@@ -2804,7 +2919,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 							public void done(ParseException e) {
 								if (e == null)
 								{
-									Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show();
+									Toast.makeText(context, "Contact group saved!", Toast.LENGTH_SHORT).show();
 								}
 								else
 								{
@@ -2863,7 +2978,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    							public void done(ParseException e) {
 	    								if (e == null)
 	    								{
-	    									Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show();
+	    									Toast.makeText(context, "Contact group saved!", Toast.LENGTH_SHORT).show();
 	    								}
 	    								else
 	    								{
@@ -2884,6 +2999,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	        		}
 	        	}
 	        }
+	        removeSpinner();
 		}
 		
 		public View makeDivider()

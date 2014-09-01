@@ -111,9 +111,6 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 	}
 
 	public static class ContactListsFragment extends NewInvitationActivity.SelectListFragment {
-
-		private final String[] SHELL_GROUP_NAMES = {"Co-workers", "College Friends", "Family", 
-				"Fraternity/Sorority", "High School", "Roommates"};
 		
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -201,6 +198,7 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 	        		}
 	        	}
 	        }
+	        removeSpinner();
 		}
 		
 		public View makeDivider()

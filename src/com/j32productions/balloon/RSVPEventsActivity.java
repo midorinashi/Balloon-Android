@@ -131,6 +131,7 @@ public class RSVPEventsActivity extends Activity {
 		public void onResume()
 		{
 			super.onResume();
+			showSpinner();
 			if (switcher == null)
 			{
 				switcher = (ViewAnimator) getActivity().findViewById(R.id.animator);
@@ -139,6 +140,7 @@ public class RSVPEventsActivity extends Activity {
 				pullToRefreshView.setOnRefreshListener(new OnRefreshListener<ScrollView>() {
 				    @Override
 				    public void onRefresh(PullToRefreshBase<ScrollView> refreshView) {
+				        showSpinner();
 				        getUpcoming();
 				        new GetDataTask().execute();
 				    }
@@ -284,6 +286,7 @@ public class RSVPEventsActivity extends Activity {
 										}
 										else
 										{
+											mTimeToRSVPView.setTextColor(BLACK);
 											mTimeToRSVPView.setText(getString(R.string.no_start_time));
 											// I want to cancel the handler, timer, and view
 											int index = handlers.indexOf(this);
