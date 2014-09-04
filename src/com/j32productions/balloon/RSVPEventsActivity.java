@@ -3,6 +3,7 @@ package com.j32productions.balloon;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -185,7 +186,7 @@ public class RSVPEventsActivity extends Activity {
 					lin.removeAllViews();
 					LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, 1);
 					View line = new View(getActivity());
-					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lineGray));
 					line.setLayoutParams(lp);
 					lin.addView(line);
 					
@@ -271,18 +272,12 @@ public class RSVPEventsActivity extends Activity {
 											}
 											else
 											{
-												String time = "" + timeToRSVP/(60*60*1000) + ":";
-												int minutes = (int)(timeToRSVP/(60*1000))%60;
-												if (minutes < 10)
-													time = time + "0";
-												time = time + minutes + ":";
-												int seconds = (int)(timeToRSVP/1000)%60;
-												if (seconds < 10)
-													time = time+ "0";
-												time = time + seconds;
-												//System.out.println(time);
 												mTimeToRSVPView.setTextColor(BLACK);
-												mTimeToRSVPView.setText(STARTS_IN + " " + time);
+												mTimeToRSVPView.setText(String.format(Locale.US, STARTS_IN,
+														timeToRSVP/(24*60*60*1000),
+														(int)(timeToRSVP/(60*60*1000)%24),
+														(int)(timeToRSVP/(60*1000)%60),
+														(int)(timeToRSVP/1000)%60));
 												mTimeToRSVPView.invalidate();
 												mTimeToRSVPView.requestLayout();
 											}
@@ -290,7 +285,7 @@ public class RSVPEventsActivity extends Activity {
 										else
 										{
 											mTimeToRSVPView.setTextColor(BLACK);
-											mTimeToRSVPView.setText(getString(R.string.no_start_time));
+											mTimeToRSVPView.setText(getString(R.string.deadline_passed));
 											// I want to cancel the handler, timer, and view
 											int index = handlers.indexOf(this);
 											timers.get(index).cancel();
@@ -350,7 +345,7 @@ public class RSVPEventsActivity extends Activity {
 						lin.addView(event);
 						line = new View(getActivity());
 						line.setBackgroundColor(getActivity().getResources()
-								.getColor(R.color.lightGray));
+								.getColor(R.color.lineGray));
 						line.setLayoutParams(lp);
 						lin.addView(line);
 					}

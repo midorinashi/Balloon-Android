@@ -191,6 +191,7 @@ public class MoreInfoActivity extends ProgressActivity
 			Intent intent = new Intent(this, InviteMoreActivity.class);
 			Bundle bundle = new Bundle();
 			bundle.putString("objectId", mObjectId);
+			bundle.putBoolean("isCreator", mIsCreator);
 			intent.putExtras(bundle);
 			startActivity(intent);
 			return true;
@@ -247,69 +248,75 @@ public class MoreInfoActivity extends ProgressActivity
 	
 	public void respondNo(final View view)
 	{
-		showSpinner();
-		HashMap<String, Object> params = new HashMap<String, Object>();
-		params.put("meetupId", mObjectId);
-		params.put("responder", ParseUser.getCurrentUser().getObjectId());
-		params.put("willAttend", false);
-		view.setBackgroundColor(getResources().getColor(R.color.red));
-		ParseCloud.callFunctionInBackground("respondToMeetup", params, new FunctionCallback<Object>() {
-			public void done(Object o, ParseException e) {
-				if (e == null)
-				{
-					if (mSpotsLeft > -1 && (!mHasResponded || mWillAttend) && !mIsCreator)
+		if (!mHasResponded || mWillAttend)
+		{
+			showSpinner();
+			HashMap<String, Object> params = new HashMap<String, Object>();
+			params.put("meetupId", mObjectId);
+			params.put("responder", ParseUser.getCurrentUser().getObjectId());
+			params.put("willAttend", false);
+			view.setBackgroundColor(getResources().getColor(R.color.red));
+			ParseCloud.callFunctionInBackground("respondToMeetup", params, new FunctionCallback<Object>() {
+				public void done(Object o, ParseException e) {
+					if (e == null)
 					{
-						mSpotsLeft++;
-						TextView tv = (TextView) findViewById(R.id.spotsLeft);
-						if (tv != null)
-							tv.setText(getResources().getQuantityString(R.plurals.spotsLeft,
-								mSpotsLeft, mSpotsLeft));
+						if (mSpotsLeft > -1 && (!mHasResponded || mWillAttend) && !mIsCreator)
+						{
+							mSpotsLeft++;
+							TextView tv = (TextView) findViewById(R.id.spotsLeft);
+							if (tv != null)
+								tv.setText(getResources().getQuantityString(R.plurals.spotsLeft,
+									mSpotsLeft, mSpotsLeft));
+						}
+						mHasResponded = true;
+						mWillAttend = false;
+						findViewById(R.id.yes).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+						fetchComing();
 					}
-					mHasResponded = true;
-					mWillAttend = false;
-					findViewById(R.id.yes).setBackgroundColor(getResources().getColor(R.color.buttonBlue));
-					fetchComing();
+					else
+					{
+						showParseException(e);
+						view.setBackgroundColor(getResources().getColor(R.color.buttonBlue));
+					}
 				}
-				else
-				{
-					showParseException(e);
-					view.setBackgroundColor(getResources().getColor(R.color.buttonBlue));
-				}
-			}
-		});
+			});
+		}
 	}
 	
 	public void respondYes(final View view)
 	{
-		showSpinner();
-		//have to double check that limit
-		if (mSpotsLeft > -1 && !mIsCreator)
+		if (!mHasResponded || !mWillAttend)
 		{
-			final ProgressActivity context = this;
-			mMeetup.fetchInBackground(new GetCallback<ParseObject>() {
-				@Override
-				public void done(ParseObject meetup, ParseException e) {
-					if (e == null)
-					{
-						mSpotsLeft = mMeetup.getInt("spotsLeft");
-						System.out.println("Spots left " + mSpotsLeft);
-						TextView tv = (TextView) findViewById(R.id.spotsLeft);
-						if (tv != null)
-							tv.setText(context.getResources().getQuantityString(R.plurals.spotsLeft,
-								mSpotsLeft, mSpotsLeft));
-						if (mSpotsLeft == 0)
-							Toast.makeText(context, "Oops! This meetup is full!",
-									Toast.LENGTH_SHORT).show();
+			showSpinner();
+			//have to double check that limit
+			if (mSpotsLeft > -1 && !mIsCreator)
+			{
+				final ProgressActivity context = this;
+				mMeetup.fetchInBackground(new GetCallback<ParseObject>() {
+					@Override
+					public void done(ParseObject meetup, ParseException e) {
+						if (e == null)
+						{
+							mSpotsLeft = mMeetup.getInt("spotsLeft");
+							System.out.println("Spots left " + mSpotsLeft);
+							TextView tv = (TextView) findViewById(R.id.spotsLeft);
+							if (tv != null)
+								tv.setText(context.getResources().getQuantityString(R.plurals.spotsLeft,
+									mSpotsLeft, mSpotsLeft));
+							if (mSpotsLeft == 0)
+								Toast.makeText(context, "Oops! This meetup is full!",
+										Toast.LENGTH_SHORT).show();
+							else
+								finishRespondingYes(view);
+						}
 						else
-							finishRespondingYes(view);
+							showParseException(e);
 					}
-					else
-						showParseException(e);
-				}
-			});
+				});
+			}
+			else
+				finishRespondingYes(view);
 		}
-		else
-			finishRespondingYes(view);
 	}
 	
 	public void finishRespondingYes(final View view)
@@ -385,7 +392,7 @@ public class MoreInfoActivity extends ProgressActivity
 		    for (int i = 0; i < responses.size(); i++)
 		    {
 				View line = new View(this);
-				line.setBackgroundColor(getResources().getColor(R.color.lightGray));
+				line.setBackgroundColor(getResources().getColor(R.color.lineGray));
 				line.setLayoutParams(linelp);
 				
 				View response = View.inflate(this, R.layout.list_item_coming, null);
@@ -414,7 +421,7 @@ public class MoreInfoActivity extends ProgressActivity
 		    if (coming > 0)
 		    {
 		    	View line = new View(this);
-				line.setBackgroundColor(getResources().getColor(R.color.lightGray));
+				line.setBackgroundColor(getResources().getColor(R.color.lineGray));
 				line.setLayoutParams(linelp);
 				comingList.addView(line);
 		    }
@@ -424,7 +431,7 @@ public class MoreInfoActivity extends ProgressActivity
 		    if (notComing > 0)
 		    {
 		    	View line = new View(this);
-				line.setBackgroundColor(getResources().getColor(R.color.lightGray));
+				line.setBackgroundColor(getResources().getColor(R.color.lineGray));
 				line.setLayoutParams(linelp);
 				notComingList.addView(line);
 		    }
@@ -685,6 +692,7 @@ public class MoreInfoActivity extends ProgressActivity
 					long timeToRSVP = mExpiresAt.getTime() - now.getTime();
 					if (timeToRSVP < 0)
 					{
+						mMenu.findItem(R.id.action_invite).setVisible(false);
 						if (mStartsAt != null)
 						{
 							timeToRSVP = mStartsAt.getTime() - now.getTime();
@@ -697,23 +705,15 @@ public class MoreInfoActivity extends ProgressActivity
 							}
 							else
 							{
-								String time = "" + timeToRSVP/(60*60*1000) + ":";
-								int minutes = (int)(timeToRSVP/(60*1000))%60;
-								if (minutes < 10)
-									time = time + "0";
-								time = time + minutes + ":";
-								int seconds = (int)(timeToRSVP/1000)%60;
-								if (seconds < 10)
-									time = time+ "0";
-								time = time + seconds;
-								//System.out.println(time);
 								if (getActivity() != null && getActivity().findViewById(R.id.timeToRSVP) != null)
 								{
 									TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
 									tv.setTextColor(BLACK);
-									tv.setText(STARTS_IN + " " + time);
-									tv.invalidate();
-									tv.requestLayout();
+									tv.setText(String.format(Locale.US, STARTS_IN,
+											timeToRSVP/(24*60*60*1000),
+											(int)(timeToRSVP/(60*60*1000)%24),
+											(int)(timeToRSVP/(60*1000)%60),
+											(int)(timeToRSVP/1000)%60));
 								}
 							}
 						}
@@ -723,7 +723,7 @@ public class MoreInfoActivity extends ProgressActivity
 							{
 								TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
 								tv.setTextColor(BLACK);
-								tv.setText(getString(R.string.no_start_time));
+								tv.setText(getString(R.string.deadline_passed));
 							}
 							mTimer.cancel();
 							mTimer.purge();
@@ -841,7 +841,7 @@ public class MoreInfoActivity extends ProgressActivity
 				if (comments.size() > 0)
 				{
 					View line = new View(getActivity());
-					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lineGray));
 					line.setLayoutParams(linelp);
 					commentList.addView(line);
 				}
@@ -889,7 +889,7 @@ public class MoreInfoActivity extends ProgressActivity
 					}
 					commentList.addView(comment, lp);
 					View line = new View(getActivity());
-					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lineGray));
 					line.setLayoutParams(linelp);
 					commentList.addView(line);
 				}
@@ -944,7 +944,7 @@ public class MoreInfoActivity extends ProgressActivity
 			    for (int i = 0; i < responses.size(); i++)
 			    {
 					View line = new View(getActivity());
-					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lineGray));
 					line.setLayoutParams(linelp);
 					
 					View response = View.inflate(getActivity(), R.layout.list_item_coming, null);
@@ -979,7 +979,7 @@ public class MoreInfoActivity extends ProgressActivity
 			    if (coming > 0)
 			    {
 			    	View line = new View(getActivity());
-					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lineGray));
 					line.setLayoutParams(linelp);
 					comingList.addView(line);
 			    }
@@ -989,7 +989,7 @@ public class MoreInfoActivity extends ProgressActivity
 			    if (notComing > 0)
 			    {
 			    	View line = new View(getActivity());
-					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lineGray));
 					line.setLayoutParams(linelp);
 					notComingList.addView(line);
 			    }

@@ -44,7 +44,7 @@
                 android:layout_height="1dp"
                 android:layout_alignParentLeft="true"
                 android:layout_below="@id/edit"
-                android:background="@color/lightGray" />
+                android:background="@color/lineGray" />
 
             <com.j32productions.balloon.TextBox
                 android:id="@+id/listName"
@@ -67,7 +67,7 @@
                 android:layout_height="1dp"
                 android:layout_below="@+id/imageView1"
                 android:layout_alignParentLeft="true"
-                android:background="@color/lightGray" />
+                android:background="@color/lineGray" />
 
             <ImageView
                 android:id="@+id/blank"
@@ -112,7 +112,7 @@
                 android:layout_height="1dp"
                 android:layout_alignBottom="@+id/blank"
                 android:layout_alignParentLeft="true"
-                android:background="@color/lightGray" />
+                android:background="@color/lineGray" />
         </RelativeLayout>
 
     </LinearLayout>

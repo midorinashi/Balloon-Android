@@ -58,7 +58,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="1px"
                 android:layout_marginTop="30dp"
-                android:background="@color/lightGray" />
+                android:background="@color/lineGray" />
             
             <LinearLayout
                 android:layout_width="match_parent"
@@ -143,7 +143,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1px"
-                android:background="@color/lightGray" />
+                android:background="@color/lineGray" />
             
             <com.j32productions.balloon.TextBox
                 android:id="@+id/startsAt"
@@ -159,7 +159,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1px"
-                android:background="@color/lightGray" />
+                android:background="@color/lineGray" />
             
             <com.j32productions.balloon.TextBox
                 android:id="@+id/commentsHeader"

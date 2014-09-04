@@ -3,6 +3,7 @@ package com.j32productions.balloon;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
@@ -46,7 +47,19 @@ public class GroupAdapter extends ArrayAdapter<String> implements Filterable {
     	responseRates = rates;
     }
  
-    public int getCount() {
+    public GroupAdapter(Activity a, int type, ArrayList<String> n, ArrayList<String> rates,
+			ArrayList<String> urls) {
+    	super(a, type, R.id.name, n);
+        activity = a;
+        viewType = type;
+        names = n.toArray(new String[0]);
+        photoURLs = urls.toArray(new String[0]);
+    	responseRates = rates.toArray(new String[0]);
+        inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        imageLoader = new ImageLoader(activity.getApplicationContext());
+	}
+
+	public int getCount() {
         return names.length;
     }
     

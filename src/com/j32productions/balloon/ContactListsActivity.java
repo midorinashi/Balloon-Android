@@ -205,7 +205,7 @@ public class ContactListsActivity extends Activity implements OnMemberListSelect
 		{
 			View view = new View(getActivity());
 			view.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, 1));
-			view.setBackgroundColor(getResources().getColor(R.color.lightGray));
+			view.setBackgroundColor(getResources().getColor(R.color.lineGray));
 			return view;
 		}
 	}

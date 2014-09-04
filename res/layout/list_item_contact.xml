@@ -37,5 +37,5 @@
         android:layout_height="1px"
         android:layout_below="@id/number"
         android:layout_marginTop="10dp"
-        android:background="@color/lightGray" />
+        android:background="@color/lineGray" />
 </RelativeLayout>

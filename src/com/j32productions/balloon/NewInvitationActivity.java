@@ -305,11 +305,20 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		}
 		else if (mCurrentFragment.equals("ChooseLocationFragment"))
 		{
+			if (mVenue == null)
+			{
 			CharSequence text = "Please choose a location.";
 			int duration = Toast.LENGTH_SHORT;
 
 			Toast toast = Toast.makeText(this, text, duration);
 			toast.show();
+			}
+			else if (mAfterFinalEdit)
+			{
+				getFragmentManager().popBackStack();
+			}
+			else
+				transaction.replace(R.id.container, new SetDeadlineFragment());
 		}
 		else if (mCurrentFragment.equals("SetDeadlineFragment"))
 		{
@@ -885,8 +894,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					Toast.makeText(context, "Oops! Something went wrong.", Toast.LENGTH_SHORT).show();
 				}
 				popped = true;
-				Intent intent = new Intent(context, RSVPEventsActivity.class);
-				startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+				if (!(context instanceof InviteMoreActivity))
+				{
+					Intent intent = new Intent(context, RSVPEventsActivity.class);
+					startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+				}
 				finish();
 			}
 		});
@@ -1091,8 +1103,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    						mIsShellGroup = true;
 	    						FragmentTransaction transaction = getActivity().getFragmentManager()
 	    								.beginTransaction();
-	    						transaction.replace(R.id.container,
-	    								new SelectMembersFromContactsFragment());
+	    						if (getActivity() instanceof InviteMoreActivity)
+	    							transaction.replace(R.id.container, new InviteMoreActivity
+	    									.SelectMembersFromContactsFragment());
+	    						else
+		    						transaction.replace(R.id.container,
+		    								new SelectMembersFromContactsFragment());
 	    						transaction.addToBackStack(null);
 	    						transaction.commit();
 	    					}
@@ -1108,7 +1124,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			View view = new View(getActivity());
 			view.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, 1));
-			view.setBackgroundColor(getResources().getColor(R.color.lightGray));
+			view.setBackgroundColor(getResources().getColor(R.color.lineGray));
 			return view;
 		}
 		
@@ -1533,12 +1549,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	public static class SelectMembersFromListFragment extends ProgressFragment {
 		
 		// and name should be displayed in the text1 textview in item layout
-		private static String[] names;
-		private static String[] photoURLs;
-		private static ArrayList<String> ids;
-		private static JSONArray users;
-		private ArrayAdapter<String> mArrayAdapter;
-		protected static String[] responseRates;
+		protected static ArrayList<String> names;
+		protected static ArrayList<String> photoURLs;
+		protected static ArrayList<String> ids;
+		protected static JSONArray users;
+		protected ArrayAdapter<String> mArrayAdapter;
+		protected static ArrayList<String> responseRates;
 		
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
@@ -1585,7 +1601,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 						{
 							ownerIsUser = true;
 						}
-						names = new String[length];
+						names = new ArrayList<String>();
 						ids = new ArrayList<String>();
 						int empty = 0;
 						//put all member names and ids into respective arrays
@@ -1659,26 +1675,28 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				public void done(List<ParseUser> userList, ParseException e) {
 					if (e == null)
 					{
-						names = new String[userList.size()];
-						responseRates = new String[userList.size()];
-						photoURLs = new String[userList.size()];
+						ids = new ArrayList<String>();
+						names = new ArrayList<String>();
+						responseRates = new ArrayList<String>();
+						photoURLs = new ArrayList<String>();
 						//we want a JSONArray of users, not just of userIds
 						users = new JSONArray();
 						for (int i = 0; i < userList.size(); i++)
 						{
-							names[i] = userList.get(i).getString("firstName") + " " + 
-										userList.get(i).getString("lastName");
+							names.add(userList.get(i).getString("firstName") + " " + 
+										userList.get(i).getString("lastName"));
 							if (userList.get(i).containsKey("profilePhoto"))
-								photoURLs[i] = userList.get(i).getParseFile("profilePhoto").getUrl();
-							if (userList.get(i).containsKey("responseRate"))
-								responseRates[i] = "" + (Math.round(userList.get(i)
-										.getDouble("responseRate")*1000))/10.0+"%";
+								photoURLs.add(userList.get(i).getParseFile("profilePhoto").getUrl());
 							else
-								responseRates[i] = "100%";
+								photoURLs.add(null);
+							if (userList.get(i).containsKey("responseRate"))
+								responseRates.add("" + (Math.round(userList.get(i)
+										.getDouble("responseRate")*1000))/10.0+"%");
+							else
+								responseRates.add("100%");
 							//because the ids are no longer in the same order as they used to be!
-							ids.set(i, userList.get(i).getObjectId());
+							ids.add(userList.get(i).getObjectId());
 							users.put(userList.get(i));
-							System.out.println(names[i]);
 						}
 						finishResume();
 					}
@@ -1744,13 +1762,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					System.out.println("Index is checked " + index);
 					if (mPreviewName == null)
 					{
-						mPreviewName = names[index];
+						mPreviewName = names.get(index);
 						if (mPreviewName.indexOf(' ') > -1)
 			        		mPreviewName = mPreviewName.substring(0, mPreviewName.indexOf(' '));
 					}
 					mMemberIds[j] = ids.get(index);
 					j++;
-					System.out.println(names[index]);
 					try {
 						mMembers.put(users.get(index));
 						mMemberObjectIds.put(ids.get(index));
@@ -2520,9 +2537,13 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		            	   }
 		            	   else
 		            	   {
-		            		    Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
-		            			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-		            			getActivity().finish();
+
+		            		   if (!(getActivity() instanceof InviteMoreActivity))
+		            		   {
+		            			   Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+		            			   startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+		            		   }
+		            		   getActivity().finish();
 		            	   }
 		           }
 		    });
@@ -2532,16 +2553,14 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		public void onStop()
 		{
 			super.onStop();
-			if (clearAll)
+			if (clearAll) 
 			{
-				if (getActivity() instanceof InviteMoreActivity)
-					getActivity().getFragmentManager().popBackStack();
-				else
+				if (!(getActivity() instanceof InviteMoreActivity))
 				{
 					Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
 					startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-					getActivity().finish();
 				}
+				getActivity().finish();
 			}
 		}
 	}
@@ -2596,7 +2615,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					.resize(140, 140).into((ImageView) member.findViewById(R.id.imageView1));
 			ll.addView(member, 0);
 			View line = new View(getActivity());
-			line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+			line.setBackgroundColor(getActivity().getResources().getColor(R.color.lineGray));
 			line.setLayoutParams(lp);
 			ll.addView(line, 1);
 			
@@ -2631,7 +2650,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				}	
 				ll.addView(member, 2*i + 2);
 				line = new View(getActivity());
-				line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+				line.setBackgroundColor(getActivity().getResources().getColor(R.color.lineGray));
 				line.setLayoutParams(lp);
 				ll.addView(line, 2*i + 3);
 			}
@@ -2652,18 +2671,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			if (!popped)
 			{
-				if (getActivity() instanceof InviteMoreActivity)
-				{
-					getActivity().getFragmentManager().popBackStack();
-					getActivity().getFragmentManager().popBackStack();
-					getActivity().getFragmentManager().popBackStack();
-				}
-				else
+				if (!(getActivity() instanceof InviteMoreActivity))
 				{
 					Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
 					startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-					getActivity().finish();
 				}
+				getActivity().finish();
 			}
 			super.onDestroy();
 		}
@@ -2807,8 +2820,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 									Toast.makeText(context, "Oops! Something went wrong.", Toast.LENGTH_SHORT).show();
 								}
 								popped = true;
-								Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
-								startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+								if (!(getActivity() instanceof InviteMoreActivity))
+								{
+									Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+									startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+								}
 								getActivity().finish();
 							}
 							
@@ -2867,8 +2883,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    											Toast.LENGTH_SHORT).show();
 	    								}
 	    								popped = true;
-	    								Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
-	    								startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+	    								if (!(getActivity() instanceof InviteMoreActivity))
+	    								{
+		    								Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+		    								startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+	    								}
 	    								getActivity().finish();
 	    							}
 	    							
@@ -2886,7 +2905,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			View view = new View(getActivity());
 			view.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, 1));
-			view.setBackgroundColor(getResources().getColor(R.color.lightGray));
+			view.setBackgroundColor(getResources().getColor(R.color.lineGray));
 			return view;
 		}
 		
@@ -2894,17 +2913,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			if (!popped)
 			{
-				if (getActivity() instanceof InviteMoreActivity)
-				{
-					getActivity().getFragmentManager().popBackStack();
-					getActivity().getFragmentManager().popBackStack();
-				}
-				else
+				if (!(getActivity() instanceof InviteMoreActivity))
 				{
 					Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
 					startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-					getActivity().finish();
 				}
+				getActivity().finish();
 			}
 			super.onDestroy();
 		}

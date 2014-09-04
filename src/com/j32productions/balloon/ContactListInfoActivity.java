@@ -75,6 +75,7 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 	private static Menu mOptionMenu;
 	private static ContextMenu mMenu;
 	public static String memberToDelete;
+	public static String phoneToDelete;
 	public String[] mMemberFirstNames;
 	public String[] mMemberLastNames;
 	public String[] mPhoneNumbers;
@@ -267,6 +268,15 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 					if (e == null)
 					{
 						System.out.println("done!");
+						System.out.println("To delete: "+phoneToDelete);
+						for (int i = 0; i < phones.length; i++)
+						{
+							if (phones[i].equals(phoneToDelete))
+							{
+								phones[i] = "HUEHUEHUEHUEHUE";
+								System.out.println("found");
+							}
+						}
 					}
 					else
 						showParseException(e);
@@ -351,10 +361,10 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 						public void done(ParseException e) {
 							if (e == null)
 							{
-								removeSpinner();
 								Toast.makeText(getApplication(), "Members saved!", 
 										Toast.LENGTH_SHORT).show();
 								getFragmentManager().popBackStack();
+								showSpinner();
 							}
 							else
 								showParseException(e);
@@ -713,6 +723,7 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 				{
 					View member = View.inflate(getActivity(), R.layout.list_members, null);
 					((TextView) member.findViewById(R.id.name)).setText(names[i]);
+					((TextView) member.findViewById(R.id.number)).setText(phones[i]);
 					((TextView) member.findViewById(R.id.responseRate)).setText("" + 
 							(Math.round(responseRates[i]*1000)/10.0) + "%");
 					if (photoURLs[i] == null)
@@ -741,6 +752,7 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 							@Override
 							public void onClick(View v) {
 								memberToDelete = ((TextView) v.findViewById(R.id.id)).getText().toString();
+								phoneToDelete = ((TextView) v.findViewById(R.id.number)).getText().toString();
 								PopupMenu popup = new PopupMenu(getActivity(), v);
 							    MenuInflater inflater = popup.getMenuInflater();
 							    popup.setOnMenuItemClickListener((OnMenuItemClickListener) getActivity());
@@ -751,7 +763,7 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 					}
 					ll.addView(member, 2*i);
 					View line = new View(getActivity());
-					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
+					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lineGray));
 					line.setLayoutParams(lp);
 					ll.addView(line, 2*i + 1);
 				}

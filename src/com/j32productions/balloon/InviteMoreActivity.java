@@ -2,35 +2,75 @@ package com.j32productions.balloon;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.DialogFragment;
+import android.app.FragmentTransaction;
 import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Checkable;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.j32productions.balloon.NewInvitationActivity.SelectMembersFromListFragment;
+import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 public class InviteMoreActivity extends EditMeetupActivity {
 	
 	//we shouldn't be able to see who's invited, but we don't want to invite people twice
-	private JSONArray mAlreadyInvited;
+	private static JSONArray mAlreadyInvited;
+	private static ArrayList<String> mAlreadyInvitedNumbers;
 	private JSONArray mSelectedMembers;
 	private JSONArray onlyTo;
+	private boolean isCreator;
 	private boolean sendInvites;
 	
 	protected void setValues(ParseObject meetup, Bundle savedInstanceState)
 	{
 		super.setValues(meetup, savedInstanceState);
 		mAlreadyInvited = mMembers;
+		mAlreadyInvitedNumbers = new ArrayList<String>();
 		mMembers = new JSONArray();
+		isCreator = getIntent().getBooleanExtra("isCreator", false);
+		if (isCreator)
+		{
+			ArrayList<ParseQuery<ParseUser>> queries = new ArrayList<ParseQuery<ParseUser>>();
+			for (int i = 0; i < mAlreadyInvited.length(); i++)
+			{
+				ParseQuery<ParseUser> query = ParseUser.getQuery();
+				try {
+					query.whereEqualTo("objectId", mAlreadyInvited.getJSONObject(i).getString("objectId"));
+					queries.add(query);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+			if (queries.size() > 0)
+			{
+				ParseQuery<ParseUser> mainQuery = ParseQuery.or(queries);
+				mainQuery.findInBackground(new FindCallback<ParseUser>() {
+					@Override
+					public void done(List<ParseUser> list, ParseException e) {
+						if (list != null)
+							for (ParseUser user : list)
+								mAlreadyInvitedNumbers.add(user.getUsername());
+					}
+				});
+			}
+		}
 	}
 	
 	public void loadView(Bundle savedInstanceState)
@@ -40,6 +80,31 @@ public class InviteMoreActivity extends EditMeetupActivity {
 			getFragmentManager().beginTransaction()
 					.add(R.id.container, new SelectListFragment()).commit();
 		}
+	}
+	
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_plus)
+		{
+			mMakeContactList = true;
+			mIsShellGroup = false;
+			FragmentTransaction transaction = getFragmentManager().beginTransaction();
+			transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
+			transaction.addToBackStack(null);
+			transaction.commit();
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+	
+	public void onMemberListSelected() {
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
+		transaction.replace(R.id.container, new SelectMembersFromListFragment());
+		transaction.addToBackStack(null);
+		transaction.commit();
 	}
 	
 	public void next()
@@ -128,7 +193,6 @@ public class InviteMoreActivity extends EditMeetupActivity {
 		sendInvites = false;
 		mSelectedMembers = mMembers;
 		ArrayList<String> mAlreadyInvitedIds = new ArrayList<String>();
-		mAlreadyInvitedIds.add(meetup.getParseUser("creator").getObjectId());
 		System.out.println(mAlreadyInvited);
 		for (int i = 0; i < mAlreadyInvited.length(); i++)
 		{
@@ -151,12 +215,12 @@ public class InviteMoreActivity extends EditMeetupActivity {
 				//if we already invited this person, we don't need to put him 
 				//back into members again - kinda works dumbly but whatevs
 				if (mAlreadyInvitedIds.contains(objectId))
-					mAlreadyInvitedIds.remove(i);
+					mAlreadyInvitedIds.remove(objectId);
 				//if not, we want to add this person to the onlyTo array
 				else
 				{
 					sendInvites = true;
-					onlyTo.put(mMembers.getJSONObject(i));
+					onlyTo.put(mMembers.get(i));
 				}
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -164,7 +228,6 @@ public class InviteMoreActivity extends EditMeetupActivity {
 		}
 		
 		//get rid of the creator first
-		mAlreadyInvitedIds.remove(0);
 		for (int i = 0; i < mAlreadyInvitedIds.size(); i++)
 		{
 			JSONObject member = new JSONObject();
@@ -221,6 +284,12 @@ public class InviteMoreActivity extends EditMeetupActivity {
 			end();
 	}
 	
+	@Override
+	public void end()
+	{
+		finish();
+	}
+	
 	public static class SelectMembersFromListFragment extends
 		NewInvitationActivity.SelectMembersFromListFragment
 	{
@@ -229,6 +298,39 @@ public class InviteMoreActivity extends EditMeetupActivity {
 			super.onResume();
 			mNext = getActivity().getString(R.string.invite);
 			getActivity().invalidateOptionsMenu();
+		}
+		
+		public void finishResume()
+		{
+			ArrayList<String> mAlreadyInvitedIds = new ArrayList<String>();
+			System.out.println(mAlreadyInvited);
+			for (int i = 0; i < mAlreadyInvited.length(); i++)
+			{
+				try {
+					mAlreadyInvitedIds.add(mAlreadyInvited.getJSONObject(i).getString("objectId"));
+					System.out.println("Already invited: "+mAlreadyInvitedIds.get(mAlreadyInvitedIds.size() - 1));
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+			for (int i = 0; i < ids.size(); i++)
+			{
+				if (mAlreadyInvitedIds.contains(ids.get(i)))
+				{
+					names.remove(i);
+					ids.remove(i);
+					photoURLs.remove(i);
+					responseRates.remove(i);
+					i--;
+				}
+			}
+			if (ids.size() == 0)
+			{
+				Toast.makeText(getActivity(), "Everyone from this group is already invited!",
+						Toast.LENGTH_SHORT).show();
+				getActivity().getFragmentManager().popBackStack();
+			}
+			super.finishResume();
 		}
 	}
 	
@@ -240,6 +342,27 @@ public class InviteMoreActivity extends EditMeetupActivity {
 			super.onResume();
 			mNext = getActivity().getString(R.string.invite);
 			getActivity().invalidateOptionsMenu();
+			System.out.println("resumed");
+			LinearLayout ll = (LinearLayout) getActivity().findViewById(R.id.linearLayout);
+			for (int i = 0; i < ll.getChildCount(); i++)
+			{
+				for (int j = 0; j < mAlreadyInvitedNumbers.size(); j++)
+				{
+					View child = ll.getChildAt(i);
+					if (mAlreadyInvitedNumbers.get(j).endsWith(((TextView) child.findViewById(R.id.number))
+							.getText().toString().replaceAll("[^[0-9]]", "")))
+					{
+						Checkable checkbox = (Checkable) child.findViewById(R.id.itemCheckBox);
+						if (!checkbox.isChecked())
+						{
+							((Checkable) child.findViewById(R.id.itemCheckBox)).setChecked(true);
+							numChecked++;
+						}
+						child.setOnClickListener(null);
+						break;
+					}
+				}
+			}
 		}
 	}
 }
