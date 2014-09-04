@@ -236,8 +236,11 @@ public class RSVPEventsActivity extends Activity {
 							{
 								int spotsLeft = meetup.getInt("spotsLeft");
 								TextView tv = (TextView) event.findViewById(R.id.spotsLeft);
-								tv.setText(getResources().getQuantityString(R.plurals.spotsLeft,
-										spotsLeft, spotsLeft));
+								if (spotsLeft == 0)
+									tv.setText(R.string.no_spots_left);
+								else
+									tv.setText(getResources().getQuantityString(R.plurals.spotsLeft,
+											spotsLeft, spotsLeft));
 								tv.setVisibility(View.VISIBLE);
 							}
 							final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);

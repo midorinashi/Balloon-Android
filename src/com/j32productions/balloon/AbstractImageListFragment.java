@@ -49,7 +49,7 @@ public abstract class AbstractImageListFragment extends ProgressFragment {
 		}
 		else
 		{
-    		Toast.makeText(context, "No photos available", Toast.LENGTH_SHORT).show();
+    		Toast.makeText(context, "No location photos available", Toast.LENGTH_SHORT).show();
     		
 		}
 	}

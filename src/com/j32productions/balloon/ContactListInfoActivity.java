@@ -40,6 +40,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.CheckBox;
+import android.widget.Checkable;
 import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.ImageView;
@@ -294,9 +295,9 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 	public void saveNewMembers()
 	{
 		showSpinner();
+		SelectMembersFromContactsFragment.saveContacts();
 		final JSONArray members = list.getJSONArray("members");
 		final ArrayList<String> memberIds = new ArrayList<String>();
-		SelectMembersFromContactsFragment.saveContacts();
 		//get a list of member object ids who are in the group already
 		for (int i = 0; i < members.length(); i++)
 		{
@@ -506,7 +507,17 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 	    DialogFragment newFragment = new ChangeNameFragment();
 	    newFragment.show(getFragmentManager(), null);
 	}
-	
+
+	public void toggleVisibleToGroup(View view)
+	{
+		Checkable checkbox = (Checkable) findViewById(R.id.checkBox1);
+		if (checkbox != null)
+		{
+			checkbox.setChecked(!checkbox.isChecked());
+			list.put("isVisibleToMembers", checkbox.isChecked());
+			list.saveInBackground();
+		}
+	}
 	
 	public static class ShowListFragment extends ProgressFragment {
 		protected String[] names;
@@ -805,44 +816,26 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 				mOptionMenu.getItem(i).setVisible(false);
 			mOptionMenu.findItem(R.id.save).setVisible(true);
 			mOptionMenu.findItem(R.id.save).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-			
-			final ListView lv = (ListView) getActivity().findViewById(R.id.contactsList);
-			final ContactAdapter adapter = (ContactAdapter) lv.getAdapter();
-			adapter.getFilter().filter("");
-            adapter.notifyDataSetChanged();
-            //then filter the results
-            adapter.getFilter().filter("", new Filter.FilterListener() {
-                public void onFilterComplete(int count) {
-                    adapter.notifyDataSetChanged();
-                    
-                    for (int i = 0; i < lv.getCount(); i++)
-        			{
-        				System.out.println(((ContactAdapter) lv.getAdapter()).getNumber(i)
-        							.toString().replaceAll("[^[0-9]]", ""));
-        				for (int j = 0; j < phones.length; j++)
-        				{
-        					System.out.println("member number = " + phones[j]);
-        					if (phones[j].endsWith(((ContactAdapter) lv.getAdapter()).getNumber(i)
-        							.toString().replaceAll("[^[0-9]]", "")))
-        					{
-        						System.out.println("found!");
-        						System.out.println(i);
-        						lv.setItemChecked(i, true);
-        						/*
-        						lv.getChildAt(i).setEnabled(false);
-        						//lv.getChildAt(i).setBackgroundColor(getActivity().getResources().getColor(R.color.red));
-        						lv.getChildAt(i).setOnClickListener(new OnClickListener() {
-									@Override
-									public void onClick(View view) {
-										((Checkable) view).setChecked(true);
-										System.out.println("checked");
-									}
-        						});*/
-        					}
-        				}
-        			}
-                }
-            });
+			LinearLayout ll = (LinearLayout) getActivity().findViewById(R.id.linearLayout);
+			for (int i = 0; i < ll.getChildCount(); i++)
+			{
+				for (int j = 0; j < phones.length; j++)
+				{
+					View child = ll.getChildAt(i);
+					if (phones[j].endsWith(((TextView) child.findViewById(R.id.number)).getText()
+							.toString().replaceAll("[^[0-9]]", "")))
+					{
+						Checkable checkbox = (Checkable) child.findViewById(R.id.itemCheckBox);
+						if (!checkbox.isChecked())
+						{
+							((Checkable) child.findViewById(R.id.itemCheckBox)).setChecked(true);
+							numChecked++;
+						}
+						child.setOnClickListener(null);
+						break;
+					}
+				}
+			}
 		}
 	}
 	

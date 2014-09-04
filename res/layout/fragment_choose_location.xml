@@ -5,23 +5,15 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <LinearLayout
-        android:background="@color/white"
-        android:layout_width="match_parent"
+    <SearchView
+        android:id="@+id/searchLocation"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:orientation="horizontal" >
-
-        <SearchView
-            android:id="@+id/searchLocation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:queryHint="@string/search_location"
-            android:iconifiedByDefault="false" >
-
-        </SearchView>
-
-    </LinearLayout>
+        android:queryHint="@string/search"
+        android:background="@color/white"
+        android:iconifiedByDefault="false" >
+    </SearchView>
 
     <ListView
         android:id="@+id/locationList"

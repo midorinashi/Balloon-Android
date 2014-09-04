@@ -39,7 +39,9 @@
     <string name="check_your_plans">Check your plans for\nupcoming events</string>
     <string name="choose_group">Choose a group to set\nsomething up</string>
     <string name="comments_header">COMMENTS</string>
+    <string name="comments_numbered_header">COMMENTS (%1$d)</string>
     <string name="comments_hint">Your comment here</string>
+    <string name="coming_numbered_header">COMING (%1$d)</string>
     <string name="coming_header">COMING</string>
     <string name="contacts_header">Contacts:</string>
     <string name="create_custom_location">Create Custom Location</string>
@@ -90,10 +92,12 @@
     <string name="no_invites"><b>No Invites</b></string>
     <string name="no_limit">No Limit</string>
     <string name="no_locations">No locations found. Please turn on location services.</string>
-    <string name="no_start_time">No Start Time Set</string>
     <string name="no_plans"><b>No Plans</b></string>
+    <string name="no_spots_left">No Spots Left</string>
+    <string name="no_start_time">No Start Time Set</string>
     <string name="no_thanks"><b>No Thanks</b></string>
     <string name="no_time"></string>
+    <string name="not_coming_numbered_header">NOT COMING (%1$d)</string>
     <string name="not_coming_header">NOT COMING</string>
     <string name="optional">Optional:</string>
     <string name="password">Password</string>
@@ -108,7 +112,7 @@
     <string name="save">Save</string>
     <string name="save_to_new_group">Save to New Group</string>
     <string name="save_to_existing_group">Save to Existing Group</string>
-    <string name="search_location">Search</string>
+    <string name="search">Search…</string>
     <string name="send">Send</string>
     <string name="select_all">Select All:</string>
     <string name="select_group"><b>Select a Group</b></string>

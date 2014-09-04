@@ -50,7 +50,7 @@ public class ContactAdapter extends ArrayAdapter<String> implements Filterable {
     }
 
     public String getItem(int position) {
-        return "" + position;
+        return ids.get(position);
     }
     
     public long getItemId(int position) {
@@ -97,7 +97,6 @@ public class ContactAdapter extends ArrayAdapter<String> implements Filterable {
                 }
                  
                 results.count = filteredNames.size();
-         
             }
             return results;
         }

@@ -59,7 +59,7 @@ public class InviteMoreActivity extends EditMeetupActivity {
 		}
 		else if (mCurrentFragment == "SelectMembersFromContactsFragment")
 		{
-			if (((ListView) findViewById(R.id.contactsList)).getCheckedItemCount() != 0)
+			if (SelectMembersFromContactsFragment.getCheckedCount() != 0)
 			{
 				SelectMembersFromContactsFragment.saveContacts();
 				mMakeContactList = true;
@@ -140,11 +140,13 @@ public class InviteMoreActivity extends EditMeetupActivity {
 			}
 		}
 		
-		System.out.println("Member ids = " + mMemberIds.length);
 		for (int i = 0; i < mMembers.length(); i++)
 		{
 			try {
-				String objectId = ((ParseUser) mMembers.get(i)).getObjectId();
+				
+				String objectId = mMembers.get(i) instanceof ParseUser ?
+						((ParseUser) mMembers.get(i)).getObjectId() :
+						mMembers.getJSONObject(i).getString("objectId");
 				System.out.println("To invite: " + objectId);
 				//if we already invited this person, we don't need to put him 
 				//back into members again - kinda works dumbly but whatevs

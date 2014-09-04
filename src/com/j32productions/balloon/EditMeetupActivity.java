@@ -104,6 +104,7 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		mMemberIds = null;
 		mMemberFirstNames = null;
 		mMemberLastNames = null;
+		mHasLocationPictures = true;
 		
 		mMembers = meetup.getJSONArray("invitedUsers");
 		//TODO mPreviewName = mMembers.get(0);
@@ -123,7 +124,7 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		else
 		{
 			mLimit = 0;
-			mSpotsLeft = 0;
+			mSpotsLeft = -1;
 			mIsFull = false;
 		}
 		

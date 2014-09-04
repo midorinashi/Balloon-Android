@@ -25,7 +25,7 @@ public class NewInvitationFromGroupActivity extends NewInvitationActivity {
 		mExpiresAtHour = -1;
 		mExpiresAtMinute = 0;
 		mVenuePhotoUrls = new JSONArray();
-		mPhoneNumbers = null;
+		mPhoneNumbers = new String[0];
 		//same for makeContactList, but consistency
 		mMakeContactList = false;
 		mIsShellGroup = false;
@@ -44,6 +44,7 @@ public class NewInvitationFromGroupActivity extends NewInvitationActivity {
 		mLimit = 0;
 		mSpotsLeft = 0;
 		mIsFull = false;
+		mHasLocationPictures = true;
 
 		//since we want to do cool new things!
 		ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("ContactList");

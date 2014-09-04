@@ -122,6 +122,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	protected static String mCurrentFragment;
 	//ayyyyyy because sometimes we go outside of the flow
 	protected static boolean mAfterFinalEdit;
+	protected static boolean mHasLocationPictures;
 	
 	//views to mangae select members fragment
 	protected static CheckBox mCheckbox;
@@ -165,7 +166,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		mExpiresAtHour = -1;
 		mExpiresAtMinute = 0;
 		mVenuePhotoUrls = new JSONArray();
-		mPhoneNumbers = null;
+		mPhoneNumbers = new String[0];
 		//same for makeContactList, but consistency
 		mMakeContactList = false;
 		mFinishSavingMeetup = false;
@@ -185,6 +186,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		mLimit = 0;
 		mSpotsLeft = 0;
 		mIsFull = false;
+		mHasLocationPictures = true;
 		
 		if (savedInstanceState == null) {
 			mAfterFinalEdit = false;
@@ -254,7 +256,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
 		else if (mCurrentFragment.equals("SelectMembersFromContactsFragment"))
 		{
-			if (((ListView) findViewById(R.id.contactsList)).getCheckedItemCount() != 0)
+			if (SelectMembersFromContactsFragment.getCheckedCount() != 0)
 			{
 				SelectMembersFromContactsFragment.saveContacts();
 				if (mAfterFinalEdit)
@@ -364,127 +366,23 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		transaction.addToBackStack(null);
 		transaction.commit();
 	}
-	/*
-	// http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
-	public void saveContacts()
+	
+	public static void setHasLocationPictures(boolean b)
 	{
-		//  i get the checked contact_id
-		long[] id = ((ListView) findViewById(R.id.contactsList)).getCheckedItemIds();
-        mPhoneNumbers = new String[id.length];
-        mMemberNames = new String[id.length];
-        for (int i = 0; i < id.length; i++)
-        {
-            mPhoneNumbers[i] = getPhoneNumber(id[i]); // get phonenumber from selected id
-            mMemberNames[i] = getName(id[i]);
-
-			System.out.println(mMemberNames[i] +" " + mPhoneNumbers[i]);
-        }
-        if (id.length > 0)
-        	if (mMemberNames[0].indexOf(' ') > -1)
-        		mPreviewName = mMemberNames[0].substring(0, mMemberNames[0].indexOf(' '));
-        	else
-        		mPreviewName = mMemberNames[0];
+		mHasLocationPictures = b;
 	}
 	
-	/* References
-	 * http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
-	 * http://stackoverflow.com/questions/7114573/get-contacts-mobile-number-only
-	 * http://www.regular-expressions.info/shorthand.html
-	 */
-	private String getPhoneNumber(long id) {
-	    String phone = null;
-	    Cursor phonesCursor = null;
-	    phonesCursor = queryPhoneNumbers(id);
-	    if (phonesCursor == null || phonesCursor.getCount() == 0) {
-	        // No valid number
-	    	System.out.println("No valid number");
-	        return null;
-	    }
-	    else {
-	        phonesCursor.moveToPosition(-1);
-	        while (phonesCursor.moveToNext()) {
-		        int phoneType = phonesCursor.getInt(phonesCursor.getColumnIndex(Phone.TYPE));
-		        if (phoneType == Phone.TYPE_MOBILE)
-		        {
-		             phone = phonesCursor.getString(phonesCursor.getColumnIndex
-		            		 (ContactsContract.CommonDataKinds.Phone.DATA));
-		             break;
-		        }
-	        }
-	    }
-	    if (phone == null)
-	    {
-	        phone = phonesCursor.getString(phonesCursor
-	                .getColumnIndex(Phone.NUMBER));
-	    }
-        phone = phone.replaceAll("[^[0-9]]", "");
-        //TODO deal with missing area codes and missing country codes - use user's number
-        //has area code but no country code - cloud code auto adds america
-        /*
-        if (phone.length() == 10)
-        	phone = "1" + phone;
-        phone = "+" + phone;
-        */
-        phonesCursor.close();
-	    return phone;
-	}
-	
-	// http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
-	private Cursor queryPhoneNumbers(long contactId) {
-	    ContentResolver cr = getContentResolver();
-	    Uri baseUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI,
-	            contactId);
-	    Uri dataUri = Uri.withAppendedPath(baseUri,
-	            ContactsContract.Contacts.Data.CONTENT_DIRECTORY);
-
-	    Cursor c = cr.query(dataUri, new String[] { Phone._ID, Phone.NUMBER,
-	            Phone.IS_SUPER_PRIMARY, RawContacts.ACCOUNT_TYPE, Phone.TYPE,
-	            Phone.LABEL }, Data.MIMETYPE + "=?",
-	            new String[] { Phone.CONTENT_ITEM_TYPE }, null);
-	    if (c != null && c.moveToFirst()) {
-	        return c;
-	    }
-	    return null;
-	}
-	
-	private String getName(long id) {
-	    String name = null;
-	    Cursor namesCursor = null;
-	    namesCursor = queryName(id);
-	    if (namesCursor == null || namesCursor.getCount() == 0) {
-	        // No valid number
-	    	System.out.println("No Name");
-	        return null;
-	    }
-	    else {
-	    	namesCursor.moveToPosition(0);
-	        name = namesCursor.getString(namesCursor.getColumnIndex(StructuredName.DISPLAY_NAME));
-	    }
-	    if (name == null)
-	    {
-	        name = "";
-	    }
-	    if (name.indexOf(' ') > -1)
-	    	name = name.substring(0, name.indexOf(' '));
-	    namesCursor.close();
-	    return name;
-	}
-	
-	// http://stackoverflow.com/questions/12413159/android-contact-picker-with-checkbox/
-	private Cursor queryName(long contactId) {
-	    ContentResolver cr = getContentResolver();
-	    Uri baseUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI,
-	            contactId);
-	    Uri dataUri = Uri.withAppendedPath(baseUri,
-	            ContactsContract.Contacts.Data.CONTENT_DIRECTORY);
-
-	    Cursor c = cr.query(dataUri, new String[] { StructuredName.DISPLAY_NAME }, Data.MIMETYPE + "=?",
-	            new String[] { StructuredName.CONTENT_ITEM_TYPE }, null);
-	    if (c != null && c.moveToFirst()) {
-	        return c;
-	    } 
-	    
-	    return null;
+	public static void setLocationPicture(String url)
+	{
+		if (mVenuePhotoUrls == null)
+			mVenuePhotoUrls = new JSONArray();
+		if (mVenuePhotoUrls.length() == 0)
+		{
+			mVenuePhotoUrls.put(url);
+			TextView tv = (TextView) context.findViewById(R.id.finalEditPhotoText);
+			if (tv != null)
+				tv.setText("1 photo");
+		}
 	}
 	
 	//manages the checkbox in the select members fragment
@@ -1000,6 +898,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    newFragment.show(getFragmentManager(), null);
 	}
 
+	public void toggleVisibleToGroup(View view)
+	{
+		Checkable checkbox = (Checkable) findViewById(R.id.checkBox1);
+		if (checkbox != null)
+			checkbox.setChecked(!checkbox.isChecked());
+	}
 	
 	public static class SelectListFragment extends ProgressFragment {
 
@@ -1289,9 +1193,6 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	
 	public static class SelectMembersFromContactsFragment extends ProgressFragment implements OnQueryTextListener {
 
-		// Following code mostly from http://stackoverflow.com/questions/18199359/how-to-display-contacts-in-a-listview-in-android-for-android-api-11
-	    private ContactAdapter adapter;
-
 	    // columns requested from the database
 	    private static final String[] DISPLAY_NAME_PROJECTION = {
 	        Contacts._ID, // _ID is always required
@@ -1322,22 +1223,23 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	    protected static ArrayList<String> selectedIds;
 
 	    protected String search;
+	    
+	    protected static int numChecked;
 
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
 	        super.onCreate(savedInstanceState);
 
-	        ids = new ArrayList<String>();
 	        numbers = new ArrayList<String>();
 	        displayNames = new ArrayList<String>();
 	        firstNames = new ArrayList<String>();
 	        lastNames = new ArrayList<String>();
 	        selectedIds = new ArrayList<String>();
+	        numChecked = 0;
 	        
 	        ContentResolver resolver = getActivity().getContentResolver();
 	        Cursor c = resolver.query(Contacts.CONTENT_URI, DISPLAY_NAME_PROJECTION, null, null,
 	        		Phone.DISPLAY_NAME + " ASC");
-	        int idNum = 0;
 	        if (c != null && c.getCount() > 0)
 	        {
 	        	c.moveToPosition(-1);
@@ -1373,8 +1275,6 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		        			//check to make sure we didn't fuck up and there is no phone
 		        			if (phone != null)
 		        			{
-				        		ids.add(""+idNum);
-				        		idNum++;
 				        		numbers.add(phone);
 				        		String displayName = c.getString(c.getColumnIndex(Contacts.DISPLAY_NAME));
 				        		displayNames.add(displayName);
@@ -1426,103 +1326,90 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_select_members_from_contacts,
-					container, false);
-			return rootView;
-		}
-
-	    @Override
-	    public void onActivityCreated(Bundle savedInstanceState)
-	    {
-	        super.onActivityCreated(savedInstanceState);
-
-	        if (getActivity() instanceof NewInvitationActivity)
-	        {
-				mNext = getResources().getString(R.string.action_next);
-				getActivity().invalidateOptionsMenu();
-	        }
+			View rootView = inflater.inflate(R.layout
+					.fragment_select_members_from_contacts, container, false);
+			System.out.println("numbers size " + numbers.size());
+			final LinearLayout ll = (LinearLayout) rootView.findViewById(R.id.linearLayout);
+			for (int i = 0; i < numbers.size(); i++)
+			{
+				View view = View.inflate(getActivity(), R.layout.list_item_contact, null);
+				((TextView) view.findViewById(R.id.name)).setText(displayNames.get(i));
+				((TextView) view.findViewById(R.id.number)).setText(numbers.get(i));
+				view.setOnClickListener(new OnClickListener() {
+					public void onClick(View view) {
+						Checkable checkbox = (Checkable) view.findViewById(R.id.itemCheckBox);
+						checkbox.setChecked(!checkbox.isChecked());
+						if (checkbox.isChecked())
+							numChecked++;
+						else
+							numChecked--;
+					}
+				});
+				
+				ll.addView(view);
+			}
 			
-	        adapter = new ContactAdapter(getActivity(), R.layout.list_item_contact,
-	        		displayNames, numbers, ids);
-	        
-	        // each time we are started use our listadapter
-	        mListView = (ListView) getActivity().findViewById(R.id.contactsList);
-	        System.out.println(mListView);
-	        mListView.setAdapter(adapter);
-	        mListView.setItemsCanFocus(false);
-	        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-	        adapter.notifyDataSetChanged();
-	        /*
-	        ((EditText) getActivity().findViewById(R.id.searchContacts))
-	        	.addTextChangedListener(filterTextWatcher);*/
-	        // and tell loader manager to start loading
-	    }
-    
-	    public void onResume()
-		{
-			super.onResume();
-			final SearchView sv = (SearchView) getActivity().findViewById(R.id.searchContacts);
+			final SearchView sv = (SearchView) rootView.findViewById(R.id.searchContacts);
 			sv.setOnQueryTextListener(this);
 			sv.setSubmitButtonEnabled(true);
 			int searchCloseButtonId = sv.getContext().getResources()
 	                .getIdentifier("android:id/search_close_btn", null, null);
 			ImageView closeButton = (ImageView) sv.findViewById(searchCloseButtonId);
-			
             // Set on click listener
             closeButton.setOnClickListener(new View.OnClickListener() {
-
                 @Override
                 public void onClick(View v) {
                     //Find EditText view
         			int searchText = sv.getContext().getResources()
         	                .getIdentifier("android:id/search_src_text", null, null);
                     EditText et = (EditText) getActivity().findViewById(searchText);
-                    
                     //Clear the text from EditText view
                     et.setText("");
-
                     //Clear query
                     search = "";
-                    SparseBooleanArray checked = mListView.getCheckedItemPositions();
-    	            for (int i = 0; i < mListView.getChildCount(); i++) {
-    	                String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
-    	                		.getText().toString();
-    	                if (checked.get(i) && !selectedIds.contains(id))
-    	                    selectedIds.add(id);
-    	                else if (!checked.get(i) && selectedIds.contains(id))
-    	                	selectedIds.remove(id);
-    	            }
-    	            adapter.getFilter().filter("");
-                    adapter.notifyDataSetChanged();
-    	            //then filter the results
-    	            adapter.getFilter().filter("", new Filter.FilterListener() {
-    	                public void onFilterComplete(int count) {
-    	                    adapter.notifyDataSetChanged();
-    	                    
-    	                    for (int i = 0; i < mListView.getChildCount(); i ++) {
-    	                    	System.out.println("Index is " + i);
-    	                        // if the current (filtered) 
-    	                        // listview you are viewing has the name included in the list,
-    	                        // check the box
-    	                    	String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
-    	                        		.getText().toString();
-    	                        if (selectedIds.contains(id)) {
-    	                        	mListView.setItemChecked(i, true);
-    	                        } else {
-    	                        	mListView.setItemChecked(i, false);
-    	                        }
-    	                    }
-    	
-    	                }
-    	            });   
+                    
+                    for (int i = 0; i < ll.getChildCount(); i++)
+                    	ll.getChildAt(i).setVisibility(View.VISIBLE);
                 }
             });
-			
+			return rootView;
+		}
+		
+	    public void onResume()
+		{
+			super.onResume();
+			context = getActivity();
+	        if (getActivity() instanceof NewInvitationActivity)
+	        {
+				mNext = getResources().getString(R.string.action_next);
+				getActivity().invalidateOptionsMenu();
+	        }
+	        
 			getActivity().setTitle(getResources().getString(R.string.title_select_members_from_contacts));
 			if (getActivity() instanceof NewInvitationActivity)
 			{
 				mCurrentFragment = "SelectMembersFromContactsFragment";
 				removeSpinner();
+			}
+			
+			int searchText = getActivity().findViewById(R.id.searchContacts).getContext().getResources()
+	                .getIdentifier("android:id/search_src_text", null, null);
+            EditText et = (EditText) getActivity().findViewById(searchText);
+            //Clear the text from EditText view
+            et.setText("");
+
+			final LinearLayout ll = (LinearLayout) getActivity().findViewById(R.id.linearLayout);
+			//gotta reset the checks???
+			if (mPhoneNumbers == null)
+				mPhoneNumbers = new String[0];
+			for (int i = 0; i < mPhoneNumbers.length; i++)
+			{
+				for (int j = 0; j < ll.getChildCount(); j++)
+					if (((TextView) ll.getChildAt(j).findViewById(R.id.number)).getText().equals(mPhoneNumbers[i]))
+					{
+						((Checkable) ll.getChildAt(j).findViewById(R.id.itemCheckBox)).setChecked(true);
+						break;
+					}
 			}
 		}
 	    /*
@@ -1575,89 +1462,56 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 
 		@Override
 		public boolean onQueryTextChange(String newText) {
+			//first save current checks
+			if (search == null || search.compareTo(newText) != 0)
+			{
+				search = newText.toLowerCase(Locale.US);
+				LinearLayout ll = (LinearLayout) getActivity().findViewById(R.id.linearLayout);
+				for (int i = 0; i < ll.getChildCount(); i++)
+				{
+					View view = ll.getChildAt(i);
+					if (((TextView) view.findViewById(R.id.name)).getText().toString().toLowerCase(Locale.US)
+							.contains(search) || ((TextView) view.findViewById(R.id.number)).getText().toString()
+							.toLowerCase(Locale.US).contains(search))
+						view.setVisibility(View.VISIBLE);
+					else
+						view.setVisibility(View.GONE);
+				}
+			}
 			return true;
 		}
 
-		//search now!
-		@Override
 		public boolean onQueryTextSubmit(String query) {
-			//first save current checks
-			if (search == null || search.compareTo(query) != 0)
-			{
-				search = query;
-				SparseBooleanArray checked = mListView.getCheckedItemPositions();
-	            for (int i = 0; i < mListView.getChildCount(); i++) {
-	                String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
-	                		.getText().toString();
-	                if (checked.get(i) && !selectedIds.contains(id))
-	                    selectedIds.add(id);
-	                else if (!checked.get(i) && selectedIds.contains(id))
-	                	selectedIds.remove(id);
-	            }
-	            for (int i = 0; i < selectedIds.size(); i++)
-	            {
-	            String id = selectedIds.get(i);
-				int index = ids.indexOf(id);
-				System.out.println("First name of " + id + " is " + firstNames.get(index));
-	            }
-	            adapter.getFilter().filter(query);
-                adapter.notifyDataSetChanged();
-	            //then filter the results
-	            adapter.getFilter().filter(query, new Filter.FilterListener() {
-	                public void onFilterComplete(int count) {
-	                    adapter.notifyDataSetChanged();
-	                    
-	                    for (int i = 0; i < mListView.getChildCount(); i ++) {
-	                    	System.out.println("Index is " + i);
-	                        // if the current (filtered) 
-	                        // listview you are viewing has the name included in the list,
-	                        // check the box
-	                    	String id = ((TextView) mListView.getChildAt(i).findViewById(R.id.id))
-	                        		.getText().toString();
-	                        if (selectedIds.contains(id)) {
-	                        	mListView.setItemChecked(i, true);
-	                        } else {
-	                        	mListView.setItemChecked(i, false);
-	                        }
-	                    }
-	
-	                }
-	            });   
-			}
 			return true;
 		}
 		
 		public static void saveContacts()
 		{
-			//save all the latest checkmarks
-			SparseBooleanArray checked = mListView.getCheckedItemPositions();
-            for (int i = 0; i < mListView.getCount(); i++) {
-                String id = (String) mListView.getItemAtPosition(i);
-                if (checked.get(i) && !selectedIds.contains(id))
-                    selectedIds.add(id);
-                else if (!checked.get(i) && selectedIds.contains(id))
-                	selectedIds.remove(id);
-            }
-            
-			mMemberFirstNames = new String[selectedIds.size()];
-			mMemberLastNames = new String[selectedIds.size()];
-			mPhoneNumbers = new String[selectedIds.size()];
-			mPreviewName = firstNames.get(ids.indexOf(selectedIds.get(0)));
-			for (int i = 0; i < selectedIds.size(); i++)
+			mMemberFirstNames = new String[numChecked];
+			mMemberLastNames = new String[numChecked];
+			mPhoneNumbers = new String[numChecked];
+			LinearLayout rootView = (LinearLayout) context.findViewById(R.id.linearLayout);
+			//have to shift for the search view
+			int index = 0;
+			for (int i = 0; i < rootView.getChildCount(); i++)
 			{
-				String id = selectedIds.get(i);
-				int index = ids.indexOf(id);
-				mMemberFirstNames[i] = firstNames.get(index);
-				mMemberLastNames[i] = lastNames.get(index);
-				mPhoneNumbers[i] = numbers.get(index);
+				View view = rootView.getChildAt(i);
+				if (((Checkable) view.findViewById(R.id.itemCheckBox)).isChecked())
+				{
+					mMemberFirstNames[index] = firstNames.get(i);
+					mMemberLastNames[index] = lastNames.get(i);
+					mPhoneNumbers[index] = numbers.get(i);
+					index++;
+				}
 			}
+			mPreviewName = mMemberFirstNames[0];
 		}
 		
 		//so i can reuse this for new contact list activity
 		//remember to call saveContacts first for these to work!
 		public static int getCheckedCount()
 		{
-			return mMemberFirstNames.length;
+			return numChecked;
 		}
 		
 		public static String getFirstName(int index)
@@ -1956,14 +1810,16 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	public static class ChooseLocationFragment extends ProgressFragment implements OnQueryTextListener{
 
 		private static ListView lv;
-		static Activity context;
+		private static Activity context;
 		private static String search;
+		private static ProgressFragment fragment;
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_choose_location,
 					container, false);
+			fragment = this;
 			return rootView;
 		}
 		
@@ -2097,6 +1953,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
+						mHasLocationPictures = false;
 					}
 					//non custom location
 					else
@@ -2107,7 +1964,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 						mVenueInfo = names[position];
 						try {
 							mVenue = array.getJSONObject(position);
+							String venueId = mVenue.getString("id");
+							new AccessFoursquarePhotosForAutoAdd(fragment).execute(venueId);;
 						} catch (JSONException e) {
+							mHasLocationPictures = false;
 							e.printStackTrace();
 						}
 					}
@@ -2426,6 +2286,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					transaction.commit();
 				}
 			});
+			if (!mHasLocationPictures && (mVenuePhotoUrls == null || mVenuePhotoUrls.length() == 0))
+				Toast.makeText(getActivity(), "No location photos found.", Toast.LENGTH_SHORT).show();
 		}
 		
 		//if we go back in the flow, we gotta readd the next button
@@ -2569,6 +2431,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			final TextView mTimeToRSVPView = (TextView) event.findViewById(R.id.timer);
 			mHandler = new Handler() {
 				final String LEFT_TO_RSVP = getActivity().getString(R.string.leftToRSVP);
+				final String NO_SPOTS_LEFT = " " + getString(R.string.no_spots_left);
 				final String SPOTS_LEFT = " (" + getResources().getQuantityString(
 						R.plurals.spotsLeft, mSpotsLeft, mSpotsLeft) + ")";
 				public void handleMessage(Message message)
@@ -2585,7 +2448,10 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 						time = time+ "0";
 					time = time + seconds + " " + LEFT_TO_RSVP;
 					if (mLimit > 0)
-						time += SPOTS_LEFT;
+						if (mSpotsLeft == 0)
+							time += NO_SPOTS_LEFT;
+						else
+							time += SPOTS_LEFT;
 					mTimeToRSVPView.setText(time);
 					mTimeToRSVPView.invalidate();
 					mTimeToRSVPView.requestLayout();
@@ -2668,9 +2534,14 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			super.onStop();
 			if (clearAll)
 			{
-				Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
-    			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-    			getActivity().finish();
+				if (getActivity() instanceof InviteMoreActivity)
+					getActivity().getFragmentManager().popBackStack();
+				else
+				{
+					Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+					startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+					getActivity().finish();
+				}
 			}
 		}
 	}
@@ -2781,9 +2652,18 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			if (!popped)
 			{
-				Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
-				startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-				getActivity().finish();
+				if (getActivity() instanceof InviteMoreActivity)
+				{
+					getActivity().getFragmentManager().popBackStack();
+					getActivity().getFragmentManager().popBackStack();
+					getActivity().getFragmentManager().popBackStack();
+				}
+				else
+				{
+					Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+					startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+					getActivity().finish();
+				}
 			}
 			super.onDestroy();
 		}
@@ -2857,7 +2737,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			mCurrentFragment = "ChooseFromExistingList";
 		}
 		
-		//only groups that you're a creator for
+		//only groups that you're a creator for, so don't do anything - what an override
 		public void addMemberQueries(ArrayList<ParseQuery<ParseObject>> queries,
 				ParseQuery<ParseObject> query)
 		{
@@ -3014,9 +2894,17 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		{
 			if (!popped)
 			{
-				Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
-				startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-				getActivity().finish();
+				if (getActivity() instanceof InviteMoreActivity)
+				{
+					getActivity().getFragmentManager().popBackStack();
+					getActivity().getFragmentManager().popBackStack();
+				}
+				else
+				{
+					Intent intent = new Intent(getActivity(), RSVPEventsActivity.class);
+					startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+					getActivity().finish();
+				}
 			}
 			super.onDestroy();
 		}

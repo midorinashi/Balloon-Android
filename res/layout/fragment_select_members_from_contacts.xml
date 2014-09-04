@@ -2,20 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/lightGray"
     android:orientation="vertical" >
 
     <SearchView
         android:id="@+id/searchContacts"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@color/white"
+        android:queryHint="@string/search"
         android:iconifiedByDefault="false" >
 
     </SearchView>
-
-    <ListView
-        android:id="@+id/contactsList"
+    
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-    </ListView>
+        android:layout_height="match_parent"
+        android:background="@color/white" >
+        
+        <LinearLayout
+		    android:id="@+id/linearLayout"
+        	android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+    		android:orientation="vertical" />
+        
+    </ScrollView>
     
 </LinearLayout>

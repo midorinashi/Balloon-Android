@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <plurals name="spotsLeft">
-        <item quantity="one">1 spot left!</item>
-        <item quantity="other">%d spots left</item>
+        <item quantity="one">1 Spot Left!</item>
+        <item quantity="other">%d Spots Left</item>
     </plurals>
     <plurals name="minutesAgo">
         <item quantity="one">(1 minute ago)</item>

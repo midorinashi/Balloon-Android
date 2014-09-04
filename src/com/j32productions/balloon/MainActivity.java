@@ -423,6 +423,7 @@ public class MainActivity extends ProgressActivity
 				//Handles changing the RSVP time every second with the timer
 				Handler handler = new Handler() {
 					final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
+					final String NO_SPOTS_LEFT = " " + getString(R.string.no_spots_left);
 					final String SPOTS_LEFT = " (" + getResources().getQuantityString(
 							R.plurals.spotsLeft, spotsLeft, spotsLeft) + ")";
 					public void handleMessage(Message message)
@@ -450,7 +451,9 @@ public class MainActivity extends ProgressActivity
 							if (seconds < 10)
 								time = time+ "0";
 							time = time + seconds + " " + LEFT_TO_RSVP;
-							if (spotsLeft > -1)
+							if (spotsLeft == 0)
+								time += NO_SPOTS_LEFT;
+							else if (spotsLeft > 0)
 								time += SPOTS_LEFT;
 							//System.out.println(time);
 							mTimeToRSVPView.setText(time);
@@ -782,6 +785,7 @@ public class MainActivity extends ProgressActivity
 						//Handles changing the RSVP time every second with the timer
 						handler = new Handler() {
 							final String LEFT_TO_RSVP = getString(R.string.leftToRSVP);
+							final String NO_SPOTS_LEFT = " " + getString(R.string.no_spots_left);
 							final String SPOTS_LEFT = " (" + getResources().getQuantityString(
 									R.plurals.spotsLeft, spotsLeft, spotsLeft) + ")";
 							public void handleMessage(Message message)
@@ -805,7 +809,9 @@ public class MainActivity extends ProgressActivity
 									if (seconds < 10)
 										time = time+ "0";
 									time = time + seconds + " " + LEFT_TO_RSVP;
-									if (spotsLeft > -1)
+									if (spotsLeft == 0)
+										time += NO_SPOTS_LEFT;
+									else if (spotsLeft > 0)
 										time += SPOTS_LEFT;
 									//System.out.println(time);
 									mTimeToRSVPView.setText(time);

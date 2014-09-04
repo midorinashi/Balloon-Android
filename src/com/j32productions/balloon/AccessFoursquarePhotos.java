@@ -14,7 +14,12 @@ import android.widget.Toast;
 
 public class AccessFoursquarePhotos extends AccessFoursquare {
 
-	private ProgressFragment fragment;
+	protected ProgressFragment fragment;
+	
+	public AccessFoursquarePhotos()
+	{
+		super();
+	}
 	
 	public AccessFoursquarePhotos(ProgressFragment f)
 	{

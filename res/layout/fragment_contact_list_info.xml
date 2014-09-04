@@ -71,10 +71,11 @@
 
             <ImageView
                 android:id="@+id/blank"
-                android:layout_width="70dp"
+                android:layout_width="match_parent"
                 android:layout_height="70dp"
                 android:layout_alignParentLeft="true"
-                android:layout_below="@id/imageView1" />
+                android:layout_below="@id/imageView1"
+                android:onClick="toggleVisibleToGroup" />
 
             <CheckBox
                 android:id="@+id/checkBox1"

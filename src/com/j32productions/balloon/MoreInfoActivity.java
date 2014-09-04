@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -371,8 +372,8 @@ public class MoreInfoActivity extends ProgressActivity
 		LinearLayout comingList = (LinearLayout) findViewById(R.id.coming);
 		LinearLayout notComingList = (LinearLayout) findViewById(R.id.notComing);
 	    //so we know to put that line at the bottom of the list
-	    boolean someoneComing = false;
-	    boolean someoneNotComing = false;
+	    int coming = 0;
+	    int notComing = 0;
 		
 	    if (comingList != null)
 	    {
@@ -401,29 +402,35 @@ public class MoreInfoActivity extends ProgressActivity
 				{
 					comingList.addView(line);
 					comingList.addView(response, lp);
-					someoneComing = true;
+					coming++;
 				}
 				else
 				{
 					notComingList.addView(line);
 					notComingList.addView(response, lp);
-					someoneNotComing = true;
+					notComing++;
 				}
 		    }
-		    if (someoneComing)
+		    if (coming > 0)
 		    {
 		    	View line = new View(this);
 				line.setBackgroundColor(getResources().getColor(R.color.lightGray));
 				line.setLayoutParams(linelp);
 				comingList.addView(line);
 		    }
-		    if (someoneNotComing)
+		    ((TextView) findViewById(R.id.comingHeader)).setText(String
+					.format(Locale.US, getString(R.string.coming_numbered_header),
+					coming));
+		    if (notComing > 0)
 		    {
 		    	View line = new View(this);
 				line.setBackgroundColor(getResources().getColor(R.color.lightGray));
 				line.setLayoutParams(linelp);
 				notComingList.addView(line);
 		    }
+		    ((TextView) findViewById(R.id.notComingHeader)).setText(String
+					.format(Locale.US, getString(R.string.not_coming_numbered_header),
+					notComing));
 	    }
 		removeSpinner();
 	}
@@ -751,8 +758,11 @@ public class MoreInfoActivity extends ProgressActivity
 			if (mSpotsLeft > -1)
 			{
 				TextView tv = (TextView) getActivity().findViewById(R.id.spotsLeft);
-				tv.setText(getResources().getQuantityString(R.plurals.spotsLeft,
-						mSpotsLeft, mSpotsLeft));
+				if (mSpotsLeft == 0)
+					tv.setText(getString(R.string.no_spots_left));
+				else
+					tv.setText(getResources().getQuantityString(R.plurals.spotsLeft,
+							mSpotsLeft, mSpotsLeft));
 				tv.setVisibility(View.VISIBLE);
 			}
 			
@@ -821,6 +831,9 @@ public class MoreInfoActivity extends ProgressActivity
 			if (commentList != null)
 			{
 				commentList.removeAllViews();
+				((TextView) getActivity().findViewById(R.id.commentsHeader)).setText(String
+						.format(Locale.US, getString(R.string.comments_numbered_header),
+						comments.size()));
 				RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout
 						.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 				long now = (new Date()).getTime();
@@ -913,8 +926,8 @@ public class MoreInfoActivity extends ProgressActivity
 		    LinearLayout comingList = null;
 		    LinearLayout notComingList = null;
 		    //so we know to put that line at the bottom of the list
-		    boolean someoneComing = false;
-		    boolean someoneNotComing = false;
+		    int coming = 0;
+		    int notComing = 0;
 			if (getActivity() != null)
 			{
 				comingList = (LinearLayout) getActivity().findViewById(R.id.coming);
@@ -954,29 +967,35 @@ public class MoreInfoActivity extends ProgressActivity
 					{
 						comingList.addView(line);
 						comingList.addView(response, lp);
-						someoneComing = true;
+						coming++;
 					}
 					else
 					{
 						notComingList.addView(line);
 						notComingList.addView(response, lp);
-						someoneNotComing = true;
+						notComing++;
 					}
 			    }
-			    if (someoneComing)
+			    if (coming > 0)
 			    {
 			    	View line = new View(getActivity());
 					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
 					line.setLayoutParams(linelp);
 					comingList.addView(line);
 			    }
-			    if (someoneNotComing)
+			    ((TextView) getActivity().findViewById(R.id.comingHeader)).setText(String
+						.format(Locale.US, getString(R.string.coming_numbered_header),
+						coming));
+			    if (notComing > 0)
 			    {
 			    	View line = new View(getActivity());
 					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lightGray));
 					line.setLayoutParams(linelp);
 					notComingList.addView(line);
 			    }
+			    ((TextView) getActivity().findViewById(R.id.notComingHeader)).setText(String
+						.format(Locale.US, getString(R.string.not_coming_numbered_header),
+						notComing));
 		    }
 		    removeSpinner();
 		}

@@ -355,6 +355,13 @@ public class NewContactListActivity extends ProgressActivity {
 	    newFragment.show(getFragmentManager(), null);
 	}
 
+	public void toggleVisibleToGroup(View view)
+	{
+		Checkable checkbox = (Checkable) findViewById(R.id.checkBox1);
+		if (checkbox != null)
+			checkbox.setChecked(!checkbox.isChecked());
+	}
+
 	public void makeContactList()
 	{
 		ParseObject list = new ParseObject("ContactList");
@@ -466,7 +473,6 @@ public class NewContactListActivity extends ProgressActivity {
 		{
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_create_list));
-			mListView = (ListView) getActivity().findViewById(R.id.contactsList);
 			nextTitle = "Done";
 			getActivity().invalidateOptionsMenu();
 		}
