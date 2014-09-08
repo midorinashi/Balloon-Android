@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:id="@+id/finalEditView"
     android:background="@color/lightBlue"
     android:layout_width="match_parent"
@@ -30,8 +29,7 @@
 	            android:id="@+id/finalEditToHeader"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:text="@string/final_edit_to"
-                custom:fontName="Roboto-Light.ttf" />
+	            android:text="@string/final_edit_to" />
 	
 	        <com.j32productions.balloon.TextBox
 	            android:id="@+id/finalEditToText"
@@ -41,8 +39,7 @@
 	            android:gravity="right"
 	            android:lines="1"
 	            android:text="@string/dummy_name"
-	            android:textColor="@color/blue"
-                custom:fontName="Roboto-Light.ttf" />
+	            android:textColor="@color/blue" />
 	
 	    </LinearLayout>
 	
@@ -61,8 +58,7 @@
 	            android:id="@+id/finalEditAgendaHeader"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:text="@string/final_edit_agenda"
-                custom:fontName="Roboto-Light.ttf" />
+	            android:text="@string/final_edit_agenda" />
 	
 	        <com.j32productions.balloon.TextBox
 	            android:id="@+id/finalEditAgendaText"
@@ -72,8 +68,7 @@
 	            android:gravity="right"
 	            android:lines="1"
 	            android:text="@string/dummy_agenda"
-	            android:textColor="@color/blue"
-                custom:fontName="Roboto-Light.ttf" />
+	            android:textColor="@color/blue" />
 	        
 	    </LinearLayout>
 	
@@ -92,8 +87,7 @@
 	            android:id="@+id/finalEditLocationHeader"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:text="@string/final_edit_location"
-                custom:fontName="Roboto-Light.ttf" />
+	            android:text="@string/final_edit_location" />
 	
 	        <com.j32productions.balloon.TextBox
 	            android:id="@+id/finalEditLocationText"
@@ -103,8 +97,7 @@
 	            android:gravity="right"
 	            android:lines="1"
 	            android:text="@string/dummy_location"
-	            android:textColor="@color/blue"
-                custom:fontName="Roboto-Light.ttf" />
+	            android:textColor="@color/blue" />
 
 	    </LinearLayout>
 	
@@ -123,8 +116,7 @@
 	            android:id="@+id/finalEditDeadlineHeader"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:text="@string/final_edit_deadline"
-                custom:fontName="Roboto-Light.ttf" />
+	            android:text="@string/final_edit_deadline" />
 	
 	        <com.j32productions.balloon.TextBox
 	            android:id="@+id/finalEditDeadlineText"
@@ -132,8 +124,7 @@
 	            android:layout_height="wrap_content"
 	            android:gravity="right"
 	            android:text="@string/deadline_time"
-	            android:textColor="@color/blue"
-                custom:fontName="Roboto-Light.ttf" />
+	            android:textColor="@color/blue" />
 	        
 	    </LinearLayout>
 
@@ -152,8 +143,7 @@
 	           android:layout_width="wrap_content"
 	           android:layout_height="wrap_content"
 	           android:layout_margin="10dp"
-	           android:text="@string/allowed_to_invite_more"
-               custom:fontName="Roboto-Light.ttf" />
+	           android:text="@string/allowed_to_invite_more" />
 
 	       <CheckBox
 	           android:id="@+id/finalEditInviteMoreBox"
@@ -170,8 +160,7 @@
 	       android:layout_marginLeft="15dp"
 	       android:layout_marginRight="10dp"
 	       android:layout_marginTop="10dp"
-	       android:text="@string/optional"
-           custom:fontName="Roboto-Light.ttf" />
+	       android:text="@string/optional" />
 
 	   <LinearLayout
 	       android:id="@+id/finalEditLimit"
@@ -189,8 +178,7 @@
 	           android:layout_width="wrap_content"
 	           android:layout_height="wrap_content"
 	           android:layout_margin="10dp"
-	           android:text="@string/limit"
-           	   custom:fontName="Roboto-Light.ttf" />
+	           android:text="@string/limit" />
 
 	       <com.j32productions.balloon.TextBox
 	           android:id="@+id/finalEditLimitText"
@@ -198,8 +186,7 @@
 	           android:layout_height="wrap_content"
 	           android:layout_margin="10dp"
 	           android:gravity="right"
-	           android:textColor="@color/blue"
-           	   custom:fontName="Roboto-Light.ttf" />
+	           android:textColor="@color/blue" />
 	       
 	   </LinearLayout>
 	   
@@ -218,8 +205,7 @@
 	           android:layout_width="wrap_content"
 	           android:layout_height="wrap_content"
 	           android:layout_margin="10dp"
-	           android:text="@string/start_time"
-           	   custom:fontName="Roboto-Light.ttf" />
+	           android:text="@string/start_time" />
 
 	       <com.j32productions.balloon.TextBox
 	           android:id="@+id/finalEditStartTimeText"
@@ -227,8 +213,7 @@
 	           android:layout_height="wrap_content"
 	           android:layout_margin="10dp"
 	           android:gravity="right"
-	           android:textColor="@color/blue"
-           	   custom:fontName="Roboto-Light.ttf" />
+	           android:textColor="@color/blue" />
 	   </LinearLayout>
 
 	   <LinearLayout
@@ -246,8 +231,7 @@
 	           android:layout_width="wrap_content"
 	           android:layout_height="wrap_content"
 	           android:layout_margin="10dp"
-	           android:text="@string/final_edit_photo"
-           	   custom:fontName="Roboto-Light.ttf" />
+	           android:text="@string/final_edit_photo" />
 
 	       <com.j32productions.balloon.TextBox
 	           android:id="@+id/finalEditPhotoText"
@@ -256,8 +240,7 @@
 	           android:layout_margin="10dp"
 	           android:gravity="right"
 	           android:text="@string/final_edit_no_photos"
-	           android:textColor="@color/blue"
-           	   custom:fontName="Roboto-Light.ttf" />
+	           android:textColor="@color/blue" />
 	   </LinearLayout>
 	
 	   <Button

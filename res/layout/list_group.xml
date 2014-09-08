@@ -18,8 +18,7 @@
         android:ellipsize="end"
         android:gravity="center_vertical"
         android:maxLines="1"
-        android:text="TextView"
-        custom:fontName="Roboto-Light.ttf" />
+        android:text="TextView" />
 
     <com.j32productions.balloon.TextBox
         android:id="@+id/optional"

@@ -9,6 +9,6 @@ package com.j32productions.balloon;
 
 public final class Manifest {
     public static final class permission {
-        public static final String C2D_MESSAGE="com.parse.tutorials.pushnotifications.permission.C2D_MESSAGE";
+        public static final String C2D_MESSAGE="com.j32productions.balloon.pushnotifications.permission.C2D_MESSAGE";
     }
 }

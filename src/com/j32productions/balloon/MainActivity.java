@@ -40,13 +40,14 @@ import com.handmark.pulltorefresh.library.PullToRefreshScrollView;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.GetCallback;
-import com.parse.Parse;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.PushService;
+import com.parse.SaveCallback;
 import com.squareup.picasso.Picasso;
 
 public class MainActivity extends ProgressActivity
@@ -80,6 +81,14 @@ public class MainActivity extends ProgressActivity
 		{
 			PushService.subscribe(this, "", this.getClass());
 			PushService.subscribe(this, "u" + ParseUser.getCurrentUser().getObjectId(), this.getClass());
+			ParseInstallation.getCurrentInstallation().saveInBackground(new SaveCallback(){
+
+				@Override
+				public void done(ParseException arg0) {
+					System.out.println("done");
+				}
+				
+			});
 			onCreateInvitationsFragment();
 		}
 		else

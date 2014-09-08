@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/lightBlue"
+    android:background="@color/lightGray"
     android:orientation="vertical" >
 
     <LinearLayout
@@ -13,7 +12,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:background="@color/lightBlue" >
+        android:background="@color/lightGray" >
 
         <Button
             android:id="@+id/no"
@@ -86,8 +85,7 @@
 	                    android:layout_height="wrap_content"
 	    				android:animateLayoutChanges="true"
 	                    android:text="@string/empty"
-	                    android:textSize="14sp"
-		   				custom:fontName="Roboto-Light.ttf" />
+	                    android:textSize="14sp" />
 	
 	                <com.j32productions.balloon.TextBox
 	                    android:id="@+id/agenda"
@@ -100,8 +98,7 @@
 	    				android:animateLayoutChanges="true"
 	                    android:text="@string/empty"
 	                    android:textColor="@color/gray"
-	                    android:textSize="14sp"
-		   				custom:fontName="Roboto-Light.ttf"  />
+	                    android:textSize="14sp"  />
 	
 	                <com.j32productions.balloon.TextBox
 	                    android:id="@+id/venueInfo"
@@ -112,8 +109,7 @@
 	    				android:animateLayoutChanges="true"
 	                    android:text="@string/empty"
 	                    android:textColor="@color/blue"
-	                    android:textSize="14sp" 
-					    custom:fontName="Roboto-Light.ttf" />
+	                    android:textSize="14sp"  />
 	
 	                <com.j32productions.balloon.TextBox
 	                    android:id="@+id/timeToRSVP"
@@ -123,8 +119,7 @@
 	                    android:maxLines="1"
 	    				android:animateLayoutChanges="true"
 	                    android:textColor="@color/red"
-	                    android:textSize="14sp"
-					    custom:fontName="Roboto-Light.ttf" />
+	                    android:textSize="14sp" />
 	                
 				    <com.j32productions.balloon.TextBox
 				        android:id="@+id/spotsLeft"
@@ -133,8 +128,7 @@
 				        android:ellipsize="end"
 				        android:maxLines="1"
 				        android:textSize="14sp"
-				        android:visibility="gone"
-						custom:fontName="Roboto-Light.ttf" />
+				        android:visibility="gone" />
 			    
 				</LinearLayout>
 				
@@ -153,8 +147,7 @@
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp"
     			android:animateLayoutChanges="true"
-                android:background="@color/white"
-	    		custom:fontName="Roboto-Light.ttf" />
+                android:background="@color/white" />
 
             <View
                 android:layout_width="match_parent"
@@ -169,9 +162,7 @@
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="30dp"
     			android:animateLayoutChanges="true"
-                android:text="@string/comments_header"
-                android:textColor="@color/blue"
-	    		custom:fontName="Roboto-Light.ttf" />
+                android:text="@string/comments_header" />
 
             <LinearLayout
                 android:id="@+id/comments"
@@ -190,9 +181,7 @@
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="30dp"
     			android:animateLayoutChanges="true"
-                android:text="@string/coming_header"
-                android:textColor="@color/blue"
-	    		custom:fontName="Roboto-Light.ttf" />
+                android:text="@string/coming_header" />
 
             <LinearLayout
                 android:id="@+id/coming"
@@ -212,9 +201,7 @@
                 android:layout_marginTop="30dp"
     			android:animateLayoutChanges="true"
                 android:text="@string/not_coming_header"
-                android:textColor="@color/blue"
-                android:visibility="gone"
-	    		custom:fontName="Roboto-Light.ttf" />
+                android:visibility="gone" />
 
             <LinearLayout
                 android:id="@+id/notComing"

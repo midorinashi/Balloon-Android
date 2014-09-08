@@ -471,6 +471,7 @@ public class NewContactListActivity extends ProgressActivity {
 		
 		public void onResume()
 		{
+			NewInvitationActivity.mPhoneNumbers = new String[0];
 			super.onResume();
 			getActivity().setTitle(getResources().getString(R.string.title_create_list));
 			nextTitle = "Done";

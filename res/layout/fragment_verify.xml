@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="10dp" >
@@ -13,8 +12,7 @@
         android:layout_centerHorizontal="true"
         android:layout_margin="10dp"
         android:text="@string/enter_verification_code"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        custom:fontName="Roboto-Light.ttf" />
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <com.j32productions.balloon.EditBox
         android:id="@+id/password"

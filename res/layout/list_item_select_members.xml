@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.j32productions.balloon.CheckableLinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
@@ -27,8 +26,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="@string/empty"
-        	custom:fontName="Roboto-Light.ttf" />
+            android:text="@string/empty" />
 
         <com.j32productions.balloon.TextBox
             android:id="@+id/responseRateHeader"
@@ -39,8 +37,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/response_rate"
-            android:textColor="@color/gray"
-        	custom:fontName="Roboto-Light.ttf" />
+            android:textColor="@color/gray" />
 
         <com.j32productions.balloon.TextBox
             android:id="@+id/responseRate"
@@ -52,8 +49,7 @@
             android:paddingLeft="5dp"
             android:maxLines="1"
             android:text="@string/empty"
-            android:textColor="@color/gray"
-        	custom:fontName="Roboto-Light.ttf" />
+            android:textColor="@color/gray" />
         
     </RelativeLayout>
     

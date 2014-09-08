@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/lightGray" >
@@ -24,8 +23,7 @@
                 android:id="@+id/mobileNumberHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_number"
-                custom:fontName="Roboto-Light.ttf" />
+                android:text="@string/settings_number" />
 
             <com.j32productions.balloon.TextBox
                 android:id="@+id/mobileNumber"
@@ -34,8 +32,7 @@
                 android:layout_weight="1"
                 android:ems="10"
                 android:gravity="right"
-                android:textColor="@color/gray"
-                custom:fontName="Roboto-Light.ttf" />
+                android:textColor="@color/gray" />
 
         </LinearLayout>
 
@@ -49,8 +46,7 @@
                 android:id="@+id/firstNameHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_name_first"
-                custom:fontName="Roboto-Light.ttf" />
+                android:text="@string/settings_name_first" />
 
             <com.j32productions.balloon.EditBox
                 android:id="@+id/firstName"
@@ -74,8 +70,7 @@
                 android:id="@+id/lastNameHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_name_last"
-                custom:fontName="Roboto-Light.ttf" />
+                android:text="@string/settings_name_last" />
 
             <com.j32productions.balloon.EditBox
                 android:id="@+id/lastName"
@@ -98,8 +93,7 @@
                 android:id="@+id/setPasswordHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_password_set"
-                custom:fontName="Roboto-Light.ttf" />
+                android:text="@string/settings_password_set" />
 
             <com.j32productions.balloon.EditBox
                 android:id="@+id/setPassword"
@@ -123,8 +117,7 @@
                 android:id="@+id/confirmPasswordHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_password_confirm"
-                custom:fontName="Roboto-Light.ttf" />
+                android:text="@string/settings_password_confirm" />
 
             <com.j32productions.balloon.EditBox
                 android:id="@+id/confirmPassword"
@@ -154,8 +147,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
-                android:text="@string/settings_photo"
-                custom:fontName="Roboto-Light.ttf" />
+                android:text="@string/settings_photo" />
 
             <com.parse.ParseImageView
                 android:id="@+id/photo"

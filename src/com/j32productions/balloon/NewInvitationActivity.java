@@ -142,6 +142,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	public static int mLimit;
 	public static int mSpotsLeft;
 	public static boolean mIsFull;
+	public static boolean mHasSent;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -187,6 +188,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		mSpotsLeft = 0;
 		mIsFull = false;
 		mHasLocationPictures = true;
+		mHasSent = false;
 		
 		if (savedInstanceState == null) {
 			mAfterFinalEdit = false;
@@ -442,128 +444,136 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	//this is here so that we can reuse the code when editing le meetup
 	public void makeMeetup(final View view)
 	{
-		if (view != null)
-			view.setOnClickListener(null);
 		saveMeetup(new ParseObject("Meetup"));
 	}
 	
 	public void saveMeetup(final ParseObject meetup)
 	{
-		showSpinner();
-		//make the contact list if we need to
-		if (mMakeContactList && !mFinishSavingMeetup)
+		if (!mHasSent)
 		{
-			HashMap<String, Object> params = new HashMap<String, Object>();
-			JSONArray contacts = new JSONArray();
-			for (int i = 0; i < mMemberFirstNames.length; i++)
+			mHasSent = true;
+			showSpinner();
+			//make the contact list if we need to
+			if (mMakeContactList && !mFinishSavingMeetup)
 			{
-				JSONObject contact = new JSONObject();
-				try {
-					contact.put("firstName", mMemberFirstNames[i]);
-					contact.put("lastName", mMemberLastNames[i]);
-					contact.put("mobileNumber", mPhoneNumbers[i]);
-					System.out.println(mMemberFirstNames[i] +" " + mPhoneNumbers[i]);
-				} catch (JSONException e1) {
-					e1.printStackTrace();
+				HashMap<String, Object> params = new HashMap<String, Object>();
+				JSONArray contacts = new JSONArray();
+				for (int i = 0; i < mMemberFirstNames.length; i++)
+				{
+					JSONObject contact = new JSONObject();
+					try {
+						contact.put("firstName", mMemberFirstNames[i]);
+						contact.put("lastName", mMemberLastNames[i]);
+						contact.put("mobileNumber", mPhoneNumbers[i]);
+						System.out.println(mMemberFirstNames[i] +" " + mPhoneNumbers[i]);
+					} catch (JSONException e1) {
+						e1.printStackTrace();
+					}
+					contacts.put(contact);
 				}
-				contacts.put(contact);
+				params.put("contacts", contacts);
+				ParseCloud.callFunctionInBackground("findOrCreateUsers", params, new FunctionCallback<ArrayList<ParseUser>>() {
+	
+					@Override
+					public void done(ArrayList<ParseUser> list, ParseException e) {
+						if (e == null)
+						{
+							// need to give all the members to makeMeetup and to create a new contact list
+							/*
+							ParseObject contactList = new ParseObject("ContactList");
+							contactList.put("owner", ParseUser.getCurrentUser());
+							contactList.put("name", mListName);
+							if (mContactListImage != null)
+								contactList.put("photo", mContactListImage);
+							contactList.put("isVisibleToMembers", mPublicList);
+							JSONArray mContacts = new JSONArray();
+							*/
+							//two different json arrays because send invites need json objects, not parse objects
+							mParseUsers = list;
+							mMembers = new JSONArray();
+							for (int i = 0; i < list.size(); i++)
+							{
+								//mContacts.put(list.get(i));
+								try {
+									JSONObject person = new JSONObject();
+									person.put("__type", "Pointer");
+									person.put("className", "_User");
+									person.put("objectId", list.get(i).getObjectId());
+									mMembers.put(person);
+								} catch (JSONException e1) {
+									e1.printStackTrace();
+								}
+							}
+							/*
+							contactList.put("members", mContacts);
+							mListId = contactList;
+							contactList.saveInBackground(new SaveCallback() {
+								@Override
+								public void done(ParseException e) {
+									if (e == null)
+									{
+										System.out.println("save success");
+										saveMeetup(meetup);
+									}
+									else
+										showParseException(e);
+								}
+							});
+							*/
+							mFinishSavingMeetup = true;
+							saveMeetup(meetup);
+						}
+						else
+						{
+							showParseException(e);
+							mHasSent = false;
+						}
+					}
+					
+				});
+				return;
 			}
-			params.put("contacts", contacts);
-			ParseCloud.callFunctionInBackground("findOrCreateUsers", params, new FunctionCallback<ArrayList<ParseUser>>() {
-
+			meetup.put("agenda", mAgenda);
+			//make the contact list if we need to
+			//contact list id??? not sure how to deal with this right now
+			//gotta set both contactList and mMembers here
+			if (mListId != null)
+				meetup.put("contactList", mListId);
+			if (!meetup.has("creator"))
+				meetup.put("creator", ParseUser.getCurrentUser());
+			else
+				meetup.put("creator", meetup.getParseUser("creator"));
+			setDeadline(meetup);
+			meetup.put("invitedUsers", mMembers);
+			if (mStartDeadline != null)
+				meetup.put("startsAt", mStartDeadline);
+			meetup.put("venueInfo", mVenue);
+			meetup.put("venuePhotoURLs", mVenuePhotoUrls);
+			if (findViewById(R.id.finalEditInviteMoreBox) != null)
+				meetup.put("allowInviteMore", ((CheckBox) 
+						findViewById(R.id.finalEditInviteMoreBox)).isChecked());
+			meetup.put("maxAttendees", mLimit);
+			meetup.put("spotsLeft", mSpotsLeft);
+			meetup.put("isFull", mIsFull);
+			System.out.println("Save meetup id = " + meetup.getObjectId());
+			meetup.saveInBackground(new SaveCallback(){
+	
 				@Override
-				public void done(ArrayList<ParseUser> list, ParseException e) {
+				public void done(ParseException e) {
 					if (e == null)
 					{
-						// need to give all the members to makeMeetup and to create a new contact list
-						/*
-						ParseObject contactList = new ParseObject("ContactList");
-						contactList.put("owner", ParseUser.getCurrentUser());
-						contactList.put("name", mListName);
-						if (mContactListImage != null)
-							contactList.put("photo", mContactListImage);
-						contactList.put("isVisibleToMembers", mPublicList);
-						JSONArray mContacts = new JSONArray();
-						*/
-						//two different json arrays because send invites need json objects, not parse objects
-						mParseUsers = list;
-						mMembers = new JSONArray();
-						for (int i = 0; i < list.size(); i++)
-						{
-							//mContacts.put(list.get(i));
-							try {
-								JSONObject person = new JSONObject();
-								person.put("__type", "Pointer");
-								person.put("className", "_User");
-								person.put("objectId", list.get(i).getObjectId());
-								mMembers.put(person);
-							} catch (JSONException e1) {
-								e1.printStackTrace();
-							}
-						}
-						/*
-						contactList.put("members", mContacts);
-						mListId = contactList;
-						contactList.saveInBackground(new SaveCallback() {
-							@Override
-							public void done(ParseException e) {
-								if (e == null)
-								{
-									System.out.println("save success");
-									saveMeetup(meetup);
-								}
-								else
-									showParseException(e);
-							}
-						});
-						*/
-						mFinishSavingMeetup = true;
-						saveMeetup(meetup);
+						System.out.println("meetup created");
+						sendInvite(meetup);
 					}
 					else
+					{
 						showParseException(e);
+						mHasSent = false;
+					}
 				}
 				
 			});
-			return;
 		}
-		meetup.put("agenda", mAgenda);
-		//make the contact list if we need to
-		//contact list id??? not sure how to deal with this right now
-		//gotta set both contactList and mMembers here
-		if (mListId != null)
-			meetup.put("contactList", mListId);
-		if (!meetup.has("creator"))
-			meetup.put("creator", ParseUser.getCurrentUser());
-		else
-			meetup.put("creator", meetup.getParseUser("creator"));
-		setDeadline(meetup);
-		meetup.put("invitedUsers", mMembers);
-		if (mStartDeadline != null)
-			meetup.put("startsAt", mStartDeadline);
-		meetup.put("venueInfo", mVenue);
-		meetup.put("venuePhotoURLs", mVenuePhotoUrls);
-		if (findViewById(R.id.finalEditInviteMoreBox) != null)
-			meetup.put("allowInviteMore", ((CheckBox) 
-					findViewById(R.id.finalEditInviteMoreBox)).isChecked());
-		meetup.put("maxAttendees", mLimit);
-		meetup.put("spotsLeft", mSpotsLeft);
-		meetup.put("isFull", mIsFull);
-		System.out.println("Save meetup id = " + meetup.getObjectId());
-		meetup.saveInBackground(new SaveCallback(){
-
-			@Override
-			public void done(ParseException e) {
-				if (e == null)
-				{
-					System.out.println("meetup created");
-					sendInvite(meetup);
-				}
-				else
-					showParseException(e);
-			}
-			
-		});
 	}
 	
 	//so when we edit, we don't have to auto set this
@@ -608,24 +618,21 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			public void done(Object o, ParseException e) {
 				if (e != null)
 					showParseException(e);
-				else
+				Toast.makeText(context, "Sent!", Toast.LENGTH_SHORT).show();
+				if (mMakeContactList)
 				{
-					Toast.makeText(context, "Sent!", Toast.LENGTH_SHORT).show();
-					if (mMakeContactList)
+					if (mIsShellGroup)
 					{
-						if (mIsShellGroup)
-						{
-							saveNewContactList();
-						}
-						else
-						{
-							DialogFragment dialog = new AskToSaveListFragment();
-					        dialog.show(getFragmentManager(), "NoticeDialogFragment");
-						}
+						saveNewContactList();
 					}
 					else
-						end();
+					{
+						DialogFragment dialog = new AskToSaveListFragment();
+				        dialog.show(getFragmentManager(), "NoticeDialogFragment");
+					}
 				}
+				else
+					end();
 			}
 		});
 	}
@@ -972,8 +979,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			ArrayList<ParseUser> currentUser = new ArrayList<ParseUser>();
 			currentUser.add(ParseUser.getCurrentUser());
 			memberQuery.whereContainsAll("members", currentUser);
+			memberQuery.whereExists("isVisibleToMembers");
 			memberQuery.whereEqualTo("isVisibleToMembers", true);
-			memberQuery.whereNotEqualTo("isVisibleToMembers", false);
 			
 			ArrayList<ParseQuery<ParseObject>> queries = new ArrayList<ParseQuery<ParseObject>>();
 			queries.add(ownerQuery);
@@ -1421,7 +1428,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			for (int i = 0; i < mPhoneNumbers.length; i++)
 			{
 				for (int j = 0; j < ll.getChildCount(); j++)
-					if (((TextView) ll.getChildAt(j).findViewById(R.id.number)).getText().equals(mPhoneNumbers[i]))
+					if (mPhoneNumbers[i].endsWith(((TextView) ll.getChildAt(j).findViewById(R.id.number))
+							.getText().toString().replaceAll("[^[a-zA-Z0-9]]", "")))
 					{
 						((Checkable) ll.getChildAt(j).findViewById(R.id.itemCheckBox)).setChecked(true);
 						break;
@@ -1509,6 +1517,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			LinearLayout rootView = (LinearLayout) context.findViewById(R.id.linearLayout);
 			//have to shift for the search view
 			int index = 0;
+			String userNumber = ParseUser.getCurrentUser().getUsername();
 			for (int i = 0; i < rootView.getChildCount(); i++)
 			{
 				View view = rootView.getChildAt(i);
@@ -1516,7 +1525,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 				{
 					mMemberFirstNames[index] = firstNames.get(i);
 					mMemberLastNames[index] = lastNames.get(i);
-					mPhoneNumbers[index] = numbers.get(i);
+					String number = numbers.get(i).replaceAll("[^[a-zA-Z0-9]]", "");
+					if (number.length() <= 10)
+						mPhoneNumbers[index] = userNumber.substring(0, userNumber.length()
+								- number.length())+ number;
+					else
+						mPhoneNumbers[index] = "+" + number;
 					index++;
 				}
 			}
@@ -1844,6 +1858,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		public void onResume()
 		{
 			super.onResume();
+			if (mAfterFinalEdit)
+			{
+				mNext = "Save";
+				getActivity().invalidateOptionsMenu();
+			}
 			context = getActivity();
 			context.setTitle(getResources().getString(R.string.title_choose_location));
 			mCurrentFragment = "ChooseLocationFragment";
@@ -2751,10 +2770,11 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		}
 		
 		//only groups that you're a creator for, so don't do anything - what an override
+		/*
 		public void addMemberQueries(ArrayList<ParseQuery<ParseObject>> queries,
 				ParseQuery<ParseObject> query)
 		{
-		}
+		}*/
 		
 		public void addListsToView()
 		{

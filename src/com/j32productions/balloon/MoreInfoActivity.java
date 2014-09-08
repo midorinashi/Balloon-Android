@@ -81,10 +81,14 @@ public class MoreInfoActivity extends ProgressActivity
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_more_info);
-		mObjectId = getIntent().getExtras().getString("objectId");
-		mHasResponded = getIntent().getExtras().getBoolean("hasResponded");
-		mWillAttend = getIntent().getExtras().getBoolean("willAttend");
-		mIsCreator = getIntent().getExtras().getBoolean("isCreator");
+		if (getIntent().hasExtra("objectId"))
+			mObjectId = getIntent().getExtras().getString("objectId");
+		if (getIntent().hasExtra("hasResponded"))
+			mHasResponded = getIntent().getExtras().getBoolean("hasResponded");
+		if (getIntent().hasExtra("willAttend"))
+			mWillAttend = getIntent().getExtras().getBoolean("willAttend");
+		if (getIntent().hasExtra("isCreator"))
+			mIsCreator = getIntent().getExtras().getBoolean("isCreator");
 		System.out.println(mObjectId);
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		if (savedInstanceState == null)
@@ -558,6 +562,8 @@ public class MoreInfoActivity extends ProgressActivity
 			View rootView = inflater.inflate(R.layout.fragment_info,
 					container, false);
 			//Handles changing the RSVP time every second with the timer
+			if (mMeetup.getParseUser("creator").getObjectId().equals(ParseUser.getCurrentUser().getObjectId()))
+				mIsCreator = true;
 			if (mIsCreator)
 				rootView.findViewById(R.id.notComingHeader).setVisibility(View.VISIBLE);
 			pullToRefreshView = null;
@@ -698,8 +704,9 @@ public class MoreInfoActivity extends ProgressActivity
 							timeToRSVP = mStartsAt.getTime() - now.getTime();
 							if (timeToRSVP < 0)
 							{
-								((TextView) getActivity().findViewById(R.id.timeToRSVP)).setText(
-										getString(R.string.started));
+								TextView tv = (TextView) getActivity().findViewById(R.id.timeToRSVP);
+								tv.setTextColor(BLACK);
+								tv.setText(getString(R.string.started));
 								mTimer.cancel();
 								mTimer.purge();
 							}
@@ -905,8 +912,6 @@ public class MoreInfoActivity extends ProgressActivity
 			//TODO Look into using include?? I can't seem to get first names tho
 			ParseQuery<ParseObject> comingQuery = new ParseQuery<ParseObject>("Response");
 			comingQuery.whereEqualTo("meetup", mMeetup);
-			if (!mIsCreator)
-				comingQuery.whereEqualTo("isAttending", true);
 			comingQuery.include("responder");
 			comingQuery.findInBackground(new FindCallback<ParseObject>() {
 
@@ -968,12 +973,21 @@ public class MoreInfoActivity extends ProgressActivity
 						comingList.addView(line);
 						comingList.addView(response, lp);
 						coming++;
+						if (user.getObjectId().equals(ParseUser.getCurrentUser().getObjectId()))
+							getActivity().findViewById(R.id.yes).setBackgroundColor(getActivity()
+									.getResources().getColor(R.color.green));
 					}
 					else
 					{
-						notComingList.addView(line);
-						notComingList.addView(response, lp);
-						notComing++;
+						if (mIsCreator)
+						{
+							notComingList.addView(line);
+							notComingList.addView(response, lp);
+							notComing++;
+						}
+						if (user.getObjectId().equals(ParseUser.getCurrentUser().getObjectId()))
+							getActivity().findViewById(R.id.no).setBackgroundColor(getActivity()
+									.getResources().getColor(R.color.red));
 					}
 			    }
 			    if (coming > 0)

@@ -24,8 +24,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="@string/empty"
-        	custom:fontName="Roboto-Light.ttf" />
+            android:text="@string/empty" />
 
         <com.j32productions.balloon.TextBox
             android:id="@+id/responseRateHeader"
@@ -36,8 +35,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/response_rate"
-            android:textColor="@color/gray"
-        	custom:fontName="Roboto-Light.ttf" />
+            android:textColor="@color/gray" />
 
         <com.j32productions.balloon.TextBox
             android:id="@+id/responseRate"
@@ -49,8 +47,7 @@
             android:paddingLeft="5dp"
             android:maxLines="1"
             android:text="@string/empty"
-            android:textColor="@color/gray"
-        	custom:fontName="Roboto-Light.ttf" />
+            android:textColor="@color/gray" />
         
     </RelativeLayout>
 

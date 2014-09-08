@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    android:background="@color/lightBlue"
+    android:background="@color/lightGray"
     tools:context="com.j32productions.balloon.MoreInfoActivity"
     tools:ignore="MergeRootFrame"  >
     

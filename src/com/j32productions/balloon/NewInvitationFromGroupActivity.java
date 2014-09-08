@@ -45,6 +45,7 @@ public class NewInvitationFromGroupActivity extends NewInvitationActivity {
 		mSpotsLeft = 0;
 		mIsFull = false;
 		mHasLocationPictures = true;
+		mHasSent = false;
 
 		//since we want to do cool new things!
 		ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("ContactList");

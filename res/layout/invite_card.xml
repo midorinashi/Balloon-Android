@@ -16,8 +16,7 @@
         android:layout_marginLeft="10dp"
         android:layout_marginBottom="10dp"
         android:layout_marginRight="5dp"
-        android:text="@string/from"
-	    custom:fontName="Roboto-Light.ttf" />
+        android:text="@string/from" />
 
     <com.j32productions.balloon.TextBox
         android:id="@+id/creator"
@@ -26,8 +25,7 @@
         android:layout_alignBaseline="@+id/from"
         android:layout_alignBottom="@+id/from"
         android:layout_toRightOf="@+id/from"
-        android:text="Creator"
-	    custom:fontName="Roboto-Light.ttf" />
+        android:text="Creator" />
     
     <com.j32productions.balloon.TextBox
         android:id="@+id/leftQuote"
@@ -61,9 +59,7 @@
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="3"
-        android:text="Agenda"
-        android:textStyle="bold"
-	    custom:fontName="Roboto-Light.ttf" />
+        android:text="Agenda" />
     
     <ImageView
         android:id="@+id/image"
@@ -100,8 +96,7 @@
 	        android:lines="1"
 	        android:maxLines="1"
 	        android:text="Location"
-	        android:textColor="@color/blue"
-	    	custom:fontName="Roboto-Light.ttf" />
+	        android:textColor="@color/blue" />
 	    
 	</LinearLayout>
 	
@@ -113,8 +108,7 @@
     	android:layout_below="@+id/venue"
     	android:layout_centerHorizontal="true"
         android:text="@string/no_time"
-        android:textColor="@color/red"
- 		custom:fontName="Roboto-Light.ttf" />
+        android:textColor="@color/red" />
 
     <com.j32productions.balloon.TextBox
         android:id="@+id/empty"
@@ -177,8 +171,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/more_info"
-            android:textColor="@color/blue"
-	        custom:fontName="Roboto-Light.ttf" />
+            android:textColor="@color/blue" />
     </LinearLayout>
 
 </RelativeLayout>

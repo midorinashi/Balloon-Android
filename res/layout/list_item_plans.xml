@@ -32,8 +32,7 @@
 	        android:id="@+id/creator"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:textSize="14sp"
-			custom:fontName="Roboto-Light.ttf" />
+	        android:textSize="14sp" />
 	
 	    <com.j32productions.balloon.TextBox
 	        android:id="@+id/agenda"
@@ -53,8 +52,7 @@
 	        android:ellipsize="end"
 	        android:maxLines="1"
 	        android:textColor="@color/blue"
-	        android:textSize="14sp" 
-			custom:fontName="Roboto-Light.ttf" />
+	        android:textSize="14sp"  />
 	    
 	    <com.j32productions.balloon.TextBox
 	        android:id="@+id/timer"
@@ -64,8 +62,7 @@
 	        android:maxLines="1"
 	        android:text="@string/no_time"
 	        android:textColor="@color/red"
-	        android:textSize="14sp"
-			custom:fontName="Roboto-Light.ttf" />
+	        android:textSize="14sp" />
 	    
 	    <com.j32productions.balloon.TextBox
 	        android:id="@+id/spotsLeft"
@@ -74,8 +71,7 @@
 	        android:ellipsize="end"
 	        android:maxLines="1"
 	        android:textSize="14sp"
-	        android:visibility="gone"
-			custom:fontName="Roboto-Light.ttf" />
+	        android:visibility="gone" />
 	    
 	</LinearLayout>
 	

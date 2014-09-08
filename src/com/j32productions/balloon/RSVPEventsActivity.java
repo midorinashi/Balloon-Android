@@ -180,36 +180,22 @@ public class RSVPEventsActivity extends Activity {
 				else
 				{
 					System.out.println("size is " + upcoming.size());
-					LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
+					final LinearLayout lin = (LinearLayout) getActivity().findViewById(R.id.invitations);
 					System.out.println(lin);
 					//removes all the views for now because EFFICIENCY WHAT
 					lin.removeAllViews();
-					LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, 1);
-					View line = new View(getActivity());
-					line.setBackgroundColor(getActivity().getResources().getColor(R.color.lineGray));
-					line.setLayoutParams(lp);
-					lin.addView(line);
+					final LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, 1);
+					View firstLine = new View(getActivity());
+					firstLine.setBackgroundColor(getActivity().getResources().getColor(R.color.lineGray));
+					firstLine.setLayoutParams(lp);
+					lin.addView(firstLine);
 					
 					for (int i = 0; i < upcoming.size(); i++)
 					{
+						final View line = new View(getActivity());
 						final View event = View.inflate(getActivity(), R.layout.list_item_plans, null);
 						ParseObject meetup = (ParseObject) upcoming.get(i).get("meetup");
-						ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Response");
-						query.whereEqualTo("meetup", meetup);
-						query.whereEqualTo("responder", ParseUser.getCurrentUser());
-						query.getFirstInBackground(new GetCallback<ParseObject>() {
-							@Override
-							public void done(ParseObject response,
-									ParseException e) {
-								if (response != null)
-								{
-									int color = response.getBoolean("isAttending") ?
-											getActivity().getResources().getColor(R.color.darkGreen) :
-											getActivity().getResources().getColor(R.color.red);
-									event.findViewById(R.id.RSVP).setBackgroundColor(color);
-								}
-							}
-						});
+						
 						//invite.setVenuePhoto(event.getParseFile(key));
 						try {
 							((TextView) event.findViewById(R.id.creator)).setText(meetup
@@ -265,6 +251,7 @@ public class RSVPEventsActivity extends Activity {
 											timeToRSVP = startsAt.getTime() - now.getTime();
 											if (timeToRSVP < 0)
 											{
+												mTimeToRSVPView.setTextColor(BLACK);
 												mTimeToRSVPView.setText(STARTED);
 												// I want to cancel the handler, timer, and view
 												int index = handlers.indexOf(this);
@@ -338,21 +325,43 @@ public class RSVPEventsActivity extends Activity {
 									
 								}
 							});
+
+							event.setVisibility(View.GONE);
+							line.setVisibility(View.GONE);
+							
+							ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Response");
+							query.whereEqualTo("meetup", meetup);
+							query.whereEqualTo("responder", ParseUser.getCurrentUser());
+							query.getFirstInBackground(new GetCallback<ParseObject>() {
+								@Override
+								public void done(ParseObject response,
+										ParseException e) {
+									if (response != null)
+									{
+										int color = response.getBoolean("isAttending") ?
+												getActivity().getResources().getColor(R.color.darkGreen) :
+												getActivity().getResources().getColor(R.color.red);
+										event.findViewById(R.id.RSVP).setBackgroundColor(color);
+										if (response.getBoolean("isAttending") ||
+												expiresAt.getTime() - new Date().getTime() > 0)
+										{
+											event.setVisibility(View.VISIBLE);
+											line.setVisibility(View.VISIBLE);
+											if (switcher.getDisplayedChild() == 1)
+												switcher.showPrevious();
+										}
+									}
+								}
+							});
 						} catch (JSONException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						lin.addView(event);
-						line = new View(getActivity());
 						line.setBackgroundColor(getActivity().getResources()
 								.getColor(R.color.lineGray));
 						line.setLayoutParams(lp);
 						lin.addView(line);
 					}
-					lin.invalidate();
-					lin.requestLayout();
-					if (switcher.getDisplayedChild() == 1)
-						switcher.showPrevious();
 				}
 			}
 			removeSpinner();

@@ -76,17 +76,16 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 	private static ContextMenu mMenu;
 	public static String memberToDelete;
 	public static String phoneToDelete;
-	public String[] mMemberFirstNames;
-	public String[] mMemberLastNames;
-	public String[] mPhoneNumbers;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_contact_list_info);
 		getActionBar().setDisplayHomeAsUpEnabled(true);
-		mListName = getIntent().getExtras().getString("listName");
-		mListId = getIntent().getExtras().getString("listId");
+		if (getIntent().hasExtra("listName"))
+			mListName = getIntent().getExtras().getString("listName");
+		if (getIntent().hasExtra("listId"))
+			mListId = getIntent().getExtras().getString("listId");
 
 		if (savedInstanceState == null) {
 			getFragmentManager().beginTransaction()
@@ -240,6 +239,7 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 	//so we can delete members
 	public boolean onMenuItemClick(MenuItem item)
 	{
+		showSpinner();
 		System.out.println(item.getItemId());
 		System.out.println(R.id.action_delete_member);
 		if (item.getItemId() == R.id.action_delete_member)
@@ -277,26 +277,29 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 								System.out.println("found");
 							}
 						}
+						//then we need to take out this member from the view
+						LinearLayout ll = (LinearLayout) findViewById(R.id.linearLayout);
+						//we don't want the lines
+						if (ll != null)
+						{
+							for (int i = 0; i < ll.getChildCount(); i += 2)
+							{
+								View view = ll.getChildAt(i);
+								if (((TextView) view.findViewById(R.id.id)).getText().toString()
+										.compareTo(memberToDelete) == 0)
+								{
+									//remove both the members and the line under it
+									ll.removeViews(i, 2);
+									break;
+								}
+							}
+						}
+						removeSpinner();
 					}
 					else
 						showParseException(e);
 				}
 			});
-			
-			//then we need to take out this member from the view
-			LinearLayout ll = (LinearLayout) findViewById(R.id.linearLayout);
-			//we don't want the lines
-			for (int i = 0; i < ll.getChildCount(); i += 2)
-			{
-				View view = ll.getChildAt(i);
-				if (((TextView) view.findViewById(R.id.id)).getText().toString()
-						.compareTo(memberToDelete) == 0)
-				{
-					//remove both the members and the line under it
-					ll.removeViews(i, 2);
-					break;
-				}
-			}
 			return true;
 		}
 		return false;
@@ -710,7 +713,7 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 				else
 				{
 					//fix that menu
-					mOptionMenu.getItem(0).setVisible(false);
+					mOptionMenu.getItem(0).setVisible(true);
 					mOptionMenu.getItem(1).setVisible(true);
 					mOptionMenu.getItem(2).setVisible(true);
 					mOptionMenu.getItem(3).setVisible(false);
@@ -818,6 +821,12 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 	
 	public static class SelectMembersFromContactsFragment extends 
 		NewInvitationActivity.SelectMembersFromContactsFragment {
+		
+		public void onCreate(Bundle savedInstanceState)
+		{
+			super.onCreate(savedInstanceState);
+			NewInvitationActivity.mPhoneNumbers = new String[0];
+		}
 		
 		public void onResume()
 		{

@@ -22,9 +22,10 @@ public class EditBox extends EditText {
     }
 
     private void init() {
+    	/*
         if (!isInEditMode()) {
             Typeface tf = Typeface.createFromAsset(getContext().getAssets(), "fonts/Roboto-Light.ttf");
             setTypeface(tf);
-        }
+        }*/
     }
 }

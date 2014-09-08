@@ -114,6 +114,7 @@ public class EditMeetupActivity extends NewInvitationActivity {
 		mListView = null;
 		mPlus = false;
 		mContactListImage = null;
+		mHasSent = false;
 		if (meetup.has("maxAttendees"))
 		{
 			mLimit = meetup.getInt("maxAttendees");
