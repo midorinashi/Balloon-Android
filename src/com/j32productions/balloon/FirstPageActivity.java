@@ -79,6 +79,15 @@ public class FirstPageActivity extends ProgressActivity {
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
+		if (item.getItemId() == android.R.id.home)
+		{
+			if (findViewById(R.id.firstPage) == null)
+			{
+				if (findViewById(R.id.verify) != null)
+					getFragmentManager().popBackStack();
+				getFragmentManager().popBackStack();
+			}
+		}
 		return super.onOptionsItemSelected(item);
 	}
 	
@@ -293,7 +302,11 @@ public class FirstPageActivity extends ProgressActivity {
 					else if (list.get(0).getBoolean("isProxy"))
 						saveUser(list.get(0));
 					else
-						signupFailure(e);
+					{
+						removeSpinner();
+						Toast.makeText(FirstPageActivity.this, "This number is already taken.",
+								Toast.LENGTH_LONG).show();
+					}
 				}
 				else
 					signupFailure(e);

@@ -49,6 +49,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.j32productions.balloon.NewInvitationActivity.EditAgendaFragment;
+import com.j32productions.balloon.NewInvitationActivity.SelectMembersFromContactsFragment;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
@@ -75,7 +77,7 @@ public class NewContactListActivity extends ProgressActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_contact_list);
-		getActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setDisplayHomeAsUpEnabled(false);
 		//Set default values for first screen
 		mListName = "New Group";
 		if (getIntent().hasExtra("name"))
@@ -263,7 +265,10 @@ public class NewContactListActivity extends ProgressActivity {
 			else if (item.getTitle().toString().compareTo("Done") == 0)
 			{
 				//finish activity and save list
-				saveContacts();
+				if (SelectMembersFromContactsFragment.getCheckedCount() != 0)
+					saveContacts();
+				else
+					Toast.makeText(this, "No friends?", Toast.LENGTH_SHORT).show();
 			}
 			else
 			{

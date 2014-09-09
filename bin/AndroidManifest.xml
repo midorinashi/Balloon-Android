@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.j32productions.balloon"
-    android:versionCode="10"
+    android:versionCode="13"
     android:versionName="1.0" >
 
     <uses-sdk
@@ -21,15 +21,16 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <uses-permission android:name="com.j32productions.balloon.pushnotifications.permission.C2D_MESSAGE" />
+    <uses-permission android:name="com.j32productions.balloon.permission.C2D_MESSAGE" />
 
     <permission
-        android:name="com.j32productions.balloon.pushnotifications.permission.C2D_MESSAGE"
+        android:name="com.j32productions.balloon.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
 
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+    <uses-feature android:name="android.hardware.screen.portrait" />
 
     <application
         android:allowBackup="true"
@@ -61,6 +62,7 @@
         <activity
             android:name="com.j32productions.balloon.MainActivity"
             android:label="@string/app_name"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -70,6 +72,7 @@
         <activity
            	android:name="com.j32productions.balloon.MoreInfoActivity"
             android:label="@string/title_activity_more_info"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" 
             android:parentActivityName="com.j32productions.balloon.MainActivity" >
 	        <!-- Parent activity meta-data to support 4.0 and lower -->
@@ -80,6 +83,7 @@
         <activity
             android:name="com.j32productions.balloon.NewInvitationActivity"
             android:label="@string/title_activity_new_invitation"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" 
             android:parentActivityName="com.j32productions.balloon.MainActivity" >
 	        <!-- Parent activity meta-data to support 4.0 and lower -->
@@ -90,16 +94,18 @@
         <activity
             android:name="com.j32productions.balloon.EditMeetupActivity"
             android:label="@string/title_activity_edit_meetup"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" 
-            android:parentActivityName="com.j32productions.balloon.MoreInfoActivity" >
+            android:parentActivityName="com.j32productions.balloon.MainActivity" >
 	        <!-- Parent activity meta-data to support 4.0 and lower -->
 	        <meta-data
 	            android:name="android.support.PARENT_ACTIVITY"
-	            android:value="com.j32productions.balloon.MoreInfoActivity" />
+	            android:value="com.j32productions.balloon.MainActivity" />
         </activity>
         <activity
             android:name="com.j32productions.balloon.ContactListsActivity"
             android:label="@string/title_activity_contact_lists"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" 
             android:parentActivityName="com.j32productions.balloon.MainActivity" >
 	        <!-- Parent activity meta-data to support 4.0 and lower -->
@@ -110,16 +116,18 @@
         <activity
             android:name="com.j32productions.balloon.NewContactListActivity"
             android:label="@string/title_activity_new_contact_list"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" 
-            android:parentActivityName="com.j32productions.balloon.ContactListsActivity" >
+            android:parentActivityName="com.j32productions.balloon.MainActivity" >
 	        <!-- Parent activity meta-data to support 4.0 and lower -->
 	        <meta-data
 	            android:name="android.support.PARENT_ACTIVITY"
-	            android:value="com.j32productions.balloon.ContactListsActivity" />
+	            android:value="com.j32productions.balloon.MainActivity" />
         </activity>
         <activity
             android:name="com.j32productions.balloon.RSVPEventsActivity" 
             android:label="@string/title_activity_rsvpevents"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" 
             android:parentActivityName="com.j32productions.balloon.MainActivity" >
 	        <!-- Parent activity meta-data to support 4.0 and lower -->
@@ -130,6 +138,7 @@
         <activity
             android:name="com.j32productions.balloon.SettingsActivity"
             android:label="@string/title_activity_settings"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" 
             android:parentActivityName="com.j32productions.balloon.MainActivity" >
 	        <!-- Parent activity meta-data to support 4.0 and lower -->
@@ -140,37 +149,41 @@
         <activity
             android:name="com.j32productions.balloon.FirstPageActivity"
             android:label="@string/title_activity_first_page"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" >
         </activity>
         <activity
             android:name="com.j32productions.balloon.ContactListInfoActivity"
             android:label="@string/title_activity_contact_list_info"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" 
-            android:parentActivityName="com.j32productions.balloon.ContactListsActivity" >
+            android:parentActivityName="com.j32productions.balloon.MainActivity" >
 	        <!-- Parent activity meta-data to support 4.0 and lower -->
 	        <meta-data
 	            android:name="android.support.PARENT_ACTIVITY"
-	            android:value="com.j32productions.balloon.ContactListsActivity" />
+	            android:value="com.j32productions.balloon.MainActivity" />
         </activity>
         <activity
             android:name="com.j32productions.balloon.NewInvitationFromGroupActivity"
             android:label="@string/title_activity_new_invitation_from_group"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" 
-            android:parentActivityName="com.j32productions.balloon.ContactListInfoActivity" >
+            android:parentActivityName="com.j32productions.balloon.MainActivity" >
 	        <!-- Parent activity meta-data to support 4.0 and lower -->
 	        <meta-data
 	            android:name="android.support.PARENT_ACTIVITY"
-	            android:value="com.j32productions.balloon.ContactListInfoActivity" />
+	            android:value="com.j32productions.balloon.MainActivity" />
         </activity>
         <activity
             android:name="com.j32productions.balloon.InviteMoreActivity"
             android:label="@string/title_activity_new_invitation_from_group"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" 
-            android:parentActivityName="com.j32productions.balloon.MoreInfoActivity" >
+            android:parentActivityName="com.j32productions.balloon.MainActivity" >
 	        <!-- Parent activity meta-data to support 4.0 and lower -->
 	        <meta-data
 	            android:name="android.support.PARENT_ACTIVITY"
-	            android:value="com.j32productions.balloon.MoreInfoActivity" />
+	            android:value="com.j32productions.balloon.MainActivity" />
         </activity>
     </application>
 

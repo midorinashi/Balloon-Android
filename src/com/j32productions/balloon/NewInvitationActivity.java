@@ -149,7 +149,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 		super.onCreate(savedInstanceState);
 		ParseUser.getCurrentUser().fetchInBackground(null);
 		setContentView(R.layout.activity_new_invitation);
-		getActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setDisplayHomeAsUpEnabled(false);
 		//set all the defaults
 		defaultInfo(savedInstanceState);
 	}

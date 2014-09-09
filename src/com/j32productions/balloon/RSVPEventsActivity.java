@@ -49,7 +49,7 @@ public class RSVPEventsActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_rsvpevents);
 		setTitle(R.string.title_activity_rsvpevents);
-		getActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setDisplayHomeAsUpEnabled(false);
 		if (savedInstanceState == null) {
 			getFragmentManager().beginTransaction()
 					.add(R.id.container, new PlaceholderFragment()).commit();
@@ -70,12 +70,7 @@ public class RSVPEventsActivity extends Activity {
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == android.R.id.home)
-		{
-	        NavUtils.navigateUpFromSameTask(this);
-	        return true;
-	    }
-		else if (id == R.id.action_invites)
+		if (id == R.id.action_invites)
 		{
 			Intent intent = new Intent(this, MainActivity.class);
 			startActivity(intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));

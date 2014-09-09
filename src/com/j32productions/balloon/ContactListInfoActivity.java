@@ -81,7 +81,7 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_contact_list_info);
-		getActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setDisplayHomeAsUpEnabled(false);
 		if (getIntent().hasExtra("listName"))
 			mListName = getIntent().getExtras().getString("listName");
 		if (getIntent().hasExtra("listId"))
@@ -115,10 +115,16 @@ public class ContactListInfoActivity extends ProgressActivity implements OnMenuI
 	    }
 		else if (id == R.id.action_add_members)
 		{
-			FragmentTransaction transaction = getFragmentManager().beginTransaction();
-			transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
-			transaction.addToBackStack(null);
-			transaction.commit();
+			if (findViewById(R.id.progressCircle) == null)
+			{
+				FragmentTransaction transaction = getFragmentManager().beginTransaction();
+				transaction.replace(R.id.container, new SelectMembersFromContactsFragment());
+				transaction.addToBackStack(null);
+				transaction.commit();
+			}
+			else
+				Toast.makeText(this, "Please wait for us to sync with our database.",
+						Toast.LENGTH_LONG).show();
 		}
 		else if (id == R.id.action_send)
 		{

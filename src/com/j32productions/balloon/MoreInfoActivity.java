@@ -90,7 +90,7 @@ public class MoreInfoActivity extends ProgressActivity
 		if (getIntent().hasExtra("isCreator"))
 			mIsCreator = getIntent().getExtras().getBoolean("isCreator");
 		System.out.println(mObjectId);
-		getActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setDisplayHomeAsUpEnabled(false);
 		if (savedInstanceState == null)
 		{
 			showSpinner();
@@ -974,8 +974,12 @@ public class MoreInfoActivity extends ProgressActivity
 						comingList.addView(response, lp);
 						coming++;
 						if (user.getObjectId().equals(ParseUser.getCurrentUser().getObjectId()))
+						{
 							getActivity().findViewById(R.id.yes).setBackgroundColor(getActivity()
 									.getResources().getColor(R.color.green));
+							mHasResponded = true;
+							mWillAttend = true;
+						}
 					}
 					else
 					{
@@ -986,8 +990,12 @@ public class MoreInfoActivity extends ProgressActivity
 							notComing++;
 						}
 						if (user.getObjectId().equals(ParseUser.getCurrentUser().getObjectId()))
+						{
 							getActivity().findViewById(R.id.no).setBackgroundColor(getActivity()
 									.getResources().getColor(R.color.red));
+							mHasResponded = true;
+							mWillAttend = false;
+						}
 					}
 			    }
 			    if (coming > 0)

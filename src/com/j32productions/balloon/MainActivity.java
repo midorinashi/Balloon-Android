@@ -169,6 +169,14 @@ public class MainActivity extends ProgressActivity
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
+		if (id == android.R.id.home)
+		{
+			//get out of the one invite screen
+			if (findViewById(R.id.animator) == null)
+			{
+				getFragmentManager().popBackStack();
+			}
+		}
 		if (id == R.id.action_plus || id == R.id.action_create)
 		{
 			newInvitation(null);
