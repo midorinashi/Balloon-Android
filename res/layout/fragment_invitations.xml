@@ -45,7 +45,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="25dp"
-                android:text="@string/no_invites"
+                android:text="@string/no_new_invites"
                 android:textSize="16sp" />
 
             <com.j32productions.balloon.TextBox

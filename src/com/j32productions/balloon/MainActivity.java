@@ -11,14 +11,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.FragmentTransaction;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -106,6 +111,30 @@ public class MainActivity extends ProgressActivity
 		
 		getFragmentManager().beginTransaction()
 			.add(R.id.container, new PracticeFragment()).commit();
+		
+
+		LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+		if((!lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+		      !lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) &&
+		      !BalloonApplication.mHasPoppedUp) {
+		  // Build the alert dialog
+		  AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		  builder.setTitle("Location Services Not Active");
+		  builder.setMessage("Please enable Location Services and GPS");
+		  builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		  public void onClick(DialogInterface dialogInterface, int i) {
+		    // Show location settings when the user acknowledges the alert dialog
+			 Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+		    startActivity(intent);
+		    }
+		  }); 
+		  builder.setNegativeButton("Not now", null);
+		  Dialog alertDialog = builder.create();
+		  alertDialog.setCanceledOnTouchOutside(false);
+		  alertDialog.show();
+		}
+		BalloonApplication.mHasPoppedUp = true;
+		
 		if (getIntent().getExtras() != null && getIntent().getExtras().containsKey("com.parse.Data"))
 		{
 			String str = getIntent().getExtras().getString("com.parse.Data");
@@ -234,7 +263,6 @@ public class MainActivity extends ProgressActivity
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_invitations, container,
 					false);
-
 	    	// Register the listener with the Location Manager to receive location updates
 			handlers = new ArrayList<Handler>();
 			timers = new ArrayList<Timer>();

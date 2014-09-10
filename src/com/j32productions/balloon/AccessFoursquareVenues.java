@@ -16,6 +16,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.widget.Toast;
 
 public class AccessFoursquareVenues extends AccessFoursquare implements LocationListener {
 
@@ -54,7 +55,7 @@ public class AccessFoursquareVenues extends AccessFoursquare implements Location
     		urlString += "%20&query=" + strings[0].replaceAll(" ", "%20") + "%20&limit=100" + "%20&radius=50000";
     	//we want to make query-less queries fast
     	else
-    		urlString+= "%20&limit=10" + "%20&radius=5000";
+    		urlString+= "%20&limit=10" + "%20&radius=50000";
     	System.out.println(urlString);
     	// for explore, we can add "%20&time=any%20&day=any"
     	

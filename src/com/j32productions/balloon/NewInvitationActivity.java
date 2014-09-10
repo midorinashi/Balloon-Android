@@ -449,6 +449,7 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 	
 	public void saveMeetup(final ParseObject meetup)
 	{
+		System.out.println("cat");
 		if (!mHasSent)
 		{
 			mHasSent = true;
@@ -472,10 +473,12 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 					contacts.put(contact);
 				}
 				params.put("contacts", contacts);
+				System.out.println("Finished preparing");
 				ParseCloud.callFunctionInBackground("findOrCreateUsers", params, new FunctionCallback<ArrayList<ParseUser>>() {
 	
 					@Override
 					public void done(ArrayList<ParseUser> list, ParseException e) {
+						System.out.println("Done finding");
 						if (e == null)
 						{
 							// need to give all the members to makeMeetup and to create a new contact list
@@ -518,10 +521,13 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 									else
 										showParseException(e);
 								}
-							});
+							}); 
 							*/
 							mFinishSavingMeetup = true;
+							//cause we have to call this stupid function again
+							mHasSent = false;
 							saveMeetup(meetup);
+							Toast.makeText(context, "Found members!", Toast.LENGTH_SHORT).show();
 						}
 						else
 						{
@@ -1002,7 +1008,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 						{
 							lists[i] = memberLists.get(i).getString("name");
 							checkForShellGroups(lists[i]);
-							if (memberLists.get(i).containsKey("photo"))
+							if (memberLists.get(i).containsKey("photo") &&
+									memberLists.get(i).getParseFile("photo") != null)
 								photoURLs[i] = memberLists.get(i).getParseFile("photo").getUrl();
 							else
 								photoURLs[i] = "" + images.getResourceId(
@@ -1882,7 +1889,8 @@ public class NewInvitationActivity extends ProgressActivity implements OnMemberL
 			final String[] names;
 			if (search == "" && array.length() == 0)
 			{
-				Toast.makeText(context, context.getString(R.string.no_locations), Toast.LENGTH_LONG).show();
+	    		Toast.makeText(fragment.getActivity(), fragment.getString(R.string.no_locations),
+	    				Toast.LENGTH_LONG).show();
 				return;
 			}
 			//array won't show last spot of the searched array because of create new location

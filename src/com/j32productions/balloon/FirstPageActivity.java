@@ -372,8 +372,14 @@ public class FirstPageActivity extends ProgressActivity {
 						user = u;
 						verifyUser(verifyCode);
 					}
+					else if (e == null)
+					{
+						removeSpinner();
+						Toast.makeText(FirstPageActivity.this,
+								"Oops! User not found.", Toast.LENGTH_LONG).show();
+					}
 					else
-						e.printStackTrace();
+						showParseException(e);
 				}
 			});
 	}
@@ -402,6 +408,13 @@ public class FirstPageActivity extends ProgressActivity {
 								if (user != null)
 									//saves the profile picture now if it exists
 									startMainActivity();
+								else if (e == null)
+								{
+									removeSpinner();
+									Toast.makeText(FirstPageActivity.this,
+											"Oops! User not found.",
+											Toast.LENGTH_LONG).show();
+								}
 								else
 									showParseException(e);
 							}
@@ -430,6 +443,12 @@ public class FirstPageActivity extends ProgressActivity {
 			public void done(ParseUser user, ParseException e) {
 				if (user != null)
 					startMainActivity();
+				else if (e == null)
+				{
+					removeSpinner();
+					Toast.makeText(FirstPageActivity.this,
+							"Oops! User not found.", Toast.LENGTH_LONG).show();
+				}
 				else
 					loginFailure(e);
 			}
